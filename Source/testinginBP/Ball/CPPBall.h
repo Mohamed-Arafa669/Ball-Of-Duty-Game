@@ -27,6 +27,18 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //Replication
 	void ShowPickupWidget(bool bShowWidget);
 
+	//Textures for the crosshair
+
+	UPROPERTY(EditAnywhere, Category = Crosshairs)
+		class UTexture2D* crosshairsCenter;
+	UPROPERTY(EditAnywhere, Category = Crosshairs)
+		UTexture2D* crosshairsLeft;
+	UPROPERTY(EditAnywhere, Category = Crosshairs)
+		UTexture2D* crosshairsRight;
+	UPROPERTY(EditAnywhere, Category = Crosshairs)
+		UTexture2D* crosshairsTop;
+	UPROPERTY(EditAnywhere, Category = Crosshairs)
+		UTexture2D* crosshairsBottom;
 
 protected:
 	virtual void BeginPlay() override;
@@ -66,6 +78,8 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Ball Properties")
 		class UWidgetComponent* pickUpWidget;
 
+
+	
 public:
 	void SetBallState(EBallState state);
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }

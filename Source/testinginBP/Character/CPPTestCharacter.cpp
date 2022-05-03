@@ -8,7 +8,8 @@
 #include "Net/UnrealNetwork.h" //Replication
 #include "testinginBP\Ball\CPPBall.h"
 #include "testinginBP\GameComponents\CombatComponent.h"
-
+#include "Animation/AnimMontage.h"
+#include "testinginBP\Character\CPPAnimInstance.h"
 
 ACPPTestCharacter::ACPPTestCharacter()
 {
@@ -50,6 +51,17 @@ void ACPPTestCharacter::PostInitializeComponents()
 		}
 }
 
+void ACPPTestCharacter::PlayThrowMontage()
+{
+	if (combat == nullptr || combat->eqippedBall == nullptr) return;
+
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (animInstance && throwAnim)
+	{
+		animInstance->Montage_Play(throwAnim);
+	}
+}
+
 void ACPPTestCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -66,8 +78,13 @@ void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ACPPTestCharacter::EquipButtonPressed);
 
-	PlayerInputComponent->BindAction("Throw", IE_Pressed, this, &ACPPTestCharacter::Throw);
+	//PlayerInputComponent->BindAction("Throw", IE_Pressed, this, &ACPPTestCharacter::Throw);
+
 	PlayerInputComponent->BindAction("Catch", IE_Pressed, this, &ACPPTestCharacter::Catch);
+
+	PlayerInputComponent->BindAction("Throw", IE_Pressed, this, &ACPPTestCharacter::ThrowButtonPressed);
+	PlayerInputComponent->BindAction("Throw", IE_Released, this, &ACPPTestCharacter::ThrowButtonReleased);
+
 
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &ACPPTestCharacter::MoveForward);
@@ -122,15 +139,57 @@ void ACPPTestCharacter::EquipButtonPressed()
 		}
 	}
 }
-
-void ACPPTestCharacter::Throw()
+void ACPPTestCharacter::ServerEquipButtonPressed_Implementation() //RPC
 {
-
+	if (combat)
+	{
+		combat->EquipBall(overlappingBall);
+	}
 }
+//void ACPPTestCharacter::Throw()
+//{
+//	if (HasAuthority()) 
+//	{
+//		if (throwAnim)
+//		{
+//			PlayAnimMontage(throwAnim, 1.5,NAME_None);
+//		}
+//	}
+//	else
+//	{
+//		ServerThrowButtonPressed();
+//	}
+//	
+//}
+//
+//void ACPPTestCharacter::ServerThrowButtonPressed_Implementation() //RPC
+//{
+//	if (throwAnim)
+//	{
+//		PlayAnimMontage(throwAnim, 1.5, NAME_None);
+//	}
+//}
+
 
 void ACPPTestCharacter::Catch()
 {
 
+}
+
+void ACPPTestCharacter::ThrowButtonPressed()
+{
+	if (combat)
+	{
+		combat->ThrowButtonPressed(true);
+	}
+}
+
+void ACPPTestCharacter::ThrowButtonReleased()
+{
+	if (combat)
+	{
+		combat->ThrowButtonPressed(false);
+	}
 }
 
 void ACPPTestCharacter::SetOverlappingBall(ACPPBall* cppBall)
@@ -161,13 +220,7 @@ void ACPPTestCharacter::OnRep_OverlappingBall(ACPPBall* lastBall)
 	}
 }
 
-void ACPPTestCharacter::ServerEquipButtonPressed_Implementation() //RPC
-{
-	if (combat)
-	{
-		combat->EquipBall(overlappingBall);
-	}
-}
+
 
 bool ACPPTestCharacter::IsBallEquipped()
 {

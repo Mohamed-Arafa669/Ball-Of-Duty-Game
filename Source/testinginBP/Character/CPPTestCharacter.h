@@ -17,6 +17,9 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //Replication
 	virtual void PostInitializeComponents() override;
+	void PlayThrowMontage();
+	
+
 
 protected:
 	virtual void BeginPlay() override;
@@ -26,8 +29,11 @@ protected:
 	void Turn(float value);
 	void LookUp(float value);
 	void EquipButtonPressed();
-	void Throw();
+	//void Throw();
 	void Catch();
+
+	void ThrowButtonPressed();
+	void ThrowButtonReleased();
 
 private:
 	UPROPERTY(visibleAnywhere, Category = Camera)
@@ -36,7 +42,8 @@ private:
 		class UCameraComponent* followCamera;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		class UWidgetComponent* overHeadWidget;
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* throwAnim;
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingBall) //Replication
 		class ACPPBall* overlappingBall;
 
@@ -48,6 +55,9 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
+
+	/*UFUNCTION(Server, Reliable)
+		void ServerThrowButtonPressed();*/
 
 public:	
 	 void SetOverlappingBall(ACPPBall* cppBall);

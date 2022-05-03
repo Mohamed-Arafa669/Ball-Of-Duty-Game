@@ -23,12 +23,18 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	void ThrowButtonPressed(bool bPressed);
+	void SetHUDCrosshairs(float DeltaTime);
 
 private:
 	class ACPPTestCharacter* character;
+	class ACPPPlayerController* Controller;
+	class AGameHUD* HUD;
 
 	UPROPERTY(Replicated)
 	ACPPBall* eqippedBall;
+
+	bool bThrowButtonPressed;
 
 public:	
 
