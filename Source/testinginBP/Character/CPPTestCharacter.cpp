@@ -33,22 +33,26 @@ ACPPTestCharacter::ACPPTestCharacter()
 	combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	combat->SetIsReplicated(true);
 
+	bCanDash = true;
+
+
+
 }
 void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	//important to include #include "Net/UnrealNetwork.h" whenever we use the replication macro
-	DOREPLIFETIME_CONDITION(ACPPTestCharacter, overlappingBall,COND_OwnerOnly); //Replication
+	DOREPLIFETIME_CONDITION(ACPPTestCharacter, overlappingBall, COND_OwnerOnly); //Replication
 }
 
 
 void ACPPTestCharacter::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
-		if (combat)
-		{
-			combat->character = this;
-		}
+	if (combat)
+	{
+		combat->character = this;
+	}
 }
 
 void ACPPTestCharacter::PlayThrowMontage()
@@ -65,7 +69,7 @@ void ACPPTestCharacter::PlayThrowMontage()
 void ACPPTestCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 void ACPPTestCharacter::Tick(float DeltaTime)
 {
@@ -81,6 +85,7 @@ void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	//PlayerInputComponent->BindAction("Throw", IE_Pressed, this, &ACPPTestCharacter::Throw);
 
 	PlayerInputComponent->BindAction("Catch", IE_Pressed, this, &ACPPTestCharacter::Catch);
+	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ACPPTestCharacter::Dash);
 
 	PlayerInputComponent->BindAction("Throw", IE_Pressed, this, &ACPPTestCharacter::ThrowButtonPressed);
 	PlayerInputComponent->BindAction("Throw", IE_Released, this, &ACPPTestCharacter::ThrowButtonReleased);
@@ -176,6 +181,71 @@ void ACPPTestCharacter::Catch()
 
 }
 
+void ACPPTestCharacter::Dash()
+{
+
+	if (HasAuthority())
+	{
+		if (bCanDash) {
+
+
+
+			if (DashAnim)
+			{
+				MulticastPlayAnimMontage(DashAnim, 1, NAME_None);
+
+			}
+
+			const FVector ForwardVector = this->GetActorRotation().Vector();
+			LaunchCharacter(ForwardVector * DashDistance, true, true);
+
+			bCanDash = false;
+
+			FTimerHandle handle;
+			GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::CanDash, 1.f);
+		}
+	}
+	else
+	{
+		DashButtonPressed();
+	}
+
+}
+
+void ACPPTestCharacter::CanDash()
+{
+	bCanDash = true;
+}
+
+void ACPPTestCharacter::DashButtonPressed_Implementation()
+{
+	if (bCanDash) {
+
+		if (DashAnim)
+		{
+			PlayAnimMontage(DashAnim, 1, NAME_None);
+			ServerPlayAnimMontage(DashAnim, 1, NAME_None);
+
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(
+					-1,
+					15.f,
+					FColor::Red,
+					FString::Printf(TEXT("ALO")));
+			}
+		}
+
+		const FVector ForwardVector = this->GetActorRotation().Vector();
+		LaunchCharacter(ForwardVector * DashDistance, true, true);
+
+		bCanDash = false;
+
+		FTimerHandle handle;
+		GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::CanDash, 1.f);
+	}
+}
+
 void ACPPTestCharacter::ThrowButtonPressed()
 {
 	if (combat)
@@ -190,6 +260,30 @@ void ACPPTestCharacter::ThrowButtonReleased()
 	{
 		combat->ThrowButtonPressed(false);
 	}
+}
+
+
+void ACPPTestCharacter::ServerPlayAnimMontage_Implementation(UAnimMontage* AnimMontage, float InPlayRate,
+	FName StartSectionName)
+{
+	MulticastPlayAnimMontage(AnimMontage, InPlayRate, StartSectionName);
+}
+
+bool ACPPTestCharacter::ServerPlayAnimMontage_Validate(UAnimMontage* AnimMontage, float InPlayRate,
+	FName StartSectionName)
+{
+	return true;
+}
+
+void ACPPTestCharacter::MulticastPlayAnimMontage_Implementation(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
+{
+	PlayAnimMontage(AnimMontage, InPlayRate, StartSectionName);
+}
+
+bool ACPPTestCharacter::MulticastPlayAnimMontage_Validate(UAnimMontage* AnimMontage, float InPlayRate,
+	FName StartSectionName)
+{
+	return true;
 }
 
 void ACPPTestCharacter::SetOverlappingBall(ACPPBall* cppBall)
@@ -210,7 +304,7 @@ void ACPPTestCharacter::SetOverlappingBall(ACPPBall* cppBall)
 
 void ACPPTestCharacter::OnRep_OverlappingBall(ACPPBall* lastBall)
 {
-	if (overlappingBall) 
+	if (overlappingBall)
 	{
 		overlappingBall->ShowPickupWidget(true);
 	}

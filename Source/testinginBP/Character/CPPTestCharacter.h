@@ -32,6 +32,8 @@ protected:
 	//void Throw();
 	void Catch();
 
+	void Dash();
+	void CanDash();
 	void ThrowButtonPressed();
 	void ThrowButtonReleased();
 
@@ -44,6 +46,8 @@ private:
 		class UWidgetComponent* overHeadWidget;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* throwAnim;
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* DashAnim;
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingBall) //Replication
 		class ACPPBall* overlappingBall;
 
@@ -56,6 +60,14 @@ private:
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
 
+	UFUNCTION(Server, Reliable)
+	void DashButtonPressed();
+
+	UFUNCTION(Server, Reliable, WithValidation, Category = Animation)
+		void ServerPlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Animation)
+		void MulticastPlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
 	/*UFUNCTION(Server, Reliable)
 		void ServerThrowButtonPressed();*/
 
@@ -63,4 +75,12 @@ public:
 	 void SetOverlappingBall(ACPPBall* cppBall);
 
 	 bool IsBallEquipped();
+
+	 bool bCanDash;
+
+	UPROPERTY(EditAnywhere, Replicated, Category = "Movement")
+	 float DashDistance = 6000.f;
+
+
+
 };
