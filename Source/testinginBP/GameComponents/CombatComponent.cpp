@@ -93,6 +93,7 @@ void UCombatComponent::EquipBall(class ACPPBall* ballToEquip)
 	if (character == nullptr || ballToEquip == nullptr) return;
 
 	eqippedBall = ballToEquip;
+	eqippedBall->DisableComponentsSimulatePhysics();
 	eqippedBall->SetBallState(EBallState::EBS_Equipped);
 	const USkeletalMeshSocket* handSocket = character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
 
