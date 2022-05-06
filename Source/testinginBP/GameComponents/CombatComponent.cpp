@@ -99,15 +99,32 @@ void UCombatComponent::EquipBall(class ACPPBall* ballToEquip)
 
 	eqippedBall = ballToEquip;
 	eqippedBall->DisableComponentsSimulatePhysics();
-	//eqippedBall->GetBallMesh()->SetSimulatePhysics(false);
 	eqippedBall->SetBallState(EBallState::EBS_Equipped);
-	const USkeletalMeshSocket* handSocket = character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
+	handSocket = character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
 
 	if (handSocket)
 	{
-		handSocket->AttachActor(eqippedBall, character->GetMesh());		
+		eqippedBall->GetBallMesh()->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("RightHandSocket"));
 	}
 	eqippedBall->SetOwner(character);
 	
+}
+
+void UCombatComponent::UnEquipBall(ACPPBall* ballToEquip)
+{
+	if (character == nullptr || ballToEquip == nullptr) return;
+
+	eqippedBall = ballToEquip;
+	//eqippedBall->SetBallState(EBallState::EBS_Initial);
+	handSocket = character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
+
+
+	if (handSocket)
+	{
+		eqippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		eqippedBall->GetBallMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		eqippedBall->GetBallMesh()->SetSimulatePhysics(true);
+	}
+	eqippedBall->SetOwner(character);
 }
 

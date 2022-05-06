@@ -7,6 +7,7 @@
 #include "Components/WidgetComponent.h"
 #include "testinginBP\Character\CPPTestCharacter.h"
 #include "Net/UnrealNetwork.h" //Replication
+#include "testinginBP\GameComponents\CombatComponent.h"
 
 ACPPBall::ACPPBall()
 {
@@ -105,6 +106,24 @@ void ACPPBall::SetBallState(EBallState state)
 		break;
 	}
 	
+}
+
+void ACPPBall::OnReleased()
+{
+	//combat->eqippedBall->SetBallState(EBallState::EBS_Dropped);
+	//ballMesh->DetachFromParent(true);
+	//if(ballMesh == nullptr) return
+
+	//ballMesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	
+	//combat->eqippedBall->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	//combat->eqippedBall->DetachRootComponentFromParent();
+	//combat->eqippedBall -> ballMesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	//combat->eqippedBall->ballMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	//ballMesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	//ballMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+//	ballMesh->SetSimulatePhysics(true);
+	UE_LOG(LogTemp, Warning, TEXT("???"));
 }
 
 void ACPPBall::ShowPickupWidget(bool bShowWidget)

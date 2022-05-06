@@ -20,7 +20,11 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //Replication
 
 	void EquipBall(class ACPPBall* ballToEquip);
-
+	void UnEquipBall(ACPPBall* ballToEquip);
+	UPROPERTY(Replicated)
+		ACPPBall* eqippedBall;
+	UPROPERTY(visibleAnywhere)
+	 const USkeletalMeshSocket* handSocket;
 protected:
 	virtual void BeginPlay() override;
 	void ThrowButtonPressed(bool bPressed);
@@ -34,8 +38,7 @@ private:
 	class ACPPPlayerController* Controller;
 	class AGameHUD* HUD;
 
-	UPROPERTY(Replicated)
-	ACPPBall* eqippedBall;
+	
 
 	bool bThrowButtonPressed;
 

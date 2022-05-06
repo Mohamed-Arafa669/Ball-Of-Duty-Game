@@ -11,6 +11,8 @@
 #include "Animation/AnimMontage.h"
 #include "testinginBP\Character\CPPAnimInstance.h"
 
+#include "Kismet//KismetMathLibrary.h"
+
 ACPPTestCharacter::ACPPTestCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -64,6 +66,9 @@ void ACPPTestCharacter::PlayThrowMontage()
 	{
 		animInstance->Montage_Play(throwAnim);
 		ServerPlayAnimMontage(throwAnim);
+		//animInstance->OnPlayMontageNotifyBegin;
+		
+		
 	}
 }
 
@@ -152,34 +157,53 @@ void ACPPTestCharacter::ServerEquipButtonPressed_Implementation() //RPC
 		combat->EquipBall(overlappingBall);
 	}
 }
-//void ACPPTestCharacter::Throw()
-//{
-//	if (HasAuthority()) 
-//	{
-//		if (throwAnim)
-//		{
-//			PlayAnimMontage(throwAnim, 1.5,NAME_None);
-//		}
-//	}
-//	else
-//	{
-//		ServerThrowButtonPressed();
-//	}
-//	
-//}
-//
-//void ACPPTestCharacter::ServerThrowButtonPressed_Implementation() //RPC
-//{
-//	if (throwAnim)
-//	{
-//		PlayAnimMontage(throwAnim, 1.5, NAME_None);
-//	}
-//}
-
 
 void ACPPTestCharacter::Catch()
 {
+	if(combat && IsBallEquipped() == true)
+	{
+		if (HasAuthority() )
+		{
+			UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= 25000.0f;
 
+			combat->eqippedBall->SetBallState(EBallState::EBS_Initial);
+			combat->ThrowButtonPressed(false); //gded
+			combat->eqippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+			//combat->eqippedBall->DetachRootComponentFromParent(true);
+			SetOverlappingBall(combat->eqippedBall);
+			OnRep_OverlappingBall(combat->eqippedBall);
+			combat->eqippedBall->GetBallMesh()->SetSimulatePhysics(true);
+
+			combat->eqippedBall->GetBallMesh()->SetPhysicsLinearVelocity(FVector::ForwardVector);
+			combat->eqippedBall->GetBallMesh()->AddImpulse(UKismetMathLibrary::GetForwardVector(GetControlRotation()));
+		}
+		else
+		{
+			ServerCatch();
+		}
+		
+	}
+}
+
+void ACPPTestCharacter::ServerCatch_Implementation()
+{
+	if (combat && IsBallEquipped() == true)
+	{
+		UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= 25000.0f;
+
+		combat->eqippedBall->SetBallState(EBallState::EBS_Initial);
+		combat->ThrowButtonPressed(false); //gded
+		combat->eqippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		//combat->eqippedBall->DetachRootComponentFromParent(true);
+
+		SetOverlappingBall(combat->eqippedBall);
+		OnRep_OverlappingBall(combat->eqippedBall);
+		combat->eqippedBall->GetBallMesh()->SetSimulatePhysics(true);
+
+		combat->eqippedBall->GetBallMesh()->SetPhysicsLinearVelocity(FVector::ForwardVector);
+		combat->eqippedBall->GetBallMesh()->AddImpulse(UKismetMathLibrary::GetForwardVector(GetControlRotation()));
+
+	}
 }
 
 void ACPPTestCharacter::Dash()
@@ -254,6 +278,7 @@ void ACPPTestCharacter::ThrowButtonPressed()
 		if (HasAuthority())
 		{
 			combat->ThrowButtonPressed(true);
+			//OnBallReleased();
 		}
 		else
 		{
@@ -273,12 +298,28 @@ void ACPPTestCharacter::ServerThrowButtonPressed_Implementation()
 
 void ACPPTestCharacter::ThrowButtonReleased()
 {
-	if (combat)
-	{
-		combat->ThrowButtonPressed(false);
-	}
+	//if (overlappingBall)
+	//{
+	//	//combat->ThrowButtonPressed(false);
+	//	overlappingBall->DetachFromActor
+	//	
+	//}
+
 }
 
+
+void ACPPTestCharacter::OnBallReleased()
+{
+	UE_LOG(LogTemp, Warning, TEXT("md5lsh"));
+	if (combat)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("d5l ?"));
+		overlappingBall->OnReleased();
+		//TODO
+		// 1- Stop Velocity
+		// 2- Add impulse
+	}
+}
 
 void ACPPTestCharacter::ServerPlayAnimMontage_Implementation(UAnimMontage* AnimMontage, float InPlayRate,
 	FName StartSectionName)
@@ -338,6 +379,15 @@ void ACPPTestCharacter::OnRep_OverlappingBall(ACPPBall* lastBall)
 bool ACPPTestCharacter::IsBallEquipped()
 {
 	return(combat && combat->eqippedBall);
+
+	if (combat && combat->eqippedBall)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 

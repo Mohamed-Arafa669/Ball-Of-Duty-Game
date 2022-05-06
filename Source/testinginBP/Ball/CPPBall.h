@@ -40,6 +40,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = Crosshairs)
 		UTexture2D* crosshairsBottom;
 
+	UPROPERTY(visibleAnywhere)
+		class UCombatComponent* combat;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -82,6 +85,7 @@ private:
 	
 public:
 	void SetBallState(EBallState state);
+	void OnReleased();
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetBallMesh() const { return ballMesh; }
 };

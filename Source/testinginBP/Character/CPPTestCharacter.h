@@ -20,7 +20,8 @@ public:
 
 
 	void PlayThrowMontage();
-	
+	UFUNCTION(BlueprintCallable, Category = "BallThrow")
+		void OnBallReleased();
 
 
 protected:
@@ -38,6 +39,8 @@ protected:
 	void CanDash();
 	void ThrowButtonPressed();
 	void ThrowButtonReleased();
+
+	
 
 private:
 	UPROPERTY(visibleAnywhere, Category = Camera)
@@ -61,6 +64,9 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
+
+	UFUNCTION(Server, Reliable)
+		void ServerCatch();
 
 	UFUNCTION(Server, Reliable)
 		void ServerThrowButtonPressed();
