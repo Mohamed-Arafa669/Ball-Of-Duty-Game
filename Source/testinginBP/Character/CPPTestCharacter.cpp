@@ -63,6 +63,7 @@ void ACPPTestCharacter::PlayThrowMontage()
 	if (animInstance && throwAnim)
 	{
 		animInstance->Montage_Play(throwAnim);
+		ServerPlayAnimMontage(throwAnim);
 	}
 }
 
@@ -248,10 +249,26 @@ void ACPPTestCharacter::DashButtonPressed_Implementation()
 
 void ACPPTestCharacter::ThrowButtonPressed()
 {
-	if (combat)
+	if(combat)
 	{
-		combat->ThrowButtonPressed(true);
+		if (HasAuthority())
+		{
+			combat->ThrowButtonPressed(true);
+		}
+		else
+		{
+			ServerThrowButtonPressed();
+		}
 	}
+	
+}
+void ACPPTestCharacter::ServerThrowButtonPressed_Implementation()
+{
+		if (combat)
+		{
+			combat->ThrowButtonPressed(true);
+		}
+
 }
 
 void ACPPTestCharacter::ThrowButtonReleased()
@@ -298,6 +315,7 @@ void ACPPTestCharacter::SetOverlappingBall(ACPPBall* cppBall)
 		if (overlappingBall)
 		{
 			overlappingBall->ShowPickupWidget(true);
+			overlappingBall->DisableComponentsSimulatePhysics();
 		}
 	}
 }
@@ -307,6 +325,7 @@ void ACPPTestCharacter::OnRep_OverlappingBall(ACPPBall* lastBall)
 	if (overlappingBall)
 	{
 		overlappingBall->ShowPickupWidget(true);
+		overlappingBall->DisableComponentsSimulatePhysics();
 	}
 	if (lastBall)
 	{

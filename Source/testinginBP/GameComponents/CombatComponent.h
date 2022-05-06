@@ -24,6 +24,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	void ThrowButtonPressed(bool bPressed);
+
+	
+
 	void SetHUDCrosshairs(float DeltaTime);
 
 private:

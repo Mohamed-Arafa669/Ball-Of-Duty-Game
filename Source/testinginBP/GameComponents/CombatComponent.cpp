@@ -8,6 +8,8 @@
 #include "Net/UnrealNetwork.h" //Replication
 #include "testinginBP\PlayerController\CPPPlayerController.h"
 #include "testinginBP\HUD\GameHUD.h"
+#include "Animation/AnimMontage.h"
+
 
 UCombatComponent::UCombatComponent()
 {
@@ -29,11 +31,14 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::ThrowButtonPressed(bool bPressed)
 {
 	bThrowButtonPressed = bPressed;
+	
 	if (character)
 	{
 		character->PlayThrowMontage();
 	}
+	
 }
+
 
 // Called every frame
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -94,12 +99,13 @@ void UCombatComponent::EquipBall(class ACPPBall* ballToEquip)
 
 	eqippedBall = ballToEquip;
 	eqippedBall->DisableComponentsSimulatePhysics();
+	//eqippedBall->GetBallMesh()->SetSimulatePhysics(false);
 	eqippedBall->SetBallState(EBallState::EBS_Equipped);
 	const USkeletalMeshSocket* handSocket = character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
 
 	if (handSocket)
 	{
-		handSocket->AttachActor(eqippedBall, character->GetMesh());
+		handSocket->AttachActor(eqippedBall, character->GetMesh());		
 	}
 	eqippedBall->SetOwner(character);
 	

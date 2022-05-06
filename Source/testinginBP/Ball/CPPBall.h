@@ -83,4 +83,5 @@ private:
 public:
 	void SetBallState(EBallState state);
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
+	FORCEINLINE USkeletalMeshComponent* GetBallMesh() const { return ballMesh; }
 };
