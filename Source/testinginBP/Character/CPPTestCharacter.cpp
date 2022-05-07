@@ -213,7 +213,6 @@ void ACPPTestCharacter::ServerEquipButtonPressed_Implementation() //RPC
 
 //Throw Mechanics has some problems
 // -> Aiming Direction
-// -> Other Player can't pickup the ball
 
 #pragma region ThrowMechanics
 void ACPPTestCharacter::ThrowButtonPressed()
