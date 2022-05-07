@@ -32,9 +32,7 @@ protected:
 	void Turn(float value);
 	void LookUp(float value);
 	void EquipButtonPressed();
-	//void Throw();
 	void Catch();
-
 	void Dash();
 	void CanDash();
 	void ThrowButtonPressed();
@@ -72,6 +70,9 @@ private:
 		void ServerThrowButtonPressed();
 
 	UFUNCTION(Server, Reliable)
+		void ServerThrowButtonReleased();
+
+	UFUNCTION(Server, Reliable)
 	void DashButtonPressed();
 
 	UFUNCTION(Server, Reliable, WithValidation, Category = Animation)
@@ -79,8 +80,7 @@ private:
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Animation)
 		void MulticastPlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
-	/*UFUNCTION(Server, Reliable)
-		void ServerThrowButtonPressed();*/
+	
 
 public:	
 	 void SetOverlappingBall(ACPPBall* cppBall);
@@ -92,6 +92,7 @@ public:
 	UPROPERTY(EditAnywhere, Replicated, Category = "Movement")
 	 float DashDistance = 6000.f;
 
-
+	UPROPERTY(EditAnywhere, Replicated, Category = "Throw power")
+		float throwPower = 6000.f;
 
 };

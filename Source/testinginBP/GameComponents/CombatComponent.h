@@ -22,7 +22,7 @@ public:
 	void EquipBall(class ACPPBall* ballToEquip);
 	void UnEquipBall(ACPPBall* ballToEquip);
 	UPROPERTY(Replicated)
-		ACPPBall* eqippedBall;
+		ACPPBall* equippedBall;
 	UPROPERTY(visibleAnywhere)
 	 const USkeletalMeshSocket* handSocket;
 protected:
