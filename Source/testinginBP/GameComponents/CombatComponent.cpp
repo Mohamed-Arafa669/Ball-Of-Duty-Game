@@ -8,6 +8,8 @@
 #include "Net/UnrealNetwork.h" //Replication
 #include "testinginBP\PlayerController\CPPPlayerController.h"
 #include "testinginBP\HUD\GameHUD.h"
+#include "Animation/AnimMontage.h"
+
 
 UCombatComponent::UCombatComponent()
 {
@@ -29,11 +31,14 @@ void UCombatComponent::BeginPlay()
 void UCombatComponent::ThrowButtonPressed(bool bPressed)
 {
 	bThrowButtonPressed = bPressed;
+	
 	if (character)
 	{
 		character->PlayThrowMontage();
 	}
+	
 }
+
 
 // Called every frame
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -57,11 +62,11 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 
 			/*if (eqippedBall)
 			{*/
-				HUDPackager.crosshairCenter = eqippedBall->crosshairsCenter;
-				HUDPackager.crosshairLeft = eqippedBall->crosshairsLeft;
-				HUDPackager.crosshairRight = eqippedBall->crosshairsRight;
-				HUDPackager.crosshairBottom = eqippedBall->crosshairsBottom;
-				HUDPackager.crosshairTop = eqippedBall->crosshairsTop;
+				HUDPackager.crosshairCenter = equippedBall->crosshairsCenter;
+				HUDPackager.crosshairLeft = equippedBall->crosshairsLeft;
+				HUDPackager.crosshairRight = equippedBall->crosshairsRight;
+				HUDPackager.crosshairBottom = equippedBall->crosshairsBottom;
+				HUDPackager.crosshairTop = equippedBall->crosshairsTop;
 				/*}
 				else
 				{
@@ -84,7 +89,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(UCombatComponent, eqippedBall);
+	DOREPLIFETIME(UCombatComponent, equippedBall);
 
 }
 
@@ -92,16 +97,34 @@ void UCombatComponent::EquipBall(class ACPPBall* ballToEquip)
 {
 	if (character == nullptr || ballToEquip == nullptr) return;
 
-	eqippedBall = ballToEquip;
-	eqippedBall->DisableComponentsSimulatePhysics();
-	eqippedBall->SetBallState(EBallState::EBS_Equipped);
-	const USkeletalMeshSocket* handSocket = character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
+	equippedBall = ballToEquip;
+	equippedBall->DisableComponentsSimulatePhysics();
+	equippedBall->SetBallState(EBallState::EBS_Equipped);
+	handSocket = character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
 
 	if (handSocket)
 	{
-		handSocket->AttachActor(eqippedBall, character->GetMesh());
+		equippedBall->GetBallMesh()->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("RightHandSocket"));
 	}
-	eqippedBall->SetOwner(character);
+	equippedBall->SetOwner(character);
 	
+}
+
+void UCombatComponent::UnEquipBall(ACPPBall* ballToEquip)
+{
+	if (character == nullptr || ballToEquip == nullptr) return;
+
+	equippedBall = ballToEquip;
+	//eqippedBall->SetBallState(EBallState::EBS_Initial);
+	handSocket = character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
+
+
+	if (handSocket)
+	{
+		equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		equippedBall->GetBallMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		equippedBall->GetBallMesh()->SetSimulatePhysics(true);
+	}
+	equippedBall->SetOwner(character);
 }
 

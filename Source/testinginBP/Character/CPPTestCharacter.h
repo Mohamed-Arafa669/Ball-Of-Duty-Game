@@ -17,8 +17,11 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //Replication
 	virtual void PostInitializeComponents() override;
+
+
 	void PlayThrowMontage();
-	
+	UFUNCTION(BlueprintCallable, Category = "BallThrow")
+		void OnBallReleased();
 
 
 protected:
@@ -29,13 +32,13 @@ protected:
 	void Turn(float value);
 	void LookUp(float value);
 	void EquipButtonPressed();
-	//void Throw();
 	void Catch();
-
 	void Dash();
 	void CanDash();
 	void ThrowButtonPressed();
 	void ThrowButtonReleased();
+
+	
 
 private:
 	UPROPERTY(visibleAnywhere, Category = Camera)
@@ -44,7 +47,7 @@ private:
 		class UCameraComponent* followCamera;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		class UWidgetComponent* overHeadWidget;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* throwAnim;
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* DashAnim;
@@ -61,6 +64,15 @@ private:
 	void ServerEquipButtonPressed();
 
 	UFUNCTION(Server, Reliable)
+		void ServerCatch();
+
+	UFUNCTION(Server, Reliable)
+		void ServerThrowButtonPressed();
+
+	UFUNCTION(Server, Reliable)
+		void ServerThrowButtonReleased();
+
+	UFUNCTION(Server, Reliable)
 	void DashButtonPressed();
 
 	UFUNCTION(Server, Reliable, WithValidation, Category = Animation)
@@ -68,8 +80,7 @@ private:
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Animation)
 		void MulticastPlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
-	/*UFUNCTION(Server, Reliable)
-		void ServerThrowButtonPressed();*/
+	
 
 public:	
 	 void SetOverlappingBall(ACPPBall* cppBall);
@@ -81,6 +92,7 @@ public:
 	UPROPERTY(EditAnywhere, Replicated, Category = "Movement")
 	 float DashDistance = 6000.f;
 
-
+	UPROPERTY(EditAnywhere, Replicated, Category = "Throw power")
+		float throwPower = 6000.f;
 
 };

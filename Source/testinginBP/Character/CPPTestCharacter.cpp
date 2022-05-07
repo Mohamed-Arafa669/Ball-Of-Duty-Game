@@ -11,6 +11,8 @@
 #include "Animation/AnimMontage.h"
 #include "testinginBP\Character\CPPAnimInstance.h"
 
+#include "Kismet//KismetMathLibrary.h"
+
 ACPPTestCharacter::ACPPTestCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -55,16 +57,6 @@ void ACPPTestCharacter::PostInitializeComponents()
 	}
 }
 
-void ACPPTestCharacter::PlayThrowMontage()
-{
-	if (combat == nullptr || combat->eqippedBall == nullptr) return;
-
-	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
-	if (animInstance && throwAnim)
-	{
-		animInstance->Montage_Play(throwAnim);
-	}
-}
 
 void ACPPTestCharacter::BeginPlay()
 {
@@ -82,7 +74,6 @@ void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ACPPTestCharacter::EquipButtonPressed);
 
-	//PlayerInputComponent->BindAction("Throw", IE_Pressed, this, &ACPPTestCharacter::Throw);
 
 	PlayerInputComponent->BindAction("Catch", IE_Pressed, this, &ACPPTestCharacter::Catch);
 	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ACPPTestCharacter::Dash);
@@ -99,6 +90,7 @@ void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 }
 
+#pragma region Movement and Dashing
 void ACPPTestCharacter::MoveForward(float value)
 {
 	if (Controller != nullptr && value != 0.0f)
@@ -128,59 +120,6 @@ void ACPPTestCharacter::LookUp(float value)
 {
 	AddControllerPitchInput(value);
 }
-
-void ACPPTestCharacter::EquipButtonPressed()
-{
-	if (combat)
-	{
-		if (HasAuthority())
-		{
-			combat->EquipBall(overlappingBall);
-
-		}
-		else
-		{
-			ServerEquipButtonPressed();
-		}
-	}
-}
-void ACPPTestCharacter::ServerEquipButtonPressed_Implementation() //RPC
-{
-	if (combat)
-	{
-		combat->EquipBall(overlappingBall);
-	}
-}
-//void ACPPTestCharacter::Throw()
-//{
-//	if (HasAuthority()) 
-//	{
-//		if (throwAnim)
-//		{
-//			PlayAnimMontage(throwAnim, 1.5,NAME_None);
-//		}
-//	}
-//	else
-//	{
-//		ServerThrowButtonPressed();
-//	}
-//	
-//}
-//
-//void ACPPTestCharacter::ServerThrowButtonPressed_Implementation() //RPC
-//{
-//	if (throwAnim)
-//	{
-//		PlayAnimMontage(throwAnim, 1.5, NAME_None);
-//	}
-//}
-
-
-void ACPPTestCharacter::Catch()
-{
-
-}
-
 void ACPPTestCharacter::Dash()
 {
 
@@ -245,23 +184,210 @@ void ACPPTestCharacter::DashButtonPressed_Implementation()
 		GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::CanDash, 1.f);
 	}
 }
+#pragma endregion
 
+#pragma region BallEquipping
+void ACPPTestCharacter::EquipButtonPressed()
+{
+	if (combat)
+	{
+		if (HasAuthority())
+		{
+			combat->EquipBall(overlappingBall);
+
+		}
+		else
+		{
+			ServerEquipButtonPressed();
+		}
+	}
+}
+void ACPPTestCharacter::ServerEquipButtonPressed_Implementation() //RPC
+{
+	if (combat)
+	{
+		combat->EquipBall(overlappingBall);
+	}
+}
+#pragma endregion
+
+//Throw Mechanics has some problems
+// -> Aiming Direction
+// -> Other Player can't pickup the ball
+
+#pragma region ThrowMechanics
 void ACPPTestCharacter::ThrowButtonPressed()
+{
+	if (combat)
+	{
+		if (HasAuthority())
+		{
+			combat->ThrowButtonPressed(true);
+		}
+		else
+		{
+			ServerThrowButtonPressed();
+		}
+	}
+
+}
+void ACPPTestCharacter::ServerThrowButtonPressed_Implementation()
 {
 	if (combat)
 	{
 		combat->ThrowButtonPressed(true);
 	}
+
 }
 
 void ACPPTestCharacter::ThrowButtonReleased()
 {
+	if (combat && IsBallEquipped() == true)
+	{
+		if (HasAuthority())
+		{
+			UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
+
+			const FVector forwardVec = this->GetMesh()->GetForwardVector();
+
+			combat->ThrowButtonPressed(false); //gded
+			combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+			combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
+
+			//combat->eqippedBall->DetachRootComponentFromParent(true);
+
+			//combat->eqippedBall->GetBallMesh()->SetPhysicsLinearVelocity(FVector::ForwardVector);
+
+			//SetOverlappingBall(combat->equippedBall); Can be useful for bungee gum ability 
+			//OnRep_OverlappingBall(combat->equippedBall);
+
+			combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
+			
+			//combat->eqippedBall->GetBallMesh()->AddImpulse(UKismetMathLibrary::GetForwardVector(GetControlRotation()));
+
+			combat->equippedBall->GetBallMesh()->AddForce(forwardVec * throwPower * combat->equippedBall->GetBallMesh()->GetMass());
+		}
+		else
+		{
+			ServerThrowButtonReleased();
+		}
+
+	}
+
+}
+
+void ACPPTestCharacter::ServerThrowButtonReleased_Implementation()
+{
+	if (combat && IsBallEquipped() == true)
+	{
+		UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
+
+		const FVector forwardVec = this->GetMesh()->GetForwardVector();
+
+
+		combat->ThrowButtonPressed(false); //gded
+		combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
+
+		//combat->eqippedBall->DetachRootComponentFromParent(true);
+
+		//combat->eqippedBall->GetBallMesh()->SetPhysicsLinearVelocity(FVector::ForwardVector);
+
+		//SetOverlappingBall(combat->equippedBall);  Can be useful for bungee gum ability 
+		//OnRep_OverlappingBall(combat->equippedBall);
+
+		combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
+	//	combat->equippedBall->GetBallMesh()->AddImpulse(UKismetMathLibrary::GetForwardVector(GetControlRotation()));
+
+		combat->equippedBall->GetBallMesh()->AddForce(forwardVec * throwPower * combat->equippedBall->GetBallMesh()->GetMass());
+	}
+}
+#pragma endregion
+
+
+void ACPPTestCharacter::Catch()
+{
+	//TODO
+	// -> implement Catch Mechanics
+}
+
+void ACPPTestCharacter::ServerCatch_Implementation()
+{
+	//TODO
+	// -> Catch Replication
+}
+
+void ACPPTestCharacter::OnBallReleased()
+{
+	UE_LOG(LogTemp, Warning, TEXT("md5lsh"));
 	if (combat)
 	{
-		combat->ThrowButtonPressed(false);
+		UE_LOG(LogTemp, Warning, TEXT("d5l ?"));
+		overlappingBall->OnReleased();
+		//TODO
+		// 1- Stop Velocity
+		// 2- Add impulse
 	}
 }
 
+
+
+void ACPPTestCharacter::SetOverlappingBall(ACPPBall* cppBall)
+{
+	if (overlappingBall)
+	{
+		overlappingBall->ShowPickupWidget(false);
+	}
+	overlappingBall = cppBall;
+	if (IsLocallyControlled())
+	{
+		if (overlappingBall)
+		{
+			overlappingBall->ShowPickupWidget(true);
+			//overlappingBall->DisableComponentsSimulatePhysics();
+		}
+	}
+}
+
+void ACPPTestCharacter::OnRep_OverlappingBall(ACPPBall* lastBall)
+{
+	if (overlappingBall)
+	{
+		overlappingBall->ShowPickupWidget(true);
+		//overlappingBall->DisableComponentsSimulatePhysics();
+	}
+	if (lastBall)
+	{
+		lastBall->ShowPickupWidget(false);
+	}
+}
+
+#pragma region Animations
+bool ACPPTestCharacter::IsBallEquipped()
+{
+	return(combat && combat->equippedBall);
+
+	if (combat && combat->equippedBall)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void ACPPTestCharacter::PlayThrowMontage()
+{
+	if (combat == nullptr || combat->equippedBall == nullptr) return;
+
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (animInstance && throwAnim)
+	{
+		animInstance->Montage_Play(throwAnim);
+		ServerPlayAnimMontage(throwAnim);
+	}
+}
 
 void ACPPTestCharacter::ServerPlayAnimMontage_Implementation(UAnimMontage* AnimMontage, float InPlayRate,
 	FName StartSectionName)
@@ -286,43 +412,8 @@ bool ACPPTestCharacter::MulticastPlayAnimMontage_Validate(UAnimMontage* AnimMont
 	return true;
 }
 
-void ACPPTestCharacter::SetOverlappingBall(ACPPBall* cppBall)
-{
-	if (overlappingBall)
-	{
-		overlappingBall->ShowPickupWidget(false);
-	}
-	overlappingBall = cppBall;
-	if (IsLocallyControlled())
-	{
-		if (overlappingBall)
-		{
-			overlappingBall->ShowPickupWidget(true);
-		}
-	}
-}
 
-void ACPPTestCharacter::OnRep_OverlappingBall(ACPPBall* lastBall)
-{
-	if (overlappingBall)
-	{
-		overlappingBall->ShowPickupWidget(true);
-	}
-	if (lastBall)
-	{
-		lastBall->ShowPickupWidget(false);
-	}
-}
-
-
-
-bool ACPPTestCharacter::IsBallEquipped()
-{
-	return(combat && combat->eqippedBall);
-}
-
-
-
+#pragma endregion
 
 
 
