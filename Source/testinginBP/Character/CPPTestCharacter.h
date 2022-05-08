@@ -91,6 +91,9 @@ public:
 
 	 bool bThrown;
 
+	 UPROPERTY(EditAnywhere, Replicated)
+	 bool bEquipped;
+
 	 void StopThrow();
 
 	UPROPERTY(EditAnywhere, Replicated, Category = "Movement")

@@ -262,6 +262,9 @@ void ACPPTestCharacter::ThrowButtonReleased()
 			bThrown = true;
 
 			combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
+
+			bEquipped = false;
+
 			
 			//combat->eqippedBall->GetBallMesh()->AddImpulse(UKismetMathLibrary::GetForwardVector(GetControlRotation()));
 
@@ -297,6 +300,8 @@ void ACPPTestCharacter::ServerThrowButtonReleased_Implementation()
 		//OnRep_OverlappingBall(combat->equippedBall);
 		bThrown = true;
 		combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
+		bEquipped = false;
+
 	//	combat->equippedBall->GetBallMesh()->AddImpulse(UKismetMathLibrary::GetForwardVector(GetControlRotation()));
 
 		//combat->equippedBall->GetBallMesh()->AddForce(forwardVec * throwPower * combat->equippedBall->GetBallMesh()->GetMass());
@@ -365,7 +370,7 @@ void ACPPTestCharacter::OnRep_OverlappingBall(ACPPBall* lastBall)
 #pragma region Animations
 bool ACPPTestCharacter::IsBallEquipped()
 {
-	return(combat && combat->equippedBall);
+	//return(combat && combat->equippedBall);
 
 	if (combat && combat->equippedBall)
 	{
@@ -375,6 +380,7 @@ bool ACPPTestCharacter::IsBallEquipped()
 	{
 		return false;
 	}
+	
 }
 
 void ACPPTestCharacter::StopThrow()
