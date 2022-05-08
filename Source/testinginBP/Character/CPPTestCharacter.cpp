@@ -165,14 +165,6 @@ void ACPPTestCharacter::DashButtonPressed_Implementation()
 			PlayAnimMontage(DashAnim, 1, NAME_None);
 			ServerPlayAnimMontage(DashAnim, 1, NAME_None);
 
-			if (GEngine)
-			{
-				GEngine->AddOnScreenDebugMessage(
-					-1,
-					15.f,
-					FColor::Red,
-					FString::Printf(TEXT("ALO")));
-			}
 		}
 
 		const FVector ForwardVector = this->GetActorRotation().Vector();
