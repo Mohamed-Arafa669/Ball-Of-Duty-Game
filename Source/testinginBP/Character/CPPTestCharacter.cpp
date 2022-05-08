@@ -37,7 +37,7 @@ ACPPTestCharacter::ACPPTestCharacter()
 
 	bCanDash = true;
 
-
+	bThrown = false;
 
 }
 void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -66,6 +66,14 @@ void ACPPTestCharacter::BeginPlay()
 void ACPPTestCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (bThrown)
+	{
+
+		combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (GetActorUpVector() + GetActorForwardVector()) * throwPower * combat->equippedBall->GetBallMesh()->GetMass());
+		FTimerHandle handle;
+		GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::StopThrow, 0.5f);
+	}
 }
 void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -259,12 +267,13 @@ void ACPPTestCharacter::ThrowButtonReleased()
 
 			//SetOverlappingBall(combat->equippedBall); Can be useful for bungee gum ability 
 			//OnRep_OverlappingBall(combat->equippedBall);
+			bThrown = true;
 
 			combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
 			
 			//combat->eqippedBall->GetBallMesh()->AddImpulse(UKismetMathLibrary::GetForwardVector(GetControlRotation()));
 
-			combat->equippedBall->GetBallMesh()->AddForce(forwardVec * throwPower * combat->equippedBall->GetBallMesh()->GetMass());
+			//combat->equippedBall->GetBallMesh()->AddForce(forwardVec * throwPower * combat->equippedBall->GetBallMesh()->GetMass());
 		}
 		else
 		{
@@ -294,11 +303,11 @@ void ACPPTestCharacter::ServerThrowButtonReleased_Implementation()
 
 		//SetOverlappingBall(combat->equippedBall);  Can be useful for bungee gum ability 
 		//OnRep_OverlappingBall(combat->equippedBall);
-
+		bThrown = true;
 		combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
 	//	combat->equippedBall->GetBallMesh()->AddImpulse(UKismetMathLibrary::GetForwardVector(GetControlRotation()));
 
-		combat->equippedBall->GetBallMesh()->AddForce(forwardVec * throwPower * combat->equippedBall->GetBallMesh()->GetMass());
+		//combat->equippedBall->GetBallMesh()->AddForce(forwardVec * throwPower * combat->equippedBall->GetBallMesh()->GetMass());
 	}
 }
 #pragma endregion
@@ -374,6 +383,11 @@ bool ACPPTestCharacter::IsBallEquipped()
 	{
 		return false;
 	}
+}
+
+void ACPPTestCharacter::StopThrow()
+{
+	bThrown = false;
 }
 
 void ACPPTestCharacter::PlayThrowMontage()

@@ -89,10 +89,14 @@ public:
 
 	 bool bCanDash;
 
+	 bool bThrown;
+
+	 void StopThrow();
+
 	UPROPERTY(EditAnywhere, Replicated, Category = "Movement")
 	 float DashDistance = 6000.f;
 
 	UPROPERTY(EditAnywhere, Replicated, Category = "Throw power")
-		float throwPower = 6000.f;
+		float throwPower = 2000.f;
 
 };
