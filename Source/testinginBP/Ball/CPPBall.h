@@ -26,7 +26,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //Replication
 	void ShowPickupWidget(bool bShowWidget);
-
+	UPROPERTY(ReplicatedUsing = OnRep_BallState, VisibleAnywhere, Category = "Ball Properties")
+		EBallState ballState;
 	//Textures for the crosshair
 
 	UPROPERTY(EditAnywhere, Category = Crosshairs)
@@ -72,8 +73,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Ball Properties")
 		class USphereComponent* AreaSphere;
 
-	UPROPERTY(ReplicatedUsing = OnRep_BallState, VisibleAnywhere, Category = "Ball Properties")
-		EBallState ballState;
+	
 
 	UFUNCTION()
 	void OnRep_BallState();

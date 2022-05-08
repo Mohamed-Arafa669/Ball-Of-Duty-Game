@@ -71,8 +71,8 @@ void ACPPTestCharacter::Tick(float DeltaTime)
 
 	if (bThrown && bCanThrow)
 	{
-
-		combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (GetActorUpVector() + GetActorForwardVector()) * throwPower * combat->equippedBall->GetBallMesh()->GetMass());
+		combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
+		combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (/*GetActorUpVector() +*/ GetActorForwardVector()) * throwPower * 75/*combat->equippedBall->GetBallMesh()->GetMass()*/);
 		FTimerHandle handle;
 		GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::StopThrow, 0.5f);
 	}
@@ -197,6 +197,7 @@ void ACPPTestCharacter::EquipButtonPressed()
 		{
 			combat->EquipBall(overlappingBall);
 			bCanThrow = true;
+			bEquipped = true;
 		}
 		else
 		{
@@ -210,6 +211,7 @@ void ACPPTestCharacter::ServerEquipButtonPressed_Implementation() //RPC
 	{
 		combat->EquipBall(overlappingBall);
 		bCanThrow = true;
+		bEquipped = true;
 	}
 }
 #pragma endregion
@@ -225,6 +227,7 @@ void ACPPTestCharacter::ThrowButtonPressed()
 		if (HasAuthority())
 		{
 			combat->ThrowButtonPressed(true);
+
 		}
 		else
 		{
@@ -373,16 +376,7 @@ void ACPPTestCharacter::OnRep_OverlappingBall(ACPPBall* lastBall)
 #pragma region Animations
 bool ACPPTestCharacter::IsBallEquipped()
 {
-	//return(combat && combat->equippedBall);
-
-	if (combat && combat->equippedBall)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+	return(combat && combat->equippedBall);
 	
 }
 
