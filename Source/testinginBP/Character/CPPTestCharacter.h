@@ -90,6 +90,7 @@ public:
 	 bool bCanDash;
 
 	 bool bThrown;
+	 bool bCanThrow;
 
 	 UPROPERTY(EditAnywhere, Replicated)
 	 bool bEquipped;

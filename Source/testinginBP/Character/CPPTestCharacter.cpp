@@ -39,6 +39,8 @@ ACPPTestCharacter::ACPPTestCharacter()
 
 	bThrown = false;
 
+	bCanThrow = false;
+
 }
 void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -67,7 +69,7 @@ void ACPPTestCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bThrown)
+	if (bThrown && bCanThrow)
 	{
 
 		combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (GetActorUpVector() + GetActorForwardVector()) * throwPower * combat->equippedBall->GetBallMesh()->GetMass());
@@ -194,7 +196,7 @@ void ACPPTestCharacter::EquipButtonPressed()
 		if (HasAuthority())
 		{
 			combat->EquipBall(overlappingBall);
-
+			bCanThrow = true;
 		}
 		else
 		{
@@ -207,6 +209,7 @@ void ACPPTestCharacter::ServerEquipButtonPressed_Implementation() //RPC
 	if (combat)
 	{
 		combat->EquipBall(overlappingBall);
+		bCanThrow = true;
 	}
 }
 #pragma endregion
@@ -386,6 +389,7 @@ bool ACPPTestCharacter::IsBallEquipped()
 void ACPPTestCharacter::StopThrow()
 {
 	bThrown = false;
+	bCanThrow = false;
 }
 
 void ACPPTestCharacter::PlayThrowMontage()
