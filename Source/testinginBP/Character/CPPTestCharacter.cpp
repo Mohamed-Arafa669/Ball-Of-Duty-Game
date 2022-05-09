@@ -206,7 +206,10 @@ void ACPPTestCharacter::EquipButtonPressed()
 		if (HasAuthority())
 		{
 			combat->EquipBall(overlappingBall);
-			bCanThrow = true;
+			if (combat->equippedBall->GetBallState() == EBallState::EBS_Dropped)
+				bThrown = false;
+			if (combat->equippedBall->GetBallState() == EBallState::EBS_Equipped)
+				bCanThrow = true;
 			bEquipped = true;
 		}
 		else
@@ -220,7 +223,10 @@ void ACPPTestCharacter::ServerEquipButtonPressed_Implementation() //RPC
 	if (combat)
 	{
 		combat->EquipBall(overlappingBall);
-		bCanThrow = true;
+		if (combat->equippedBall->GetBallState() == EBallState::EBS_Dropped)
+			bThrown = false;
+		if (combat->equippedBall->GetBallState() == EBallState::EBS_Equipped)
+			bCanThrow = true;
 		bEquipped = true;
 	}
 }
@@ -276,6 +282,11 @@ void ACPPTestCharacter::ThrowButtonReleased()
 			//SetOverlappingBall(combat->equippedBall); Can be useful for bungee gum ability 
 			//OnRep_OverlappingBall(combat->equippedBall);
 			bThrown = true;
+			//if (combat->equippedBall->GetBallState() == EBallState::EBS_Equipped)
+			//	bCanThrow = true;
+
+	
+
 
 			combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
 
@@ -315,6 +326,9 @@ void ACPPTestCharacter::ServerThrowButtonReleased_Implementation()
 		//SetOverlappingBall(combat->equippedBall);  Can be useful for bungee gum ability 
 		//OnRep_OverlappingBall(combat->equippedBall);
 		bThrown = true;
+		//if (combat->equippedBall->GetBallState() == EBallState::EBS_Equipped)
+		//	bCanThrow = true;
+
 		combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
 		bEquipped = false;
 

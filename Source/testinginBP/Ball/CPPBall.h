@@ -85,6 +85,7 @@ private:
 	
 public:
 	void SetBallState(EBallState state);
+	EBallState GetBallState() const { return ballState; }
 	void OnReleased();
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetBallMesh() const { return ballMesh; }
