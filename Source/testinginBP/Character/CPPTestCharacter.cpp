@@ -10,7 +10,6 @@
 #include "testinginBP\GameComponents\CombatComponent.h"
 #include "Animation/AnimMontage.h"
 #include "testinginBP\Character\CPPAnimInstance.h"
-
 #include "Kismet//KismetMathLibrary.h"
 
 ACPPTestCharacter::ACPPTestCharacter()
@@ -41,6 +40,9 @@ ACPPTestCharacter::ACPPTestCharacter()
 
 	bCanThrow = false;
 
+	
+	
+
 }
 void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -63,6 +65,9 @@ void ACPPTestCharacter::PostInitializeComponents()
 void ACPPTestCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	USkeletalMeshComponent* mesh = GetMesh();
+	mesh->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
 
 }
 void ACPPTestCharacter::Tick(float DeltaTime)
@@ -135,7 +140,7 @@ void ACPPTestCharacter::Dash()
 
 	if (HasAuthority())
 	{
-		if (bCanDash) {
+		if (bCanDash && CanJump()) {
 
 
 
@@ -166,9 +171,14 @@ void ACPPTestCharacter::CanDash()
 	bCanDash = true;
 }
 
+void ACPPTestCharacter::CanCatch()
+{
+	bCatching = false;
+}
+
 void ACPPTestCharacter::DashButtonPressed_Implementation()
 {
-	if (bCanDash) {
+	if (bCanDash && CanJump()) {
 
 		if (DashAnim)
 		{
@@ -320,12 +330,40 @@ void ACPPTestCharacter::Catch()
 {
 	//TODO
 	// -> implement Catch Mechanics
+
+	if (HasAuthority())
+	{
+		if (!bCatching) {
+			if (CatchAnim)
+			{
+				MulticastPlayAnimMontage(CatchAnim, 1, NAME_None);
+			}
+			bCatching = true;
+			FTimerHandle TimerHandle;
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPPTestCharacter::CanCatch, 1.f);
+		}
+	}
+	else
+	{
+		ServerCatch();
+	}
 }
 
 void ACPPTestCharacter::ServerCatch_Implementation()
 {
 	//TODO
 	// -> Catch Replication
+	if (!bCatching) {
+		if (CatchAnim)
+		{
+			PlayAnimMontage(CatchAnim, 1, NAME_None);
+			ServerPlayAnimMontage(CatchAnim, 1, NAME_None);
+		}
+
+		bCatching = true;
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPPTestCharacter::CanCatch, 1.f);
+	}
 }
 
 void ACPPTestCharacter::OnBallReleased()
@@ -342,6 +380,52 @@ void ACPPTestCharacter::OnBallReleased()
 }
 
 
+void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (HasAuthority())
+	{
+		if (OtherActor->ActorHasTag("Ball"))
+		{
+
+			ACPPBall* ballHit = Cast<ACPPBall>(OtherActor);
+
+			if (ballHit) {
+				if (bCatching && combat && !bEquipped)
+				{
+
+					combat->EquipBall(ballHit);
+					bCanThrow = true;
+					bEquipped = true;
+				}
+			}
+		}
+	} else
+	{
+		ServerOnOverlapBegin_Implementation(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex,bFromSweep,SweepResult);
+	}
+	
+}
+
+void ACPPTestCharacter::ServerOnOverlapBegin_Implementation(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor->ActorHasTag("Ball"))
+	{
+
+		ACPPBall* ballHit = Cast<ACPPBall>(OtherActor);
+
+		if (ballHit) {
+			if (bCatching && combat && !bEquipped)
+			{
+
+				combat->EquipBall(ballHit);
+				bCanThrow = true;
+				bEquipped = true;
+			}
+		}
+	}
+}
 
 void ACPPTestCharacter::SetOverlappingBall(ACPPBall* cppBall)
 {
@@ -420,6 +504,7 @@ bool ACPPTestCharacter::MulticastPlayAnimMontage_Validate(UAnimMontage* AnimMont
 {
 	return true;
 }
+
 
 
 #pragma endregion

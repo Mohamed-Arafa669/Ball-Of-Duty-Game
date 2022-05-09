@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/Actor.h"
+#include "testinginBP/Ball/CPPBall.h"
+#include "Components/PrimitiveComponent.h"
 #include "CPPTestCharacter.generated.h"
 
 UCLASS()
@@ -35,6 +38,7 @@ protected:
 	void Catch();
 	void Dash();
 	void CanDash();
+	void CanCatch();
 	void ThrowButtonPressed();
 	void ThrowButtonReleased();
 
@@ -51,6 +55,8 @@ private:
 		class UAnimMontage* throwAnim;
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* DashAnim;
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* CatchAnim;
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingBall) //Replication
 		class ACPPBall* overlappingBall;
 
@@ -75,11 +81,21 @@ private:
 	UFUNCTION(Server, Reliable)
 	void DashButtonPressed();
 
+	UFUNCTION()
+		void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+			bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION(Server, Reliable)
+		void ServerOnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+			bool bFromSweep, const FHitResult& SweepResult);
+
 	UFUNCTION(Server, Reliable, WithValidation, Category = Animation)
 		void ServerPlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Animation)
 		void MulticastPlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
+
+
 	
 
 public:	
@@ -90,7 +106,11 @@ public:
 	 bool bCanDash;
 
 	 bool bThrown;
+
 	 bool bCanThrow;
+
+	UPROPERTY(Replicated)
+	 bool bCatching;
 
 	 UPROPERTY(EditAnywhere, Replicated)
 	 bool bEquipped;
