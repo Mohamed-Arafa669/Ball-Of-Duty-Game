@@ -354,7 +354,7 @@ void ACPPTestCharacter::Catch()
 			}
 			bCatching = true;
 			FTimerHandle TimerHandle;
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPPTestCharacter::CanCatch, 1.f);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPPTestCharacter::CanCatch, 10.f);
 		}
 	}
 	else
