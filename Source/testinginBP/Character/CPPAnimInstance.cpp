@@ -30,9 +30,9 @@ void UCPPAnimInstance::NativeUpdateAnimation(float deltaTime)
 
 	bIsAccelerating = myCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.0f ? true : false;
 
-	bBallEquipped = myCharacter->IsBallEquipped();
+	//bBallEquipped = myCharacter->IsBallEquipped();
 
-	//bBallEquipped = myCharacter->bEquipped;
+	bBallEquipped = myCharacter->bEquipped;
 
 	FRotator aimRotation = myCharacter->GetBaseAimRotation();
 	//UE_LOG(LogTemp, Warning, TEXT("Aim Rotation Yaw %f: "), aimRotation.Yaw);

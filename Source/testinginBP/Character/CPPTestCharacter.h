@@ -112,7 +112,7 @@ public:
 	UPROPERTY(Replicated)
 	 bool bCatching;
 
-	 UPROPERTY(EditAnywhere, Replicated)
+	 UPROPERTY(Replicated)
 	 bool bEquipped;
 
 	 void StopThrow();

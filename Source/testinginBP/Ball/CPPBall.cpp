@@ -14,18 +14,20 @@ ACPPBall::ACPPBall()
 	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
 
+	//SetBallState(EBallState::EBS_Dropped);
+
 	ballMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BallMesh"));
 	ballMesh->SetupAttachment(RootComponent);
 	SetRootComponent(ballMesh);
 
 	ballMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);							 //to bounce when dropped
-	ballMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn,ECollisionResponse::ECR_Ignore); //pawn ignore for not colliding
-	ballMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ballMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn,ECollisionResponse::ECR_Block); //pawn ignore for not colliding
+	ballMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 	AreaSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AreaSphere"));
 	AreaSphere->SetupAttachment(RootComponent);
-	AreaSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-	AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	AreaSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+	AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 	pickUpWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickUpWidget"));
 	pickUpWidget->SetupAttachment(RootComponent);

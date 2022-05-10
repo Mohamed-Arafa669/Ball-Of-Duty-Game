@@ -34,6 +34,7 @@ void UCombatComponent::ThrowButtonPressed(bool bPressed)
 	
 	if (character)
 	{
+		character->bEquipped = false;
 		character->PlayThrowMontage();
 	}
 	
@@ -90,6 +91,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UCombatComponent, equippedBall);
+	//DOREPLIFETIME(UCombatComponent, )
 
 }
 

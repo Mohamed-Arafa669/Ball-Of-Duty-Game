@@ -40,7 +40,9 @@ ACPPTestCharacter::ACPPTestCharacter()
 
 	bCanThrow = false;
 
-	
+	bEquipped = false;
+
+	//overlappingBall->SetBallState(EBallState::EBS_Dropped);
 	
 
 }
@@ -49,6 +51,7 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	//important to include #include "Net/UnrealNetwork.h" whenever we use the replication macro
 	DOREPLIFETIME_CONDITION(ACPPTestCharacter, overlappingBall, COND_OwnerOnly); //Replication
+	DOREPLIFETIME(ACPPTestCharacter, bEquipped);
 }
 
 
@@ -205,12 +208,13 @@ void ACPPTestCharacter::EquipButtonPressed()
 	{
 		if (HasAuthority())
 		{
+			bEquipped = true;
 			combat->EquipBall(overlappingBall);
 			if (combat->equippedBall->GetBallState() == EBallState::EBS_Dropped)
 				bThrown = false;
 			if (combat->equippedBall->GetBallState() == EBallState::EBS_Equipped)
 				bCanThrow = true;
-			bEquipped = true;
+			
 		}
 		else
 		{
@@ -222,18 +226,22 @@ void ACPPTestCharacter::ServerEquipButtonPressed_Implementation() //RPC
 {
 	if (combat)
 	{
+		bEquipped = true;
+
 		combat->EquipBall(overlappingBall);
 		if (combat->equippedBall->GetBallState() == EBallState::EBS_Dropped)
 			bThrown = false;
 		if (combat->equippedBall->GetBallState() == EBallState::EBS_Equipped)
 			bCanThrow = true;
-		bEquipped = true;
 	}
 }
 #pragma endregion
 
-//Throw Mechanics has some problems
-// -> Aiming Direction
+//	Throw Mechanics TODO
+//	    -> Lock on target 
+//		-> Throw ball on target
+//	Catch mechanics TODO
+//      -> fix the catch from player to player
 
 #pragma region ThrowMechanics
 void ACPPTestCharacter::ThrowButtonPressed()
@@ -350,7 +358,10 @@ void ACPPTestCharacter::Catch()
 		if (!bCatching) {
 			if (CatchAnim)
 			{
-				MulticastPlayAnimMontage(CatchAnim, 1, NAME_None);
+				MulticastPlayAnimMontage(CatchAnim, 1, NAME_None);	
+				//bEquipped = true;
+
+
 			}
 			bCatching = true;
 			FTimerHandle TimerHandle;
@@ -366,12 +377,14 @@ void ACPPTestCharacter::Catch()
 void ACPPTestCharacter::ServerCatch_Implementation()
 {
 	//TODO
-	// -> Catch Replication
+	// -> Catch Replication (must be fixed)
 	if (!bCatching) {
 		if (CatchAnim)
 		{
 			PlayAnimMontage(CatchAnim, 1, NAME_None);
 			ServerPlayAnimMontage(CatchAnim, 1, NAME_None);
+			//bEquipped = true;
+
 		}
 
 		bCatching = true;
@@ -467,7 +480,16 @@ void ACPPTestCharacter::OnRep_OverlappingBall(ACPPBall* lastBall)
 #pragma region Animations
 bool ACPPTestCharacter::IsBallEquipped()
 {
-	return(combat && combat->equippedBall);
+	return (combat && combat->equippedBall);
+	//return(bEquipped && );
+
+	/*if(overlappingBall->ballState == EBallState::EBS_Equipped)
+		return(true);
+	else
+	{
+		return false;
+	}*/
+	//return(combat->equippedBall->GetBallState() == EBallState::EBS_Equipped);
 	
 }
 
