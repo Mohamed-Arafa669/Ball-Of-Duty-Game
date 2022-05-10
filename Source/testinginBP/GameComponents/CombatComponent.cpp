@@ -34,7 +34,7 @@ void UCombatComponent::ThrowButtonPressed(bool bPressed)
 	
 	if (character)
 	{
-		character->bEquipped = false;
+		//character->bEquipped = false;
 		character->PlayThrowMontage();
 	}
 	

@@ -51,7 +51,10 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	//important to include #include "Net/UnrealNetwork.h" whenever we use the replication macro
 	DOREPLIFETIME_CONDITION(ACPPTestCharacter, overlappingBall, COND_OwnerOnly); //Replication
-	DOREPLIFETIME(ACPPTestCharacter, bEquipped);
+	DOREPLIFETIME(ACPPTestCharacter, bEquipped);	
+	DOREPLIFETIME(ACPPTestCharacter, bCatching);
+
+
 }
 
 
@@ -416,12 +419,12 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 		ACPPBall* ballHit = Cast<ACPPBall>(OtherActor);
 
 		if (ballHit) {
-			if (bCatching && combat && !bEquipped)
+			if (bCatching && combat && IsBallEquipped() == false)
 			{
 
 				combat->EquipBall(ballHit);
 				bCanThrow = true;
-				bEquipped = true;
+				//bEquipped = true;
 			}
 		}
 	}
