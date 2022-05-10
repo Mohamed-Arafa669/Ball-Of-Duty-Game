@@ -376,7 +376,7 @@ void ACPPTestCharacter::ServerCatch_Implementation()
 
 		bCatching = true;
 		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPPTestCharacter::CanCatch, 1.f);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPPTestCharacter::CanCatch, 10.f);
 	}
 }
 
@@ -397,28 +397,21 @@ void ACPPTestCharacter::OnBallReleased()
 void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (HasAuthority())
+	if (OtherActor->ActorHasTag("Ball"))
 	{
-		if (OtherActor->ActorHasTag("Ball"))
-		{
 
-			ACPPBall* ballHit = Cast<ACPPBall>(OtherActor);
+		ACPPBall* ballHit = Cast<ACPPBall>(OtherActor);
 
-			if (ballHit) {
-				if (bCatching && combat && !bEquipped)
-				{
+		if (ballHit) {
+			if (bCatching && combat && !bEquipped)
+			{
 
-					combat->EquipBall(ballHit);
-					bCanThrow = true;
-					bEquipped = true;
-				}
+				combat->EquipBall(ballHit);
+				bCanThrow = true;
+				bEquipped = true;
 			}
 		}
-	} else
-	{
-		ServerOnOverlapBegin_Implementation(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex,bFromSweep,SweepResult);
 	}
-	
 }
 
 void ACPPTestCharacter::ServerOnOverlapBegin_Implementation(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
