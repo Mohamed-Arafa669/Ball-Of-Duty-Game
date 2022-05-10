@@ -97,7 +97,7 @@ void UCombatComponent::EquipBall(class ACPPBall* ballToEquip)
 {
 	if (character == nullptr || ballToEquip == nullptr) return;
 
-	//character->bEquipped = true;
+	character->bEquipped = true;
 	equippedBall = ballToEquip;
 	equippedBall->DisableComponentsSimulatePhysics();
 	equippedBall->SetBallState(EBallState::EBS_Equipped);

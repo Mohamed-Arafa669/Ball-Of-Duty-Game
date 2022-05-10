@@ -64,7 +64,7 @@ private:
 	void OnRep_OverlappingBall(ACPPBall* lastBall); //Replication
 
 	UPROPERTY(visibleAnywhere)
-		class UCombatComponent* combat;
+	class UCombatComponent* combat;
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
