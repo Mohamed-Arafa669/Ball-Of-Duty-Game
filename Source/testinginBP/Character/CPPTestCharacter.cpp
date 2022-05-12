@@ -43,7 +43,7 @@ ACPPTestCharacter::ACPPTestCharacter()
 	bEquipped = false;
 
 	//overlappingBall->SetBallState(EBallState::EBS_Dropped);
-	
+
 
 }
 void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -51,7 +51,7 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	//important to include #include "Net/UnrealNetwork.h" whenever we use the replication macro
 	DOREPLIFETIME_CONDITION(ACPPTestCharacter, overlappingBall, COND_OwnerOnly); //Replication
-	DOREPLIFETIME(ACPPTestCharacter, bEquipped);	
+	DOREPLIFETIME(ACPPTestCharacter, bEquipped);
 	DOREPLIFETIME(ACPPTestCharacter, bCatching);
 
 
@@ -207,7 +207,7 @@ void ACPPTestCharacter::DashButtonPressed_Implementation()
 #pragma region BallEquipping
 void ACPPTestCharacter::EquipButtonPressed()
 {
-	if (combat)
+	if (combat && overlappingBall)
 	{
 		if (HasAuthority())
 		{
@@ -217,7 +217,7 @@ void ACPPTestCharacter::EquipButtonPressed()
 				bThrown = false;
 			if (combat->equippedBall->GetBallState() == EBallState::EBS_Equipped)
 				bCanThrow = true;
-			
+
 		}
 		else
 		{
@@ -296,14 +296,14 @@ void ACPPTestCharacter::ThrowButtonReleased()
 			//if (combat->equippedBall->GetBallState() == EBallState::EBS_Equipped)
 			//	bCanThrow = true;
 
-	
+
 
 
 			combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
 
 			bEquipped = false;
 
-			
+
 			//combat->eqippedBall->GetBallMesh()->AddImpulse(UKismetMathLibrary::GetForwardVector(GetControlRotation()));
 
 			//combat->equippedBall->GetBallMesh()->AddForce(forwardVec * throwPower * combat->equippedBall->GetBallMesh()->GetMass());
@@ -343,9 +343,9 @@ void ACPPTestCharacter::ServerThrowButtonReleased_Implementation()
 		combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
 		bEquipped = false;
 
-	//	combat->equippedBall->GetBallMesh()->AddImpulse(UKismetMathLibrary::GetForwardVector(GetControlRotation()));
+		//	combat->equippedBall->GetBallMesh()->AddImpulse(UKismetMathLibrary::GetForwardVector(GetControlRotation()));
 
-		//combat->equippedBall->GetBallMesh()->AddForce(forwardVec * throwPower * combat->equippedBall->GetBallMesh()->GetMass());
+			//combat->equippedBall->GetBallMesh()->AddForce(forwardVec * throwPower * combat->equippedBall->GetBallMesh()->GetMass());
 	}
 }
 #pragma endregion
@@ -356,12 +356,14 @@ void ACPPTestCharacter::Catch()
 	//TODO
 	// -> implement Catch Mechanics
 
-	if (HasAuthority())
-	{
-		if (!bCatching) {
+	if (!bCatching) {
+
+		if (HasAuthority())
+		{
+
 			if (CatchAnim)
 			{
-				MulticastPlayAnimMontage(CatchAnim, 1, NAME_None);	
+				MulticastPlayAnimMontage(CatchAnim, 1, NAME_None);
 				//bEquipped = true;
 
 
@@ -369,11 +371,12 @@ void ACPPTestCharacter::Catch()
 			bCatching = true;
 			FTimerHandle TimerHandle;
 			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPPTestCharacter::CanCatch, 10.f);
+
 		}
-	}
-	else
-	{
-		ServerCatch();
+		else
+		{
+			ServerCatch();
+		}
 	}
 }
 
@@ -381,7 +384,7 @@ void ACPPTestCharacter::ServerCatch_Implementation()
 {
 	//TODO
 	// -> Catch Replication (must be fixed)
-	if (!bCatching) {
+	
 		if (CatchAnim)
 		{
 			PlayAnimMontage(CatchAnim, 1, NAME_None);
@@ -393,7 +396,7 @@ void ACPPTestCharacter::ServerCatch_Implementation()
 		bCatching = true;
 		FTimerHandle TimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPPTestCharacter::CanCatch, 10.f);
-	}
+	
 }
 
 void ACPPTestCharacter::OnBallReleased()
@@ -413,18 +416,17 @@ void ACPPTestCharacter::OnBallReleased()
 void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor->ActorHasTag("Ball"))
+	// BallHit;
+
+	if (ACPPBall* BallHit = Cast<ACPPBall>(OtherActor))
 	{
+		if (BallHit->ActorHasTag("Ball")) {
 
-		ACPPBall* ballHit = Cast<ACPPBall>(OtherActor);
-
-		if (ballHit) {
 			if (bCatching && combat && IsBallEquipped() == false)
 			{
-
-				combat->EquipBall(ballHit);
+				combat->EquipBall(BallHit);
 				bCanThrow = true;
-				//bEquipped = true;
+				bEquipped = true;
 			}
 		}
 	}
@@ -493,7 +495,7 @@ bool ACPPTestCharacter::IsBallEquipped()
 		return false;
 	}*/
 	//return(combat->equippedBall->GetBallState() == EBallState::EBS_Equipped);
-	
+
 }
 
 void ACPPTestCharacter::StopThrow()
