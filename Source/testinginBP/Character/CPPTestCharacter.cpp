@@ -34,6 +34,8 @@ ACPPTestCharacter::ACPPTestCharacter()
 	combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	combat->SetIsReplicated(true);
 
+	CharacterMesh = GetMesh();
+
 	bCanDash = true;
 
 	bThrown = false;
@@ -50,7 +52,8 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	//important to include #include "Net/UnrealNetwork.h" whenever we use the replication macro
-	DOREPLIFETIME_CONDITION(ACPPTestCharacter, overlappingBall, COND_OwnerOnly); //Replication
+	DOREPLIFETIME_CONDITION(ACPPTestCharacter, overlappingBall, COND_OwnerOnly);//Replication
+
 	DOREPLIFETIME(ACPPTestCharacter, bEquipped);
 	DOREPLIFETIME(ACPPTestCharacter, bCatching);
 
@@ -72,9 +75,9 @@ void ACPPTestCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	USkeletalMeshComponent* mesh = GetMesh();
-	mesh->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
-
+	if (HasAuthority()) {
+		CharacterMesh->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
+	} 
 }
 void ACPPTestCharacter::Tick(float DeltaTime)
 {
@@ -274,7 +277,7 @@ void ACPPTestCharacter::ServerThrowButtonPressed_Implementation()
 
 void ACPPTestCharacter::ThrowButtonReleased()
 {
-	if (combat && IsBallEquipped() == true)
+	if (combat && bEquipped)
 	{
 		if (HasAuthority())
 		{
@@ -319,7 +322,7 @@ void ACPPTestCharacter::ThrowButtonReleased()
 
 void ACPPTestCharacter::ServerThrowButtonReleased_Implementation()
 {
-	if (combat && IsBallEquipped() == true)
+	if (combat && bEquipped)
 	{
 		UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
 
@@ -374,7 +377,7 @@ void ACPPTestCharacter::Catch()
 			}
 			bCatching = true;
 			FTimerHandle TimerHandle;
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPPTestCharacter::CanCatch, 10.f);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPPTestCharacter::CanCatch, CatchCooldown);
 
 		}
 		else
@@ -399,7 +402,7 @@ void ACPPTestCharacter::ServerCatch_Implementation()
 
 		bCatching = true;
 		FTimerHandle TimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPPTestCharacter::CanCatch, 10.f);
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ACPPTestCharacter::CanCatch, CatchCooldown);
 	
 }
 
@@ -424,9 +427,11 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 
 	if (ACPPBall* BallHit = Cast<ACPPBall>(OtherActor))
 	{
-		if (BallHit->ActorHasTag("Ball")) {
+		if (overlappingBall) {
 
-			if (bCatching && combat && IsBallEquipped() == false)
+			overlappingBall = BallHit;
+
+			if (bCatching && combat && !bEquipped)
 			{
 				combat->EquipBall(BallHit);
 				bCanThrow = true;
@@ -436,25 +441,7 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 	}
 }
 
-void ACPPTestCharacter::ServerOnOverlapBegin_Implementation(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if (OtherActor->ActorHasTag("Ball"))
-	{
 
-		ACPPBall* ballHit = Cast<ACPPBall>(OtherActor);
-
-		if (ballHit) {
-			if (bCatching && combat && !bEquipped)
-			{
-
-				combat->EquipBall(ballHit);
-				bCanThrow = true;
-				bEquipped = true;
-			}
-		}
-	}
-}
 
 void ACPPTestCharacter::SetOverlappingBall(ACPPBall* cppBall)
 {
@@ -489,6 +476,7 @@ void ACPPTestCharacter::OnRep_OverlappingBall(ACPPBall* lastBall)
 #pragma region Animations
 bool ACPPTestCharacter::IsBallEquipped()
 {
+
 	return (combat && combat->equippedBall);
 	//return(bEquipped && );
 

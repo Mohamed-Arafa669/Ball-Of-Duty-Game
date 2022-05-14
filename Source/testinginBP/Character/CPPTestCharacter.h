@@ -42,7 +42,7 @@ protected:
 	void ThrowButtonPressed();
 	void ThrowButtonReleased();
 
-	
+	USkeletalMeshComponent* CharacterMesh;
 
 private:
 	UPROPERTY(visibleAnywhere, Category = Camera)
@@ -59,6 +59,7 @@ private:
 		class UAnimMontage* CatchAnim;
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingBall) //Replication
 		class ACPPBall* overlappingBall;
+;
 
 	UFUNCTION()
 	void OnRep_OverlappingBall(ACPPBall* lastBall); //Replication
@@ -83,10 +84,6 @@ private:
 
 	UFUNCTION()
 		void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-			bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION(Server, Reliable)
-		void ServerOnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 			bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION(Server, Reliable, WithValidation, Category = Animation)
@@ -121,6 +118,7 @@ public:
 	 float DashDistance = 6000.f;
 
 	UPROPERTY(EditAnywhere, Replicated, Category = "Throw power")
-		float throwPower = 60000.0f;
-
+		float throwPower = 20000.0f;
+	UPROPERTY(EditAnywhere, Category = "Catching")
+		float CatchCooldown = 1.f;
 };
