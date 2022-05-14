@@ -121,6 +121,6 @@ public:
 	 float DashDistance = 6000.f;
 
 	UPROPERTY(EditAnywhere, Replicated, Category = "Throw power")
-		float throwPower = 6000.0f;
+		float throwPower = 60000.0f;
 
 };

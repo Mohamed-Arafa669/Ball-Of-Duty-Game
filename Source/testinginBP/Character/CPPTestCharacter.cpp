@@ -80,13 +80,13 @@ void ACPPTestCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bThrown && bCanThrow)
-	{
-		combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
-		combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (/*GetActorUpVector() +*/ GetActorForwardVector()) * throwPower * 75/*combat->equippedBall->GetBallMesh()->GetMass()*/);
-		FTimerHandle handle;
-		GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::StopThrow, 0.5f);
-	}
+	//if (bThrown && bCanThrow)
+	//{
+	//	combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
+	//	combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (/*GetActorUpVector() +*/ GetActorForwardVector()) * throwPower * 75/*combat->equippedBall->GetBallMesh()->GetMass()*/);
+	//	FTimerHandle handle;
+	//	GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::StopThrow, 0.5f);
+	//}
 }
 void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -296,10 +296,10 @@ void ACPPTestCharacter::ThrowButtonReleased()
 			//if (combat->equippedBall->GetBallState() == EBallState::EBS_Equipped)
 			//	bCanThrow = true;
 
-
-
-
 			combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
+
+			//combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (/*GetActorUpVector() +*/ GetActorForwardVector()) * throwPower * 75/*combat->equippedBall->GetBallMesh()->GetMass()*/);
+			combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (followCamera->GetForwardVector() + followCamera->GetUpVector()) /*(GetActorForwardVector() + GetActorUpVector())*/ * throwPower * 75);
 
 			bEquipped = false;
 
@@ -341,7 +341,11 @@ void ACPPTestCharacter::ServerThrowButtonReleased_Implementation()
 		//	bCanThrow = true;
 
 		combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
+
+		//combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (/*GetActorUpVector() +*/ GetActorForwardVector()) * throwPower * 75/*combat->equippedBall->GetBallMesh()->GetMass()*/);
 		bEquipped = false;
+		combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (followCamera->GetForwardVector() + followCamera->GetUpVector()) /*(GetActorForwardVector() + GetActorUpVector())*/ * throwPower * 75);
+
 
 		//	combat->equippedBall->GetBallMesh()->AddImpulse(UKismetMathLibrary::GetForwardVector(GetControlRotation()));
 
