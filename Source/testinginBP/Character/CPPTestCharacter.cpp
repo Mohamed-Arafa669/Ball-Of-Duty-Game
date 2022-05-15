@@ -306,6 +306,8 @@ void ACPPTestCharacter::ThrowButtonReleased()
 
 			bEquipped = false;
 
+			combat->equippedBall = nullptr;
+
 
 			//combat->eqippedBall->GetBallMesh()->AddImpulse(UKismetMathLibrary::GetForwardVector(GetControlRotation()));
 
@@ -322,7 +324,7 @@ void ACPPTestCharacter::ThrowButtonReleased()
 
 void ACPPTestCharacter::ServerThrowButtonReleased_Implementation()
 {
-	if (combat && bEquipped)
+	if (combat && IsBallEquipped())
 	{
 		UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
 
@@ -349,6 +351,9 @@ void ACPPTestCharacter::ServerThrowButtonReleased_Implementation()
 		bEquipped = false;
 		combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (followCamera->GetForwardVector() + followCamera->GetUpVector()) /*(GetActorForwardVector() + GetActorUpVector())*/ * throwPower * 75);
 
+		//TODO: set equippedball to null
+
+		combat->equippedBall = nullptr;
 
 		//	combat->equippedBall->GetBallMesh()->AddImpulse(UKismetMathLibrary::GetForwardVector(GetControlRotation()));
 
@@ -424,20 +429,18 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	// BallHit;
+	//TODO: overlapping ball to be removed and/or change name
 
 	if (ACPPBall* BallHit = Cast<ACPPBall>(OtherActor))
 	{
-		if (overlappingBall) {
 
-			overlappingBall = BallHit;
-
-			if (bCatching && combat && !bEquipped)
-			{
-				combat->EquipBall(BallHit);
-				bCanThrow = true;
-				bEquipped = true;
-			}
+		if (bCatching && combat && !IsBallEquipped())
+		{
+			combat->EquipBall(BallHit);
+			bCanThrow = true;
+			
 		}
+
 	}
 }
 
