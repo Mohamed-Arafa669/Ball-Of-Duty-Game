@@ -29,6 +29,15 @@ ACPPBall::ACPPBall()
 	AreaSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 	AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
+	//Definition for the Projectile Movement Component.
+	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
+	ProjectileMovementComponent->SetUpdatedComponent(AreaSphere);
+	ProjectileMovementComponent->InitialSpeed = 1500.0f;
+	ProjectileMovementComponent->MaxSpeed = 1500.0f;
+	ProjectileMovementComponent->bRotationFollowsVelocity = true;
+	ProjectileMovementComponent->ProjectileGravityScale = 1.0f;
+	ProjectileMovementComponent->bIsHomingProjectile = false; //To be set later
+
 	pickUpWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickUpWidget"));
 	pickUpWidget->SetupAttachment(RootComponent);
 }

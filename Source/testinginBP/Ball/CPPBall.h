@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 #include "CPPBall.generated.h"
 
 UENUM(BlueprintType)
@@ -43,6 +44,11 @@ public:
 
 	UPROPERTY(visibleAnywhere)
 		class UCombatComponent* combat;
+
+	// Movement component for handling projectile movement.
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+		UProjectileMovementComponent* ProjectileMovementComponent;
+
 
 protected:
 	virtual void BeginPlay() override;
