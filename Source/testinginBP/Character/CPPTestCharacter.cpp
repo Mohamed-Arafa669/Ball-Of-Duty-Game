@@ -34,6 +34,11 @@ ACPPTestCharacter::ACPPTestCharacter()
 	combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	combat->SetIsReplicated(true);
 
+	if (!LockOnTargetComponent)
+	{
+		LockOnTargetComponent = CreateDefaultSubobject<ULockOnTargetComponent>(TEXT("LockOnTargetComponent"));
+	}
+
 	CharacterMesh = GetMesh();
 
 	bCanDash = true;

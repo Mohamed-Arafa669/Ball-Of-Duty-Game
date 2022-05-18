@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/Actor.h"
+#include "LockOnTargetComponent.h"
 #include "testinginBP/Ball/CPPBall.h"
 #include "Components/PrimitiveComponent.h"
 #include "CPPTestCharacter.generated.h"
@@ -26,6 +27,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "BallThrow")
 		void OnBallReleased();
 
+
+	//Lock On Target
+	ULockOnTargetComponent* LockOnTargetComponent;
 
 protected:
 	virtual void BeginPlay() override;
