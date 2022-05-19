@@ -44,9 +44,9 @@ ACPPTestCharacter::ACPPTestCharacter()
 
 	bEquipped = false;
 
+	bCanMove = true;
 	//overlappingBall->SetBallState(EBallState::EBS_Dropped);
-
-
+	
 }
 void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -56,6 +56,8 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 	DOREPLIFETIME(ACPPTestCharacter, bEquipped);
 	DOREPLIFETIME(ACPPTestCharacter, bCatching);
+	DOREPLIFETIME(ACPPTestCharacter, bCanMove);
+
 
 
 }
@@ -67,6 +69,13 @@ void ACPPTestCharacter::PostInitializeComponents()
 	if (combat)
 	{
 		combat->character = this;
+	}
+}
+
+void ACPPTestCharacter::Jump()
+{
+	if (bCanMove) {
+		Super::Jump();
 	}
 }
 
@@ -117,7 +126,7 @@ void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 #pragma region Movement and Dashing
 void ACPPTestCharacter::MoveForward(float value)
 {
-	if (Controller != nullptr && value != 0.0f)
+	if (Controller != nullptr && value != 0.0f && bCanMove)
 	{
 		const FRotator yawRotation(0.0f, Controller->GetControlRotation().Yaw, 0.0f);
 		const FVector direction(FRotationMatrix(yawRotation).GetUnitAxis(EAxis::X));
@@ -127,7 +136,7 @@ void ACPPTestCharacter::MoveForward(float value)
 
 void ACPPTestCharacter::MoveRight(float value)
 {
-	if (Controller != nullptr && value != 0.0f)
+	if (Controller != nullptr && value != 0.0f && bCanMove)
 	{
 		const FRotator yawRotation(0.0f, Controller->GetControlRotation().Yaw, 0.0f);
 		const FVector direction(FRotationMatrix(yawRotation).GetUnitAxis(EAxis::Y));
@@ -149,7 +158,7 @@ void ACPPTestCharacter::Dash()
 
 	if (HasAuthority())
 	{
-		if (bCanDash && CanJump()) {
+		if (bCanDash && CanJump() && bCanMove) {
 
 
 
@@ -187,7 +196,7 @@ void ACPPTestCharacter::CanCatch()
 
 void ACPPTestCharacter::DashButtonPressed_Implementation()
 {
-	if (bCanDash && CanJump()) {
+	if (bCanDash && CanJump() && bCanMove) {
 
 		if (DashAnim)
 		{
@@ -322,9 +331,27 @@ void ACPPTestCharacter::ThrowButtonReleased()
 
 }
 
+void ACPPTestCharacter::Stunned()
+{
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1,
+			5.f, FColor::Green, FString::Printf(TEXT("STUN")));
+	}
+	bCanMove = false;
+
+	FTimerHandle StunHandle;
+	GetWorld()->GetTimerManager().SetTimer(StunHandle, this, &ThisClass::StunCoolDown, StunDuration);
+}
+
+void ACPPTestCharacter::StunCoolDown()
+{
+	bCanMove = true;
+}
+
 void ACPPTestCharacter::ServerThrowButtonReleased_Implementation()
 {
-	if (combat && IsBallEquipped())
+	if (combat && IsBallEquipped() && bCanMove)
 	{
 		UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
 
@@ -368,7 +395,7 @@ void ACPPTestCharacter::Catch()
 	//TODO
 	// -> implement Catch Mechanics
 
-	if (!bCatching) {
+	if (!bCatching && bCanMove) {
 
 		if (HasAuthority())
 		{

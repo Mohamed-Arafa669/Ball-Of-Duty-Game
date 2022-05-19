@@ -20,6 +20,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //Replication
 	virtual void PostInitializeComponents() override;
+	virtual void Jump() override;;
 
 
 	void PlayThrowMontage();
@@ -41,6 +42,7 @@ protected:
 	void CanCatch();
 	void ThrowButtonPressed();
 	void ThrowButtonReleased();
+	void StunCoolDown();
 
 	USkeletalMeshComponent* CharacterMesh;
 
@@ -95,7 +97,9 @@ private:
 
 	
 
-public:	
+public:
+	void Stunned();
+
 	 void SetOverlappingBall(ACPPBall* cppBall);
 
 	 bool IsBallEquipped();
@@ -111,6 +115,8 @@ public:
 
 	 UPROPERTY(Replicated)
 	 bool bEquipped;
+	 UPROPERTY(Replicated)
+	 bool bCanMove;
 
 	 void StopThrow();
 
@@ -121,4 +127,7 @@ public:
 		float throwPower = 20000.0f;
 	UPROPERTY(EditAnywhere, Category = "Catching")
 		float CatchCooldown = 1.f;
+
+	UPROPERTY(EditAnywhere, Category = "Abilities")
+		float StunDuration = 10.f;
 };
