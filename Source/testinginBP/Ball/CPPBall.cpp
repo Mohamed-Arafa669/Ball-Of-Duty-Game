@@ -6,6 +6,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "testinginBP\Character\CPPTestCharacter.h"
+#include "testinginBP/Character/StealCharacter.h"
 #include "Net/UnrealNetwork.h" //Replication
 #include "testinginBP\GameComponents\CombatComponent.h"
 
@@ -29,17 +30,19 @@ ACPPBall::ACPPBall()
 	AreaSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 	AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
-	//Definition for the Projectile Movement Component.
-	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
-	ProjectileMovementComponent->SetUpdatedComponent(AreaSphere);
-	ProjectileMovementComponent->InitialSpeed = 1500.0f;
-	ProjectileMovementComponent->MaxSpeed = 1500.0f;
-	ProjectileMovementComponent->bRotationFollowsVelocity = true;
-	ProjectileMovementComponent->ProjectileGravityScale = 1.0f;
-	ProjectileMovementComponent->bIsHomingProjectile = false; //To be set later
+	////Definition for the Projectile Movement Component.
+	//ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
+	//ProjectileMovementComponent->SetUpdatedComponent(AreaSphere);
+	//ProjectileMovementComponent->InitialSpeed = 1500.0f;
+	//ProjectileMovementComponent->MaxSpeed = 1500.0f;
+	//ProjectileMovementComponent->bRotationFollowsVelocity = true;
+	//ProjectileMovementComponent->ProjectileGravityScale = 1.0f;
+	//ProjectileMovementComponent->bIsHomingProjectile = false; //To be set later
 
 	pickUpWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickUpWidget"));
 	pickUpWidget->SetupAttachment(RootComponent);
+
+	bMove = false;
 }
 
 void ACPPBall::BeginPlay()
@@ -62,6 +65,22 @@ void ACPPBall::BeginPlay()
 void ACPPBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (bMove)
+	{
+		if (Target != nullptr)
+		{
+			if (CurrentDistance < TotalDistance)
+			{
+				FVector Location = GetActorLocation();
+				Location += Direction * Speed * DeltaTime;
+				SetActorLocation(Location);
+				CurrentDistance = (Location - StartLocation).Size();
+			}
+			else
+				bMove = false;
+		}
+	}
 
 }
 
@@ -145,6 +164,24 @@ void ACPPBall::OnReleased()
 	//ballMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 //	ballMesh->SetSimulatePhysics(true);
 	UE_LOG(LogTemp, Warning, TEXT("???"));
+}
+
+void ACPPBall::MoveHookedBall(class AStealCharacter* TargetPlayer)
+{
+	Target = TargetPlayer;
+	if (Target != nullptr)
+	{
+		StartLocation = GetActorLocation();
+		Direction = Target->GetActorLocation() - StartLocation;
+		TotalDistance = Direction.Size();
+
+		UE_LOG(LogTemp, Warning, TEXT("Distance = %f"), TotalDistance);
+
+		Direction = Direction.GetSafeNormal();
+		CurrentDistance = 0.0f;
+
+		bMove = true;
+	}
 }
 
 void ACPPBall::ShowPickupWidget(bool bShowWidget)

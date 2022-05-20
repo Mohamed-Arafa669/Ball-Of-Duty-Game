@@ -95,4 +95,19 @@ public:
 	void OnReleased();
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetBallMesh() const { return ballMesh; }
+
+	void MoveHookedBall(class AStealCharacter* TargetPlayer);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MoveHooked")
+		class AStealCharacter* Target;
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MoveHooked")
+		float Speed = 200.0f;
+
+	bool bMove;
+	FVector Direction;
+	float TotalDistance;
+	float CurrentDistance;
+	FVector StartLocation;
 };

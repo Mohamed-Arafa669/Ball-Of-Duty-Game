@@ -31,6 +31,9 @@ public:
 	//Lock On Target
 	ULockOnTargetComponent* LockOnTargetComponent;
 
+	UPROPERTY(VisibleAnywhere)
+		class UCombatComponent* combat;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -47,6 +50,8 @@ protected:
 	void ThrowButtonReleased();
 
 	USkeletalMeshComponent* CharacterMesh;
+
+
 
 private:
 	UPROPERTY(visibleAnywhere, Category = Camera)
@@ -67,9 +72,6 @@ private:
 
 	UFUNCTION()
 	void OnRep_OverlappingBall(ACPPBall* lastBall); //Replication
-
-	UPROPERTY(visibleAnywhere)
-	class UCombatComponent* combat;
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
