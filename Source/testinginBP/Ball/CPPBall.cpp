@@ -66,21 +66,26 @@ void ACPPBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bMove)
+	/*if (bMove)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Moving"));
+
 		if (Target != nullptr)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("Movinsssg"));
+
 			if (CurrentDistance < TotalDistance)
 			{
 				FVector Location = GetActorLocation();
 				Location += Direction * Speed * DeltaTime;
 				SetActorLocation(Location);
 				CurrentDistance = (Location - StartLocation).Size();
+				UE_LOG(LogTemp, Warning, TEXT("cURRENT DIS %f"), CurrentDistance);
 			}
 			else
 				bMove = false;
 		}
-	}
+	}*/
 
 }
 
@@ -181,6 +186,7 @@ void ACPPBall::MoveHookedBall(class AStealCharacter* TargetPlayer)
 		CurrentDistance = 0.0f;
 
 		bMove = true;
+
 	}
 }
 

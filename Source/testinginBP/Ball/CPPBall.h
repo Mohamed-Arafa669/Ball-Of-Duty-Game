@@ -103,7 +103,7 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MoveHooked")
-		float Speed = 200.0f;
+		float Speed = 20.0f;
 
 	bool bMove;
 	FVector Direction;

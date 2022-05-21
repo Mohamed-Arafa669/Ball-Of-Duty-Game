@@ -20,6 +20,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	UPROPERTY(EditAnywhere, Category = "Gameplay|Projectile")
+		TSubclassOf<class AHook>ProjectileClass;
 
 protected:
 	virtual void BeginPlay() override;
@@ -30,8 +32,13 @@ protected:
 		void Server_DoAbility();
 
 
+
+	UFUNCTION(Server, Reliable)
+		void HandleFire();
+
 	void AbilityCooldown();
 
+	UFUNCTION(Server, Reliable)
 	void TraceLine();
 
 	UPROPERTY(Replicated)
@@ -47,4 +54,5 @@ protected:
 
 	TArray<AActor*> OverlappingActors;
 	TArray<ACPPTestCharacter*> OverlappingEnemies;
+
 };
