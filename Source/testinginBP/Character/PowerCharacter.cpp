@@ -4,25 +4,21 @@
 #include "Components/SceneComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "CPPTestCharacter.h"
+#include "DrawDebugHelpers.h"
 
 
 APowerCharacter::APowerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	HitAreaCone = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HitAreaCone"));
-	HitAreaCone->SetupAttachment(GetMesh());
+
 }
 
 void APowerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (HasAuthority()) {
-		//HitAreaCone->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::PowerAbilityOnOverlapBegin);
 
-		HitAreaCone->GetOverlappingActors(OverlappingActors);
-	}
 }
 
 void APowerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -39,6 +35,7 @@ void APowerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APowerCharacter, bSmash);
+
 }
 
 
@@ -47,77 +44,57 @@ void APowerCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	bSmash = false;
-	bEffectOn = false;
-
-
 }
 
-
-//void APowerCharacter::PowerAbilityOnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-//	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-//{
-//	if (bSmash) {
-//
-//		if (ACPPTestCharacter* Enemy = Cast<ACPPTestCharacter>(OtherActor))
-//		{
-//			Enemy->bCanMove = false;
-//
-//			FTimerHandle handle;
-//			FTimerDelegate StunDelegate = FTimerDelegate::CreateUObject(this, &ThisClass::StunCooldown, Enemy);
-//
-//			GetWorld()->GetTimerManager().SetTimer(handle, StunDelegate, 2.f, false);
-//		}
-//	}
-//}
 
 
 void APowerCharacter::AbilityCooldown()
 {
 	bSmash = false;
+	OutHits.Empty();
 }
 
-
-
-void APowerCharacter::EffectCooldown()
-{
-	bEffectOn = false;
-	HitAreaCone->SetVisibility(false);
-
-}
 
 
 void APowerCharacter::DoAbility()
 {
 
 	if (!bSmash) {
+
 		if (HasAuthority()) {
-			HitAreaCone->SetVisibility(true);
+
 			bSmash = true;
 			FTimerHandle AbilityHandle;
-			GetWorld()->GetTimerManager().SetTimer(AbilityHandle, this, &ThisClass::AbilityCooldown, 1.f);
+			GetWorld()->GetTimerManager().SetTimer(AbilityHandle, this, &ThisClass::AbilityCooldown, Ability_Cooldown_Duration);
 
-			bEffectOn = true;
-			FTimerHandle EffectHandle;
-			GetWorld()->GetTimerManager().SetTimer(EffectHandle, this, &ThisClass::EffectCooldown, 1.f);
 
-			if (bEffectOn) {
+			FVector Start = GetActorLocation() + GetActorForwardVector() * StartDistance;
+			FVector End = Start + (GetControlRotation().Vector() * EndDistance);
 
-				HitAreaCone->SetVisibility(true);
-				if (OverlappingActors.Num() > 0) {
-					for (int i = 0; i < OverlappingActors.Num(); i++)
-					{
-						if (OverlappingEnemies.Add(Cast<ACPPTestCharacter>(OverlappingActors[i]))) {
+			GetWorld()->SweepMultiByChannel(OutHits, Start, End, FQuat::Identity, ECollisionChannel::ECC_Pawn,
+				FCollisionShape::MakeSphere(RangeRadius));
 
-							if (GEngine)
-							{
-								GEngine->AddOnScreenDebugMessage(-1,
-									5.f, FColor::Green, FString(OverlappingEnemies[i]->GetName()));
-							}
 
-							OverlappingEnemies[i]->Stunned();
+			if (OutHits.Num() > 0) {
+				for (int i = 0; i < OutHits.Num(); i++)
+				{
+
+					DrawDebugSphere(GetWorld(), OutHits[i].GetActor()->GetActorLocation(), 100.f, 30, FColor::Red, false, 2.f);
+
+					if (ACPPTestCharacter* Temp = Cast<ACPPTestCharacter>(OutHits[i].GetActor())) {
+
+
+						if (GEngine)
+						{
+							GEngine->AddOnScreenDebugMessage(-1,
+								5.f, FColor::Green, FString(Temp->GetName()));
 						}
+
+						Temp->Stunned();
 					}
+
 				}
+
 			}
 
 		}
@@ -132,34 +109,40 @@ void APowerCharacter::DoAbility()
 
 void APowerCharacter::Server_DoAbility_Implementation()
 {
-	HitAreaCone->SetVisibility(true);
 	bSmash = true;
 	FTimerHandle AbilityHandle;
-	GetWorld()->GetTimerManager().SetTimer(AbilityHandle, this, &ThisClass::AbilityCooldown, 1.f);
+	GetWorld()->GetTimerManager().SetTimer(AbilityHandle, this, &ThisClass::AbilityCooldown, Ability_Cooldown_Duration);
 
-	bEffectOn = true;
-	FTimerHandle EffectHandle;
-	GetWorld()->GetTimerManager().SetTimer(EffectHandle, this, &ThisClass::EffectCooldown, 1.f);
 
-	if (bEffectOn) {
+	FVector Start = GetActorLocation() + GetActorForwardVector() * StartDistance;
+	FVector End = Start + (GetControlRotation().Vector() * EndDistance);
 
-		HitAreaCone->SetVisibility(true);
-		if (OverlappingActors.Num() > 0) {
-			for (int i = 0; i < OverlappingActors.Num(); i++)
-			{
-				if (OverlappingEnemies.Add(Cast<ACPPTestCharacter>(OverlappingActors[i]))) {
+	GetWorld()->SweepMultiByChannel(OutHits, Start, End, FQuat::Identity, ECollisionChannel::ECC_Pawn,
+		FCollisionShape::MakeSphere(RangeRadius));
 
-					if (GEngine)
-					{
-						GEngine->AddOnScreenDebugMessage(-1,
-							5.f, FColor::Green, FString(OverlappingEnemies[i]->GetName()));
-					}
 
-					OverlappingEnemies[i]->Stunned();
+	if (OutHits.Num() > 0) {
+		for (int i = 0; i < OutHits.Num(); i++)
+		{
+
+			DrawDebugSphere(GetWorld(), OutHits[i].GetActor()->GetActorLocation(), 100.f, 30, FColor::Red, false, 2.f);
+
+			if (ACPPTestCharacter* Temp = Cast<ACPPTestCharacter>(OutHits[i].GetActor())) {
+
+
+				if (GEngine)
+				{
+					GEngine->AddOnScreenDebugMessage(-1,
+						5.f, FColor::Green, FString(Temp->GetName()));
 				}
+
+				Temp->Stunned();
 			}
+
 		}
+
 	}
+
 
 }
 

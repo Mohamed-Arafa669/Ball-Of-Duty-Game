@@ -20,17 +20,14 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	UPROPERTY(EditAnywhere)
-	UStaticMeshComponent* HitAreaCone;
+	
 
 protected:
 	virtual void BeginPlay() override;
 
 
 	void AbilityCooldown();
-	void EffectCooldown();
 
-	
 	void DoAbility();
 
 	UFUNCTION(Server, Reliable)
@@ -39,8 +36,14 @@ protected:
 	UPROPERTY(Replicated)
 	bool bSmash;
 
-	bool bEffectOn;
+	UPROPERTY(EditAnywhere, Category = "Ability")
+		float Ability_Cooldown_Duration = 2.f;
+	UPROPERTY(EditAnywhere, Category = "Ability")
+		float StartDistance = 150.f;
+	UPROPERTY(EditAnywhere, Category = "Ability")
+		float EndDistance = 500.f;
+	UPROPERTY(EditAnywhere, Category = "Ability")
+		float RangeRadius = 100;
 
-	TArray<AActor*> OverlappingActors;
-	TArray<ACPPTestCharacter*> OverlappingEnemies;
+	TArray<FHitResult> OutHits;
 };

@@ -116,9 +116,11 @@ public:
 	 UPROPERTY(Replicated)
 	 bool bEquipped;
 	 UPROPERTY(Replicated)
-	 bool bCanMove;
+	 bool bStunned;
 
 	 void StopThrow();
+
+	 bool IsAllowedToMove();
 
 	UPROPERTY(EditAnywhere, Replicated, Category = "Movement")
 	 float DashDistance = 6000.f;
