@@ -32,6 +32,11 @@ AHook::AHook()
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
 	ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
 
+
+	///TODO Pull player by Impulse
+	//USE CableComponent (Just Cosmetic)
+
+
 	//Registering the Projectile Impact function on a Hit event.
 	if (GetLocalRole() == ROLE_Authority)
 	{

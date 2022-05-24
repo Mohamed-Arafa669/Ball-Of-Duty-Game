@@ -115,6 +115,9 @@ public:
 	UPROPERTY(Replicated)
 	 bool bCatching;
 
+	UPROPERTY(Replicated)
+		bool bSteal;
+
 	 UPROPERTY(Replicated)
 	 bool bEquipped;
 

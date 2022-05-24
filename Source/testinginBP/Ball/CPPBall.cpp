@@ -12,7 +12,7 @@
 
 ACPPBall::ACPPBall()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 
 	//SetBallState(EBallState::EBS_Dropped);
@@ -65,8 +65,8 @@ void ACPPBall::BeginPlay()
 void ACPPBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	/*if (bMove)
+	
+	if (bMove)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Moving"));
 
@@ -85,7 +85,7 @@ void ACPPBall::Tick(float DeltaTime)
 			else
 				bMove = false;
 		}
-	}*/
+	}
 
 }
 
@@ -176,6 +176,7 @@ void ACPPBall::MoveHookedBall(class AStealCharacter* TargetPlayer)
 	Target = TargetPlayer;
 	if (Target != nullptr)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("Bla bla bla"));
 		StartLocation = GetActorLocation();
 		Direction = Target->GetActorLocation() - StartLocation;
 		TotalDistance = Direction.Size();
