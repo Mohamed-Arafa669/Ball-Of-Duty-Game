@@ -25,7 +25,20 @@ public:
 	void PlayThrowMontage();
 	UFUNCTION(BlueprintCallable, Category = "BallThrow")
 		void OnBallReleased();
+	UPROPERTY(visibleAnywhere, Category = Camera)
+		class UCameraComponent* followCamera;
 
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly,  meta = (AllowPrivateAccess = "true"))
+		class ULockOnTargetComponent* lockOnTargets;
+
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly,  meta = (AllowPrivateAccess = "true"))
+		class UTargetingHelperComponent* targetComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		AActor* FoundTarget;
+
+	UFUNCTION(BlueprintCallable)
+	void ThrowButtonPressed();
 
 protected:
 	virtual void BeginPlay() override;
@@ -38,17 +51,17 @@ protected:
 	void Catch();
 	void Dash();
 	void CanDash();
+	//void CanLock();
 	void CanCatch();
-	void ThrowButtonPressed();
 	void ThrowButtonReleased();
-
+	void LockTarget();
 	USkeletalMeshComponent* CharacterMesh;
 
 private:
 	UPROPERTY(visibleAnywhere, Category = Camera)
 		class USpringArmComponent* cameraBoom;
-	UPROPERTY(visibleAnywhere, Category = Camera)
-		class UCameraComponent* followCamera;
+	
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		class UWidgetComponent* overHeadWidget;
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
@@ -60,12 +73,19 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingBall) //Replication
 		class ACPPBall* overlappingBall;
 ;
+	
 
 	UFUNCTION()
 	void OnRep_OverlappingBall(ACPPBall* lastBall); //Replication
 
 	UPROPERTY(visibleAnywhere)
 	class UCombatComponent* combat;
+
+	UPROPERTY(visibleAnywhere)
+	class UGameplayStatics* gameStatic;
+
+	UPROPERTY(visibleAnywhere)
+	class UWorld* world;
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
@@ -92,7 +112,6 @@ private:
 	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Animation)
 		void MulticastPlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
 
-
 	
 
 public:	
@@ -112,13 +131,43 @@ public:
 	 UPROPERTY(Replicated)
 	 bool bEquipped;
 
+	 UPROPERTY(Replicated)
+		 bool bSlerps;
+
+	 UPROPERTY(Replicated)
+		 bool bisLocked;
+
+	 UFUNCTION()
+		 void MyLockedThrow();
+
+	 UFUNCTION()
+		 void MyThrow();
+
+	 //UFUNCTION(NetMulticast, Reliable)
+		// void MyServerLockedThrow();
+
+	 //UFUNCTION(NetMulticast, Reliable)
+		// void MyServerThrow();
+
+	 //UFUNCTION(NetMulticast, Reliable)
+		// void ServerLockTarget();
+
 	 void StopThrow();
 
 	UPROPERTY(EditAnywhere, Replicated, Category = "Movement")
 	 float DashDistance = 6000.f;
 
 	UPROPERTY(EditAnywhere, Replicated, Category = "Throw power")
-		float throwPower = 20000.0f;
+		float throwPower = 500.0f;
 	UPROPERTY(EditAnywhere, Category = "Catching")
-		float CatchCooldown = 1.f;
+		float CatchCooldown = 10.f;
+
+	FVector testVect;
+
+	
+
+	
+
+	
+
 };

@@ -25,6 +25,9 @@ public:
 		ACPPBall* equippedBall;
 	UPROPERTY(visibleAnywhere)
 	 const USkeletalMeshSocket* handSocket;
+
+	class ACPPTestCharacter* character;
+
 protected:
 	virtual void BeginPlay() override;
 	void ThrowButtonPressed(bool bPressed);
@@ -34,7 +37,6 @@ protected:
 	void SetHUDCrosshairs(float DeltaTime);
 
 private:
-	class ACPPTestCharacter* character;
 	class ACPPPlayerController* Controller;
 	class AGameHUD* HUD;
 

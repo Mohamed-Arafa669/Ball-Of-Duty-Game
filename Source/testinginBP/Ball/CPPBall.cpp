@@ -8,6 +8,14 @@
 #include "testinginBP\Character\CPPTestCharacter.h"
 #include "Net/UnrealNetwork.h" //Replication
 #include "testinginBP\GameComponents\CombatComponent.h"
+#include "GameFramework/ProjectileMovementComponent.h"
+#include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "../../LockOnTarget/Source/LockOnTarget/Public/LockOnTargetComponent.h"
+#include "DrawDebugHelpers.h"
+#include "Engine/World.h"
+#include "GameFramework/Actor.h"
+
 
 ACPPBall::ACPPBall()
 {
@@ -29,15 +37,77 @@ ACPPBall::ACPPBall()
 	AreaSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 	AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
-	//Definition for the Projectile Movement Component.
-	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
-	ProjectileMovementComponent->SetUpdatedComponent(AreaSphere);
-	ProjectileMovementComponent->InitialSpeed = 1500.0f;
-	ProjectileMovementComponent->MaxSpeed = 1500.0f;
-	ProjectileMovementComponent->bRotationFollowsVelocity = true;
-	ProjectileMovementComponent->ProjectileGravityScale = 1.0f;
-	ProjectileMovementComponent->bIsHomingProjectile = false; //To be set later
+	////Definition for the Projectile Movement Component.
+	//ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
+	//ProjectileMovementComponent->SetUpdatedComponent(AreaSphere);
+	//ProjectileMovementComponent->InitialSpeed = 1500.0f;
+	//ProjectileMovementComponent->MaxSpeed = 1500.0f;
+	//ProjectileMovementComponent->bRotationFollowsVelocity = true;
+	//ProjectileMovementComponent->ProjectileGravityScale = 1.0f;
+	//ProjectileMovementComponent->bIsHomingProjectile = false; //To be set later
 
+	//////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////// PROJECTILE ////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////
+	// 
+	//if (!ProjectileSceneComponent)
+	//{
+	//	ProjectileSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("ProjectileSceneComponent"));
+	//}
+	//if (!CollisionComponent)
+	//{
+	//	// Use a sphere as a simple collision representation.
+	//	CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+	//	// Set the sphere's collision radius.
+	//	CollisionComponent->InitSphereRadius(15.0f);
+	//	// Set the root component to be the collision component.
+	//	RootComponent = CollisionComponent;
+	//}
+
+	if (!ProjectileMovementComponent)
+	{
+		// Use this component to drive this projectile's movement.
+		ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
+		//ProjectileMovementComponent->SetUpdatedComponent(CollisionComponent);
+		ProjectileMovementComponent->InitialSpeed = 0.0f;
+		ProjectileMovementComponent->MaxSpeed = 3000.0f;
+		ProjectileMovementComponent->bRotationFollowsVelocity = true;
+		ProjectileMovementComponent->bShouldBounce = true;
+		ProjectileMovementComponent->Bounciness = 0.3f;
+		ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
+	}
+	// 
+	// 
+	////if (!RootComponent)
+	////{
+	////	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("ProjectileSceneComponent"));
+	////}
+
+	////if (!CollisionComponent)
+	////{
+	////	// Use a sphere as a simple collision representation.
+	////	CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+	////	// Set the sphere's collision radius.
+	////	CollisionComponent->InitSphereRadius(15.0f);
+	////	// Set the root component to be the collision component.
+	////	RootComponent = CollisionComponent;
+	////}
+	////if (!ProjectileMovementComponent)
+	////{
+	////	// Use this component to drive this projectile's movement.
+	////	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
+	////	ProjectileMovementComponent->SetUpdatedComponent(CollisionComponent);
+	////	ProjectileMovementComponent->InitialSpeed = 3000.0f;
+	////	ProjectileMovementComponent->MaxSpeed = 3000.0f;
+	////	ProjectileMovementComponent->bRotationFollowsVelocity = true;
+	////	ProjectileMovementComponent->bShouldBounce = true;
+	////	ProjectileMovementComponent->Bounciness = 0.3f;
+	////	ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
+	////}
+
+	/// <summary>
+	/// //////////////////
+	/// </summary>
 	pickUpWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickUpWidget"));
 	pickUpWidget->SetupAttachment(RootComponent);
 }
@@ -147,6 +217,15 @@ void ACPPBall::OnReleased()
 	UE_LOG(LogTemp, Warning, TEXT("???"));
 }
 
+//void ACPPBall::mySlerp()
+//{
+//	
+//	SetActorLocation(Slerp(startRelCenter, endRelCenter, ballSpeed), false, (FHitResult*) nullptr, ETeleportType::ResetPhysics);
+//	//SetActorLocationAndRotation(,GetActorRotation());
+//	 ;
+//	//myTransform += centerpoint;
+//}
+
 void ACPPBall::ShowPickupWidget(bool bShowWidget)
 {
 	if (pickUpWidget)
@@ -155,3 +234,47 @@ void ACPPBall::ShowPickupWidget(bool bShowWidget)
 	}
 }
 
+void ACPPBall::FindHomingTarget()
+{
+	
+		//FoundHomingTarget = combat->character->lockOnTargets->GetTarget();
+		//FoundHomingTarget->GetActorLocation();
+		DrawDebugSphere(combat->GetWorld(), FoundHomingTarget->GetActorLocation(), 100.0f, 12, FColor::Yellow);
+	
+}
+
+//void ACPPBall::GetCenter(FVector& direction)
+//{
+//	centerpoint = (combat->character->GetActorLocation() + combat->character->lockOnTargets->GetTarget()->GetActorLocation()) * 0.5f;
+//	centerpoint -= direction;
+//	startRelCenter = combat->character->GetActorLocation() - centerpoint;
+//	endRelCenter = combat->character->lockOnTargets->GetTarget()->GetActorLocation() - centerpoint;
+//}
+
+
+//void ACPPBall::FindHomingTarget()
+//{
+//	/*FVector lengthDifferance;
+//	double lenght;
+//	UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(), ClassToFind, FName("Homing"), OutActors);
+//	for each (AActor *var in OutActors)
+//	{
+//		lengthDifferance = var->GetActorLocation() - this->GetActorLocation();
+//		lenght = lengthDifferance.Length();
+//		if (lenght < closestDistance)
+//		{
+//			closestDistance = lenght;
+//			CurrentHomingTargets = OutActors;
+//		}
+//		
+//	}*/
+//}
+
+
+
+//
+//void ACPPBall::FireInDirection(const FVector& ShootDirection)
+//{
+//	ProjectileMovementComponent->Velocity = ShootDirection * ProjectileMovementComponent->InitialSpeed;
+//}
+//

@@ -11,7 +11,7 @@ void ACPPLobbyGameMode::PostLogin(APlayerController* newPlayer)
 
 	int32 numberOfPlayers = GameState.Get()->PlayerArray.Num();
 
-	if (numberOfPlayers == 2)
+	if (numberOfPlayers == 4)
 	{
 		UWorld* world = GetWorld();
 		if (world)

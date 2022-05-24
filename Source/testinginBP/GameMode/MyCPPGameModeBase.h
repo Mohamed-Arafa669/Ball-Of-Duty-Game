@@ -19,12 +19,28 @@ public:
 	AMyCPPGameModeBase();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MyGame")
-		TSubclassOf<class ACharacter> FirstPawn; //lw mnf3sh ACharacter 5leha ACPPTestCharacter
+		TSubclassOf<class ACharacter> FirstPawn; 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MyGame")
-		TSubclassOf<class ACharacter> SecondPawn; //lw mnf3sh ACharacter 5leha ACPPTestCharacter
+		TSubclassOf<class ACharacter> SecondPawn; 
+
+	/*UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MyGame")
+		TSubclassOf<class ACharacter> ThirdPawn;*/
+
+	/*UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MyGame")
+		TSubclassOf<class ACharacter> FourthPawn; */
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //Replication
+
+	//TODO : TEAMS 
+
+	//void PostLogin(APlayerController* NewPlayer) override;
+
+	//AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+
+	//bool ShouldSpawnAtStartSpot(AController* Player) override { return false; };
+
+
 
 protected:
 
