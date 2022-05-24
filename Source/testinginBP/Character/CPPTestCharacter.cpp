@@ -11,6 +11,7 @@
 #include "Animation/AnimMontage.h"
 #include "testinginBP\Character\CPPAnimInstance.h"
 #include "Kismet//KismetMathLibrary.h"
+#include "Engine/Engine.h"
 
 ACPPTestCharacter::ACPPTestCharacter()
 {
@@ -43,7 +44,10 @@ ACPPTestCharacter::ACPPTestCharacter()
 	bCanThrow = false;
 
 	bEquipped = false;
-	//overlappingBall->SetBallState(EBallState::EBS_Dropped);
+	
+
+	MaxHealth = 100.0f;
+	CurrentHealth = MaxHealth;
 	
 }
 void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -55,8 +59,7 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ACPPTestCharacter, bEquipped);
 	DOREPLIFETIME(ACPPTestCharacter, bCatching);
 	DOREPLIFETIME(ACPPTestCharacter, bStunned);
-
-
+	DOREPLIFETIME(ACPPTestCharacter, CurrentHealth);
 
 }
 
@@ -103,7 +106,7 @@ void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ACPPTestCharacter::EquipButtonPressed);
+	//PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ACPPTestCharacter::EquipButtonPressed);
 
 
 	PlayerInputComponent->BindAction("Catch", IE_Pressed, this, &ACPPTestCharacter::Catch);
@@ -313,6 +316,8 @@ void ACPPTestCharacter::ThrowButtonReleased()
 
 			bEquipped = false;
 
+			combat->equippedBall->SetBallState(EBallState::EBS_Thrown);
+
 			combat->equippedBall = nullptr;
 
 
@@ -347,6 +352,31 @@ void ACPPTestCharacter::StunCoolDown()
 	bStunned = false;
 }
 
+void ACPPTestCharacter::OnHealthUpdate()
+{
+	
+	if (IsLocallyControlled())
+	{
+		FString healthMessage = FString::Printf(TEXT("You now have %f health remaining."), CurrentHealth);
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, healthMessage);
+
+		if (CurrentHealth <= 0)
+		{
+			FString deathMessage = FString::Printf(TEXT("You have been killed."));
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, deathMessage);
+		}
+	}
+
+	//Server-specific functionality
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		FString healthMessage = FString::Printf(TEXT("%s now has %f health remaining."), *GetFName().ToString(), CurrentHealth);
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, healthMessage);
+	}
+
+}
+
+
 void ACPPTestCharacter::ServerThrowButtonReleased_Implementation()
 {
 	if (combat && IsBallEquipped() && IsAllowedToMove())
@@ -376,7 +406,8 @@ void ACPPTestCharacter::ServerThrowButtonReleased_Implementation()
 		bEquipped = false;
 		combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (followCamera->GetForwardVector() + followCamera->GetUpVector()) /*(GetActorForwardVector() + GetActorUpVector())*/ * throwPower * 75);
 
-		//TODO: set equippedball to null
+		
+		combat->equippedBall->SetBallState(EBallState::EBS_Thrown);
 
 		combat->equippedBall = nullptr;
 
@@ -463,10 +494,24 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 		{
 			combat->EquipBall(BallHit);
 			bCanThrow = true;
-			
+
 		}
 
-	}
+		else if (BallHit->GetBallState() == EBallState::EBS_Thrown)
+		{
+
+			FString HitMessage = FString::Printf(TEXT("HIT"));
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, HitMessage);
+			FDamageEvent GotHitEvent;
+			this->TakeDamage(25.f, GotHitEvent, BallHit->GetInstigatorController(), BallHit);
+			BallHit->SetBallState(EBallState::EBS_Dropped);
+			BallHit->SetOwner(nullptr);
+		} else if ((BallHit->GetBallState() == EBallState::EBS_Dropped || 
+			BallHit->GetBallState() == EBallState::EBS_Initial) && combat && !IsBallEquipped())
+		{
+			combat->EquipBall(BallHit);
+		}
+	} 
 }
 
 
@@ -486,6 +531,13 @@ void ACPPTestCharacter::SetOverlappingBall(ACPPBall* cppBall)
 			//overlappingBall->DisableComponentsSimulatePhysics();
 		}
 	}
+}
+
+void ACPPTestCharacter::OnRep_CurrentHealth()
+{
+
+	OnHealthUpdate();
+
 }
 
 void ACPPTestCharacter::OnRep_OverlappingBall(ACPPBall* lastBall)
@@ -527,6 +579,25 @@ void ACPPTestCharacter::StopThrow()
 bool ACPPTestCharacter::IsAllowedToMove()
 {
 	return !bStunned;
+
+}
+
+void ACPPTestCharacter::SetCurrentHealth(float healthValue)
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		CurrentHealth = FMath::Clamp(healthValue, 0.f, MaxHealth);
+		OnHealthUpdate();
+
+	}
+}
+
+float ACPPTestCharacter::TakeDamage(float DamageTaken, FDamageEvent const& DamageEvent, AController* EventInstigator,
+	AActor* DamageCauser)
+{
+	float DamageApplied = CurrentHealth - DamageTaken;
+	SetCurrentHealth(DamageApplied);
+	return DamageApplied;
 
 }
 

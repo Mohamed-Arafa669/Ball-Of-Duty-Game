@@ -44,7 +44,15 @@ protected:
 	void ThrowButtonReleased();
 	void StunCoolDown();
 
+	void OnHealthUpdate();
+
 	USkeletalMeshComponent* CharacterMesh;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Health")
+		float MaxHealth;
+
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth)
+		float CurrentHealth;
 
 private:
 	UPROPERTY(visibleAnywhere, Category = Camera)
@@ -61,7 +69,11 @@ private:
 		class UAnimMontage* CatchAnim;
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingBall) //Replication
 		class ACPPBall* overlappingBall;
-;
+
+	
+
+	UFUNCTION()
+	void OnRep_CurrentHealth();
 
 	UFUNCTION()
 	void OnRep_OverlappingBall(ACPPBall* lastBall); //Replication
@@ -121,6 +133,21 @@ public:
 	 void StopThrow();
 
 	 bool IsAllowedToMove();
+
+
+	 UFUNCTION(BlueprintPure, Category = "Health")
+		 FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+
+
+	 UFUNCTION(BlueprintPure, Category = "Health")
+		 FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
+
+	
+	 void SetCurrentHealth(float healthValue);
+
+	
+	 UFUNCTION(BlueprintCallable, Category = "Health")
+	virtual float TakeDamage(float DamageTaken, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 	UPROPERTY(EditAnywhere, Replicated, Category = "Movement")
 	 float DashDistance = 6000.f;
