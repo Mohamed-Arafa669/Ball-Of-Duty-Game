@@ -31,6 +31,8 @@ ACPPBall::ACPPBall()
 
 	pickUpWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickUpWidget"));
 	pickUpWidget->SetupAttachment(RootComponent);
+
+	
 }
 
 void ACPPBall::BeginPlay()
@@ -48,6 +50,7 @@ void ACPPBall::BeginPlay()
 		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &ACPPBall::OnSphereEndOverlap);
 
 	}
+	//SetBallState(EBallState::EBS_Initial);
 }
 
 void ACPPBall::Tick(float DeltaTime)
@@ -69,7 +72,11 @@ void ACPPBall::OnSphereOverlap(UPrimitiveComponent* overlappedComponent, AActor*
 	if (testCharacter && pickUpWidget)
 	{
 		testCharacter->SetOverlappingBall(this);
+	} else
+	{
+		SetBallState(EBallState::EBS_Initial);
 	}
+	
 }
 
 

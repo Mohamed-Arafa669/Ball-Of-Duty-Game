@@ -316,7 +316,7 @@ void ACPPTestCharacter::ThrowButtonReleased()
 
 			bEquipped = false;
 
-			combat->equippedBall->SetBallState(EBallState::EBS_Thrown);
+			
 
 			combat->equippedBall = nullptr;
 
@@ -407,7 +407,7 @@ void ACPPTestCharacter::ServerThrowButtonReleased_Implementation()
 		combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (followCamera->GetForwardVector() + followCamera->GetUpVector()) /*(GetActorForwardVector() + GetActorUpVector())*/ * throwPower * 75);
 
 		
-		combat->equippedBall->SetBallState(EBallState::EBS_Thrown);
+		
 
 		combat->equippedBall = nullptr;
 
@@ -497,21 +497,21 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 
 		}
 
-		else if (BallHit->GetBallState() == EBallState::EBS_Thrown)
+		else if (BallHit->GetBallState() == EBallState::EBS_Dropped && BallHit->GetOwner() != this)
 		{
 
 			FString HitMessage = FString::Printf(TEXT("HIT"));
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, HitMessage);
 			FDamageEvent GotHitEvent;
 			this->TakeDamage(25.f, GotHitEvent, BallHit->GetInstigatorController(), BallHit);
-			BallHit->SetBallState(EBallState::EBS_Dropped);
+			BallHit->SetBallState(EBallState::EBS_Initial);
 			BallHit->SetOwner(nullptr);
-		} else if ((BallHit->GetBallState() == EBallState::EBS_Dropped || 
+		} else if ((BallHit->GetBallState() != EBallState::EBS_Dropped || 
 			BallHit->GetBallState() == EBallState::EBS_Initial) && combat && !IsBallEquipped())
 		{
 			combat->EquipBall(BallHit);
 		}
-	} 
+	}
 }
 
 
