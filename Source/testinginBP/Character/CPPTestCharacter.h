@@ -46,6 +46,16 @@ protected:
 
 	void OnHealthUpdate();
 
+	void Knocked();
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+		void MultiKnocked();
+	bool MultiKnocked_Validate();
+	void MultiKnocked_Implementation();
+
+	UPROPERTY(Replicated)
+	bool bKnocked;
+
 	USkeletalMeshComponent* CharacterMesh;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Health")
@@ -70,7 +80,7 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingBall) //Replication
 		class ACPPBall* overlappingBall;
 
-	
+	void CallDestroy();
 
 	UFUNCTION()
 	void OnRep_CurrentHealth();
@@ -152,11 +162,18 @@ public:
 	UPROPERTY(EditAnywhere, Replicated, Category = "Movement")
 	 float DashDistance = 6000.f;
 
-	UPROPERTY(EditAnywhere, Replicated, Category = "Throw power")
+	UPROPERTY(EditAnywhere, Replicated, Category = "Throw")
 		float throwPower = 20000.0f;
+	UPROPERTY(EditAnywhere)
+		float HitImpulse = 1000.f;
+
 	UPROPERTY(EditAnywhere, Category = "Catching")
 		float CatchCooldown = 1.f;
 
 	UPROPERTY(EditAnywhere, Category = "Abilities")
 		float StunDuration = 10.f;
+
+	UPROPERTY(Replicated)
+	FVector ballHitDirection;
+
 };

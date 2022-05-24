@@ -9,9 +9,11 @@
 #include "testinginBP\Ball\CPPBall.h"
 #include "testinginBP\GameComponents\CombatComponent.h"
 #include "Animation/AnimMontage.h"
+#include "Components/CapsuleComponent.h"
 #include "testinginBP\Character\CPPAnimInstance.h"
 #include "Kismet//KismetMathLibrary.h"
 #include "Engine/Engine.h"
+#include "GameFramework/Character.h"
 
 ACPPTestCharacter::ACPPTestCharacter()
 {
@@ -59,7 +61,9 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ACPPTestCharacter, bEquipped);
 	DOREPLIFETIME(ACPPTestCharacter, bCatching);
 	DOREPLIFETIME(ACPPTestCharacter, bStunned);
+	DOREPLIFETIME(ACPPTestCharacter, bKnocked);
 	DOREPLIFETIME(ACPPTestCharacter, CurrentHealth);
+	DOREPLIFETIME(ACPPTestCharacter, ballHitDirection);
 
 }
 
@@ -364,6 +368,8 @@ void ACPPTestCharacter::OnHealthUpdate()
 		{
 			FString deathMessage = FString::Printf(TEXT("You have been killed."));
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, deathMessage);
+
+			Knocked();
 		}
 	}
 
@@ -372,8 +378,42 @@ void ACPPTestCharacter::OnHealthUpdate()
 	{
 		FString healthMessage = FString::Printf(TEXT("%s now has %f health remaining."), *GetFName().ToString(), CurrentHealth);
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, healthMessage);
+
+		if (CurrentHealth <= 0)
+		{
+			FString deathMessage = FString::Printf(TEXT("You have been killed."));
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, deathMessage);
+
+			Knocked();
+		}
 	}
 
+}
+
+void ACPPTestCharacter::Knocked()
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		MultiKnocked();
+
+		FTimerHandle KnockedTimer;
+
+		GetWorld()->GetTimerManager().SetTimer(KnockedTimer, this, &ACPPTestCharacter::CallDestroy, 3.0f, false);
+	}
+}
+
+bool ACPPTestCharacter::MultiKnocked_Validate()
+{
+	return true;
+}
+
+void ACPPTestCharacter::MultiKnocked_Implementation()
+{
+	bKnocked = true;
+	this->GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	this->GetMesh()->SetAllBodiesSimulatePhysics(true);
+	this->GetMesh()->AddImpulse( GetActorLocation() + (-ballHitDirection * HitImpulse * CharacterMesh->GetMass()));
+	
 }
 
 
@@ -503,8 +543,9 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 			FString HitMessage = FString::Printf(TEXT("HIT"));
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, HitMessage);
 			FDamageEvent GotHitEvent;
-			this->TakeDamage(25.f, GotHitEvent, BallHit->GetInstigatorController(), BallHit);
+			this->TakeDamage(50.f, GotHitEvent, BallHit->GetInstigatorController(), BallHit);
 			BallHit->SetBallState(EBallState::EBS_Initial);
+			ballHitDirection = BallHit->GetActorForwardVector();
 			BallHit->SetOwner(nullptr);
 		} else if ((BallHit->GetBallState() != EBallState::EBS_Dropped || 
 			BallHit->GetBallState() == EBallState::EBS_Initial) && combat && !IsBallEquipped())
@@ -531,6 +572,12 @@ void ACPPTestCharacter::SetOverlappingBall(ACPPBall* cppBall)
 			//overlappingBall->DisableComponentsSimulatePhysics();
 		}
 	}
+}
+
+void ACPPTestCharacter::CallDestroy()
+{
+	Destroy();
+	GetCapsuleComponent()->DestroyComponent();
 }
 
 void ACPPTestCharacter::OnRep_CurrentHealth()
