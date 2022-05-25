@@ -9,6 +9,14 @@
 #include "testinginBP/Character/StealCharacter.h"
 #include "Net/UnrealNetwork.h" //Replication
 #include "testinginBP\GameComponents\CombatComponent.h"
+#include "GameFramework/ProjectileMovementComponent.h"
+#include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "../../LockOnTarget/Source/LockOnTarget/Public/LockOnTargetComponent.h"
+#include "DrawDebugHelpers.h"
+#include "Engine/World.h"
+#include "GameFramework/Actor.h"
+
 
 ACPPBall::ACPPBall()
 {
@@ -39,10 +47,73 @@ ACPPBall::ACPPBall()
 	//ProjectileMovementComponent->ProjectileGravityScale = 1.0f;
 	//ProjectileMovementComponent->bIsHomingProjectile = false; //To be set later
 
+	//////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////// PROJECTILE ////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////
+	// 
+	//if (!ProjectileSceneComponent)
+	//{
+	//	ProjectileSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("ProjectileSceneComponent"));
+	//}
+	//if (!CollisionComponent)
+	//{
+	//	// Use a sphere as a simple collision representation.
+	//	CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+	//	// Set the sphere's collision radius.
+	//	CollisionComponent->InitSphereRadius(15.0f);
+	//	// Set the root component to be the collision component.
+	//	RootComponent = CollisionComponent;
+	//}
+
+	if (!ProjectileMovementComponent)
+	{
+		// Use this component to drive this projectile's movement.
+		ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
+		//ProjectileMovementComponent->SetUpdatedComponent(CollisionComponent);
+		ProjectileMovementComponent->InitialSpeed = 0.0f;
+		ProjectileMovementComponent->MaxSpeed = 3000.0f;
+		ProjectileMovementComponent->bRotationFollowsVelocity = true;
+		ProjectileMovementComponent->bShouldBounce = true;
+		ProjectileMovementComponent->Bounciness = 0.3f;
+		ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
+	}
+	// 
+	// 
+	////if (!RootComponent)
+	////{
+	////	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("ProjectileSceneComponent"));
+	////}
+
+	////if (!CollisionComponent)
+	////{
+	////	// Use a sphere as a simple collision representation.
+	////	CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+	////	// Set the sphere's collision radius.
+	////	CollisionComponent->InitSphereRadius(15.0f);
+	////	// Set the root component to be the collision component.
+	////	RootComponent = CollisionComponent;
+	////}
+	////if (!ProjectileMovementComponent)
+	////{
+	////	// Use this component to drive this projectile's movement.
+	////	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
+	////	ProjectileMovementComponent->SetUpdatedComponent(CollisionComponent);
+	////	ProjectileMovementComponent->InitialSpeed = 3000.0f;
+	////	ProjectileMovementComponent->MaxSpeed = 3000.0f;
+	////	ProjectileMovementComponent->bRotationFollowsVelocity = true;
+	////	ProjectileMovementComponent->bShouldBounce = true;
+	////	ProjectileMovementComponent->Bounciness = 0.3f;
+	////	ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
+	////}
+
+	/// <summary>
+	/// //////////////////
+	/// </summary>
 	pickUpWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickUpWidget"));
 	pickUpWidget->SetupAttachment(RootComponent);
 
 	bMove = false;
+	
 }
 
 void ACPPBall::BeginPlay()
@@ -60,6 +131,7 @@ void ACPPBall::BeginPlay()
 		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &ACPPBall::OnSphereEndOverlap);
 
 	}
+	//SetBallState(EBallState::EBS_Initial);
 }
 
 void ACPPBall::Tick(float DeltaTime)
@@ -102,7 +174,11 @@ void ACPPBall::OnSphereOverlap(UPrimitiveComponent* overlappedComponent, AActor*
 	if (testCharacter && pickUpWidget)
 	{
 		testCharacter->SetOverlappingBall(this);
+	} else
+	{
+		SetBallState(EBallState::EBS_Initial);
 	}
+	
 }
 
 
@@ -190,6 +266,14 @@ void ACPPBall::MoveHookedBall(class AStealCharacter* TargetPlayer)
 
 	}
 }
+//void ACPPBall::mySlerp()
+//{
+//	
+//	SetActorLocation(Slerp(startRelCenter, endRelCenter, ballSpeed), false, (FHitResult*) nullptr, ETeleportType::ResetPhysics);
+//	//SetActorLocationAndRotation(,GetActorRotation());
+//	 ;
+//	//myTransform += centerpoint;
+//}
 
 void ACPPBall::ShowPickupWidget(bool bShowWidget)
 {
@@ -199,3 +283,47 @@ void ACPPBall::ShowPickupWidget(bool bShowWidget)
 	}
 }
 
+void ACPPBall::FindHomingTarget()
+{
+	
+		//FoundHomingTarget = combat->character->lockOnTargets->GetTarget();
+		//FoundHomingTarget->GetActorLocation();
+		DrawDebugSphere(combat->GetWorld(), FoundHomingTarget->GetActorLocation(), 100.0f, 12, FColor::Yellow);
+	
+}
+
+//void ACPPBall::GetCenter(FVector& direction)
+//{
+//	centerpoint = (combat->character->GetActorLocation() + combat->character->lockOnTargets->GetTarget()->GetActorLocation()) * 0.5f;
+//	centerpoint -= direction;
+//	startRelCenter = combat->character->GetActorLocation() - centerpoint;
+//	endRelCenter = combat->character->lockOnTargets->GetTarget()->GetActorLocation() - centerpoint;
+//}
+
+
+//void ACPPBall::FindHomingTarget()
+//{
+//	/*FVector lengthDifferance;
+//	double lenght;
+//	UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(), ClassToFind, FName("Homing"), OutActors);
+//	for each (AActor *var in OutActors)
+//	{
+//		lengthDifferance = var->GetActorLocation() - this->GetActorLocation();
+//		lenght = lengthDifferance.Length();
+//		if (lenght < closestDistance)
+//		{
+//			closestDistance = lenght;
+//			CurrentHomingTargets = OutActors;
+//		}
+//		
+//	}*/
+//}
+
+
+
+//
+//void ACPPBall::FireInDirection(const FVector& ShootDirection)
+//{
+//	ProjectileMovementComponent->Velocity = ShootDirection * ProjectileMovementComponent->InitialSpeed;
+//}
+//
