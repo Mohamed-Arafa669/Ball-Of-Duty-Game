@@ -201,15 +201,15 @@ public:
 	UPROPERTY(EditAnywhere, Replicated, Category = "Movement")
 	 float DashDistance = 6000.f;
 
-	UPROPERTY(EditAnywhere, Replicated, Category = "Throw power")
-		float throwPower = 500.0f;
-	UPROPERTY(EditAnywhere, Category = "Catching")
-		float CatchCooldown = 10.f;
+	/*UPROPERTY(EditAnywhere, Replicated, Category = "Throw power")
+		float throwPower = 500.0f;*/
+	/*UPROPERTY(EditAnywhere, Category = "Catching")
+		float CatchCooldown = 10.f;*/
 
 	FVector testVect;
 
 	UPROPERTY(EditAnywhere, Replicated, Category = "Throw")
-		float throwPower = 20000.0f;
+		float throwPower = 500.0f;
 	UPROPERTY(EditAnywhere)
 		float HitImpulse = 1000.f;
 
