@@ -52,14 +52,19 @@ void AStealCharacter::AbilityCooldown()
 	bHook = true;
 }
 
-void AStealCharacter::TraceLine_Implementation()
+
+
+void AStealCharacter::TraceLine()
 {
+	////TODO Parameters for Trace (location, Rotation)
+	// //Local variables(not class)
+	//TraceLine return Hit
 	
 		//GetController()->GetPlayerViewPoint(Loc, Rot);
 	Rot = GetControlRotation();
 
 		Start = GetActorLocation() + GetActorForwardVector() * 100.0f;
-		End = Start + (Rot.Vector() * HookDistance);
+		End = Start + GetActorRotation().Vector() /*+ GetActorForwardVector()*/ * HookDistance;  //(Rot.Vector() * HookDistance);
 
 		FCollisionQueryParams TraceParams;
 
@@ -82,26 +87,16 @@ void AStealCharacter::DoAbility()
 	if (HasAuthority())
 	{
 		if (bHook) {
-			bHook = false;
+			bHook = false; //hook cool down (bCanHook)
 			HandleFire();
 			TraceLine();
 			if (ACPPTestCharacter* Target = Cast<ACPPTestCharacter>(Hit.GetActor()))
 			{
 				UE_LOG(LogTemp, Warning, TEXT("hHhHAIHDOWA"));
 
-				if (Target->IsBallEquipped())
+				if (Target->IsBallEquipped() && !IsBallEquipped())
 				{
-					UE_LOG(LogTemp, Warning, TEXT("dropyasta"));
-
-					Target->combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-					Target->combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
-					Target->combat->equippedBall->MoveHookedBall(this);
-					//Target->combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
-					combat->equippedBall = Target->combat->equippedBall;
-					Target->combat->equippedBall = nullptr;
-					combat->EquipBall(combat->equippedBall);
-					combat->equippedBall->SetBallState(EBallState::EBS_Equipped);
-
+					StealBall(Target);
 				}
 			}
 			FTimerHandle handle;
@@ -111,6 +106,8 @@ void AStealCharacter::DoAbility()
 	else
 		Server_DoAbility();
 }
+
+
 
 void AStealCharacter::Server_DoAbility_Implementation()
 {
@@ -122,21 +119,9 @@ void AStealCharacter::Server_DoAbility_Implementation()
 		{
 			UE_LOG(LogTemp, Warning, TEXT("hHhHAIHDOWA"));
 
-			if (Target->IsBallEquipped())
+			if (Target->IsBallEquipped() && !IsBallEquipped())
 			{
-				UE_LOG(LogTemp, Warning, TEXT("dropyasta"));
-				
-
-				Target->combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-				Target->combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
-				Target->combat->equippedBall->MoveHookedBall(this);
-				//Target->combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
-				combat->equippedBall = Target->combat->equippedBall;
-				Target->combat->equippedBall = nullptr;
-				Target->bEquipped = false;
-				combat->EquipBall(combat->equippedBall);
-
-				
+				StealBall(Target);
 			}
 		}
 		FTimerHandle handle;
@@ -154,4 +139,28 @@ void AStealCharacter::HandleFire_Implementation()
 	spawnParameters.Owner = this;
 
 	AHook* SpawnHook = GetWorld()->SpawnActor<AHook>(ProjectileClass, spawnLocation, spawnRotation);	
+
+}
+
+
+void AStealCharacter::StealBall(ACPPTestCharacter* Target)
+{
+	UE_LOG(LogTemp, Warning, TEXT("dropyasta"));
+
+
+	//TODO General Unequip Function
+	bSteal = true;
+	Target->combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	Target->combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
+	Target->combat->equippedBall->MoveHookedBall(this);
+	combat->equippedBall = Target->combat->equippedBall;
+	Target->combat->equippedBall = nullptr;
+	Target->bEquipped = false;
+	//Target->combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
+	/*if (Target->combat->equippedBall->)
+	{
+	
+		combat->EquipBall(combat->equippedBall);
+		combat->equippedBall->SetBallState(EBallState::EBS_Equipped);
+	}*/
 }

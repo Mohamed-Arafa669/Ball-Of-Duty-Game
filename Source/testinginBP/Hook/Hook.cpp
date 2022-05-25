@@ -5,6 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Particles/ParticleSystem.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -32,6 +33,18 @@ AHook::AHook()
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
 	ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
 
+	//Definition for the Projectile Particle System.
+	ExplosionEffect = CreateDefaultSubobject<UParticleSystem>(TEXT("ExplosionEffect"));
+
+
+	// Delete the projectile after 3 seconds.
+	/*InitialLifeSpan = 0.3f;*/
+	this->InitialLifeSpan = 0.5f;
+
+	///TODO Pull player by Impulse
+	//USE CableComponent (Just Cosmetic)
+
+
 	//Registering the Projectile Impact function on a Hit event.
 	if (GetLocalRole() == ROLE_Authority)
 	{
@@ -44,19 +57,31 @@ AHook::AHook()
 void AHook::BeginPlay()
 {
 	Super::BeginPlay();
+
+
 	
+}
+
+void AHook::Destroyed()
+{
+	FVector spawnLocation = GetActorLocation();
+	UGameplayStatics::SpawnEmitterAtLocation(this, ExplosionEffect, spawnLocation, FRotator::ZeroRotator, true, EPSCPoolMethod::AutoRelease);
 }
 
 void AHook::OnProjectileImpact(UPrimitiveComponent* HitComponent, AActor* OtherActor, 
 	UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Destrooooooy"));
 	if (OtherActor)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Actor %s"), *OtherActor->GetName());
+		/*UE_LOG(LogTemp, Warning, TEXT("Actor %s"), *OtherActor->GetName());
 		StaticMesh->SetSimulatePhysics(true);
 		StaticMesh->SetEnableGravity(false);
-		StaticMesh->AddForce(GetActorLocation() - GetActorForwardVector() * 40000.0f);
+		StaticMesh->AddForce(GetActorLocation() - GetActorForwardVector() * 40000.0f);*/
+		
 	}
+
+	Destroy();
 }
 
 // Called every frame

@@ -28,6 +28,8 @@ protected:
 
 	void DoAbility();
 
+	void StealBall(ACPPTestCharacter* Target);
+
 	UFUNCTION(Server, Reliable)
 		void Server_DoAbility();
 
@@ -38,13 +40,16 @@ protected:
 
 	void AbilityCooldown();
 
-	UFUNCTION(Server, Reliable)
-	void TraceLine();
+	
+
+	void TraceLine(); /// 
+	//TODO remove UFUNCTION 
+
 
 	UPROPERTY(Replicated)
 		bool bHook;
 
-
+	
 	FVector Loc;
 	FRotator Rot;
 	FHitResult Hit;

@@ -49,6 +49,8 @@ ACPPTestCharacter::ACPPTestCharacter()
 
 	bEquipped = false;
 
+	bSteal = false;
+
 	//overlappingBall->SetBallState(EBallState::EBS_Dropped);
 
 
@@ -61,6 +63,7 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 	DOREPLIFETIME(ACPPTestCharacter, bEquipped);
 	DOREPLIFETIME(ACPPTestCharacter, bCatching);
+	DOREPLIFETIME(ACPPTestCharacter, bSteal);
 
 
 }
@@ -439,10 +442,11 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 	if (ACPPBall* BallHit = Cast<ACPPBall>(OtherActor))
 	{
 
-		if (bCatching && combat && !IsBallEquipped())
+		if (bCatching && combat && !IsBallEquipped() || bSteal)
 		{
 			combat->EquipBall(BallHit);
 			bCanThrow = true;
+			bSteal = false;
 			
 		}
 

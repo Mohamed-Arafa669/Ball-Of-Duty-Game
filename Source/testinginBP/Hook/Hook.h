@@ -27,10 +27,16 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 		class UProjectileMovementComponent* ProjectileMovementComponent;
 
+	// Particle used when the projectile impacts against another object and explodes.
+	UPROPERTY(EditAnywhere, Category = "Effects")
+		class UParticleSystem* ExplosionEffect;
+
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	virtual void Destroyed() override;
 
 	UFUNCTION(Category = "Projectile")
 		void OnProjectileImpact(UPrimitiveComponent* HitComponent, AActor* OtherActor, 
