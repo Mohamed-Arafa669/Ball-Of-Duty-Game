@@ -7,6 +7,7 @@
 #include "Net/UnrealNetwork.h"
 #include "TargetingHelperComponent.h"
 #include "TimerManager.h"
+#include "DrawDebugHelpers.h"
 
 ULockOnTargetComponent::ULockOnTargetComponent()
 	: bCanCaptureTarget(true)
@@ -64,9 +65,11 @@ void ULockOnTargetComponent::EnableTargeting()
 	if (IsTargetLocked())
 	{
 		ClearTargetManual();
+		
 	}
 	else
 	{
+
 		if (bCanCaptureTarget)
 		{
 			FindTarget();
@@ -189,6 +192,7 @@ void ULockOnTargetComponent::FindTarget()
 		if (IsValid(NewTargetInfo.HelperComponent))
 		{
 			UpdateTargetInfo(NewTargetInfo);
+
 		}
 		else
 		{
@@ -293,6 +297,7 @@ void ULockOnTargetComponent::UpdateTargetInfo(const FTargetInfo& TargetInfo)
 	if(GetOwner()->GetNetMode() != NM_Standalone)
 	{
 		Server_UpdateTargetInfo(TargetInfo);
+
 	}
 }
 
@@ -311,6 +316,7 @@ void ULockOnTargetComponent::OnTargetInfoUpdated()
 	{
 		if (IsTargetLocked())
 		{
+
 			if (Rep_TargetInfo.HelperComponent == GetHelperComponent())
 			{
 				//If locked and received the same HelperComponent then change the socket.
@@ -420,6 +426,10 @@ void ULockOnTargetComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		if (GetOwner()->HasAuthority() || IsOwnerLocallyControlled())
 		{
 			TargetingDuration += DeltaTime;
+
+			//Draw debug sphere on target
+			DrawDebugSphere(GetTarget()->GetWorld(), GetTarget()->GetActorLocation(), 100.0f, 12, FColor::Yellow, false);
+
 		}
 
 		const FVector FocusLocation = GetCapturedLocation(true);

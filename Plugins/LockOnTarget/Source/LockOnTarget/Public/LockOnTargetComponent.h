@@ -240,6 +240,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Lock On Target Component")
 	FName GetCapturedSocket() const { return PrivateTargetInfo.SocketForCapturing; }
 
+
+	//Has this component captured the Target.
+	bool bIsTargetLocked;
 /*******************************************************************************************/
 /*******************************  BP Overridable  ******************************************/
 /*******************************************************************************************/
@@ -256,8 +259,7 @@ private:
 	//Information about the captured Target. Contains TargetingHelperComponent and Socket.
 	FTargetInfo PrivateTargetInfo;
 
-	//Has this component captured the Target.
-	bool bIsTargetLocked;
+	
 
 	//The time during which the Target is captured. 
 	UPROPERTY(Transient, Replicated)
