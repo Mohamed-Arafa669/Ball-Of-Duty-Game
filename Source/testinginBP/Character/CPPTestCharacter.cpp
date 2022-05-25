@@ -11,6 +11,16 @@
 #include "Animation/AnimMontage.h"
 #include "testinginBP\Character\CPPAnimInstance.h"
 #include "Kismet//KismetMathLibrary.h"
+#include "LockOnTargetComponent.h"
+#include "Camera/PlayerCameraManager.h"
+#include "LockOnSubobjects/RotationModes/RotationModeBase.h"
+#include "LockOnSubobjects/TargetHandlers/TargetHandlerBase.h"
+#include "TargetingHelperComponent.h"
+#include "../../LockOnTarget/Source/LockOnTarget/Public/LockOnTargetComponent.h"
+#include "DrawDebugHelpers.h"
+#include "Kismet/GameplayStatics.h"
+#include "Engine/World.h"
+
 
 ACPPTestCharacter::ACPPTestCharacter()
 {
@@ -24,12 +34,19 @@ ACPPTestCharacter::ACPPTestCharacter()
 	followCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	followCamera->SetupAttachment(cameraBoom, USpringArmComponent::SocketName);
 	followCamera->bUsePawnControlRotation = false;
+	
 
 	bUseControllerRotationYaw = false;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	overHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	overHeadWidget->SetupAttachment(RootComponent);
+
+	lockOnTargets = CreateDefaultSubobject<ULockOnTargetComponent>(TEXT("LockOnTarget"));
+	lockOnTargets->SetIsReplicated(true);
+
+	targetComponent = CreateDefaultSubobject<UTargetingHelperComponent>(TEXT("targetComponent"));
+	targetComponent->SetIsReplicated(true);
 
 	combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	combat->SetIsReplicated(true);
@@ -44,8 +61,10 @@ ACPPTestCharacter::ACPPTestCharacter()
 
 	bEquipped = false;
 
+	bisLocked = false;
 	//overlappingBall->SetBallState(EBallState::EBS_Dropped);
-
+	//testVect = combat->character->GetActorForwardVector() -/*lockly->GetTarget()->GetActorForwardVector()*/;
+	UE_LOG(LogTemp, Warning, TEXT("The vector value is: %s"), *testVect.ToString());
 
 }
 void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -55,9 +74,12 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME_CONDITION(ACPPTestCharacter, overlappingBall, COND_OwnerOnly);//Replication
 
 	DOREPLIFETIME(ACPPTestCharacter, bEquipped);
+
 	DOREPLIFETIME(ACPPTestCharacter, bCatching);
 
+	DOREPLIFETIME(ACPPTestCharacter, bisLocked);
 
+	DOREPLIFETIME(ACPPTestCharacter, throwPower);
 }
 
 
@@ -82,14 +104,6 @@ void ACPPTestCharacter::BeginPlay()
 void ACPPTestCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	//if (bThrown && bCanThrow)
-	//{
-	//	combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
-	//	combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (/*GetActorUpVector() +*/ GetActorForwardVector()) * throwPower * 75/*combat->equippedBall->GetBallMesh()->GetMass()*/);
-	//	FTimerHandle handle;
-	//	GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::StopThrow, 0.5f);
-	//}
 }
 void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -97,6 +111,7 @@ void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ACPPTestCharacter::EquipButtonPressed);
+	PlayerInputComponent->BindAction("LockOn", IE_Pressed, this, &ACPPTestCharacter::LockTarget);
 
 
 	PlayerInputComponent->BindAction("Catch", IE_Pressed, this, &ACPPTestCharacter::Catch);
@@ -111,6 +126,7 @@ void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis("MoveRight", this, &ACPPTestCharacter::MoveRight);
 	PlayerInputComponent->BindAxis("Turn", this, &ACPPTestCharacter::Turn);
 	PlayerInputComponent->BindAxis("LookUp", this, &ACPPTestCharacter::LookUp);
+
 
 }
 
@@ -144,6 +160,23 @@ void ACPPTestCharacter::LookUp(float value)
 {
 	AddControllerPitchInput(value);
 }
+
+// Lock on Target 
+void ACPPTestCharacter::LockTarget()
+{
+	lockOnTargets->EnableTargeting();
+
+	//bisLocked = true;
+	/*if (lockOnTargets->GetTarget())
+	{
+		bisLocked = true;
+	}
+	else
+	{
+		bisLocked = false;
+	}*/
+}
+
 void ACPPTestCharacter::Dash()
 {
 
@@ -174,6 +207,7 @@ void ACPPTestCharacter::Dash()
 	}
 
 }
+
 
 void ACPPTestCharacter::CanDash()
 {
@@ -220,7 +254,6 @@ void ACPPTestCharacter::EquipButtonPressed()
 				bThrown = false;
 			if (combat->equippedBall->GetBallState() == EBallState::EBS_Equipped)
 				bCanThrow = true;
-
 		}
 		else
 		{
@@ -239,15 +272,13 @@ void ACPPTestCharacter::ServerEquipButtonPressed_Implementation() //RPC
 			bThrown = false;
 		if (combat->equippedBall->GetBallState() == EBallState::EBS_Equipped)
 			bCanThrow = true;
+
 	}
 }
 #pragma endregion
 
 //	Throw Mechanics TODO
-//	    -> Lock on target 
 //		-> Throw ball on target
-//	Catch mechanics TODO
-//      -> fix the catch from player to player
 
 #pragma region ThrowMechanics
 void ACPPTestCharacter::ThrowButtonPressed()
@@ -257,108 +288,143 @@ void ACPPTestCharacter::ThrowButtonPressed()
 		if (HasAuthority())
 		{
 			combat->ThrowButtonPressed(true);
-
+			if (combat && bEquipped)
+			{
+				MyThrow();
+				/*if (bisLocked == true)
+				{*/
+					//MyLockedThrow();
+				//}
+				/*else 
+				{
+					MyThrow();
+				}*/
+			}
+			
 		}
 		else
 		{
 			ServerThrowButtonPressed();
 		}
 	}
-
 }
 void ACPPTestCharacter::ServerThrowButtonPressed_Implementation()
-{
-	if (combat)
 	{
-		combat->ThrowButtonPressed(true);
+		if (combat && IsBallEquipped())
+		{
+			combat->ThrowButtonPressed(true);
+			
+			if (combat && bEquipped)
+			{
+				MyThrow();
+				/*if (bisLocked == true)
+				{
+					*/
+				//MyLockedThrow();
+				//}
+				/*else
+				{
+					MyThrow();
+				}*/
+			}
+		}
 	}
 
-}
 
 void ACPPTestCharacter::ThrowButtonReleased()
 {
-	if (combat && bEquipped)
-	{
-		if (HasAuthority())
-		{
-			UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
+	//if (combat && bEquipped)
+	//{
+	//	if (HasAuthority())
+	//	{
+	//		UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
 
-			const FVector forwardVec = this->GetMesh()->GetForwardVector();
+	//		const FVector forwardVec = this->GetMesh()->GetForwardVector();
 
-			combat->ThrowButtonPressed(false); //gded
-			combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-			combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
+	//		combat->ThrowButtonPressed(false); //gded
+	//		combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	//		combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
 
-			//combat->eqippedBall->DetachRootComponentFromParent(true);
+	//		//combat->eqippedBall->DetachRootComponentFromParent(true);
 
-			//combat->eqippedBall->GetBallMesh()->SetPhysicsLinearVelocity(FVector::ForwardVector);
+	//		//combat->eqippedBall->GetBallMesh()->SetPhysicsLinearVelocity(FVector::ForwardVector);
 
-			//SetOverlappingBall(combat->equippedBall); Can be useful for bungee gum ability 
-			//OnRep_OverlappingBall(combat->equippedBall);
-			bThrown = true;
-			//if (combat->equippedBall->GetBallState() == EBallState::EBS_Equipped)
-			//	bCanThrow = true;
+	//		//SetOverlappingBall(combat->equippedBall); Can be useful for bungee gum ability 
+	//		//OnRep_OverlappingBall(combat->equippedBall);
+	//		bThrown = true;
+	//		//if (combat->equippedBall->GetBallState() == EBallState::EBS_Equipped)
+	//		//	bCanThrow = true;
 
-			combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
+	//		combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
 
-			//combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (/*GetActorUpVector() +*/ GetActorForwardVector()) * throwPower * 75/*combat->equippedBall->GetBallMesh()->GetMass()*/);
-			combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (followCamera->GetForwardVector() + followCamera->GetUpVector()) /*(GetActorForwardVector() + GetActorUpVector())*/ * throwPower * 75);
+	//		//combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (/*GetActorUpVector() +*/ GetActorForwardVector()) * throwPower * 75/*combat->equippedBall->GetBallMesh()->GetMass()*/);
+	//	//	combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (followCamera->GetForwardVector()  +followCamera->GetUpVector()) * throwPower * 75);
+	//		overlappingBall->GetBallMesh()->AddForce(GetActorForwardVector() + (followCamera->GetForwardVector() /*+ followCamera->GetUpVector()*/)  *throwPower * 1000);
 
-			bEquipped = false;
+	//		bEquipped = false;
+	//		//overlappingBall->EventThrowing();
+	//		//overlappingBall->FindHomingTarget();
 
-			combat->equippedBall = nullptr;
+	//		combat->equippedBall = nullptr;
 
 
-			//combat->eqippedBall->GetBallMesh()->AddImpulse(UKismetMathLibrary::GetForwardVector(GetControlRotation()));
+	//		//combat->equippedBall->FindHomingTarget();
+	//		//combat->eqippedBall->GetBallMesh()->AddImpulse(UKismetMathLibrary::GetForwardVector(GetControlRotation()));
 
-			//combat->equippedBall->GetBallMesh()->AddForce(forwardVec * throwPower * combat->equippedBall->GetBallMesh()->GetMass());
-		}
-		else
-		{
-			ServerThrowButtonReleased();
-		}
+	//		//combat->equippedBall->GetBallMesh()->AddForce(forwardVec * throwPower * combat->equippedBall->GetBallMesh()->GetMass());
+	//	}
+	//	else
+	//	{
+	//		ServerThrowButtonReleased();
+	//	}
 
-	}
+	//}
 
 }
 
+
+
+
+
 void ACPPTestCharacter::ServerThrowButtonReleased_Implementation()
 {
-	if (combat && IsBallEquipped())
-	{
-		UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
+	//if (combat && IsBallEquipped())
+	//{
+	//	UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
 
-		const FVector forwardVec = this->GetMesh()->GetForwardVector();
+	//	const FVector forwardVec = this->GetMesh()->GetForwardVector();
 
 
-		combat->ThrowButtonPressed(false); //gded
-		combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-		combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
+	//	combat->ThrowButtonPressed(false); //gded
+	//	combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	//	combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
 
-		//combat->eqippedBall->DetachRootComponentFromParent(true);
+	//	//combat->eqippedBall->DetachRootComponentFromParent(true);
 
-		//combat->eqippedBall->GetBallMesh()->SetPhysicsLinearVelocity(FVector::ForwardVector);
+	//	//combat->eqippedBall->GetBallMesh()->SetPhysicsLinearVelocity(FVector::ForwardVector);
 
-		//SetOverlappingBall(combat->equippedBall);  Can be useful for bungee gum ability 
-		//OnRep_OverlappingBall(combat->equippedBall);
-		bThrown = true;
-		//if (combat->equippedBall->GetBallState() == EBallState::EBS_Equipped)
-		//	bCanThrow = true;
+	//	//SetOverlappingBall(combat->equippedBall);  Can be useful for bungee gum ability 
+	//	//OnRep_OverlappingBall(combat->equippedBall);
+	//	bThrown = true;
+	//	//if (combat->equippedBall->GetBallState() == EBallState::EBS_Equipped)
+	//	//	bCanThrow = true;
 
-		combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
+	//	combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
 
-		//combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (/*GetActorUpVector() +*/ GetActorForwardVector()) * throwPower * 75/*combat->equippedBall->GetBallMesh()->GetMass()*/);
-		bEquipped = false;
-		combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (followCamera->GetForwardVector() + followCamera->GetUpVector()) /*(GetActorForwardVector() + GetActorUpVector())*/ * throwPower * 75);
+	//	//combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (/*GetActorUpVector() +*/ GetActorForwardVector()) * throwPower * 75/*combat->equippedBall->GetBallMesh()->GetMass()*/);
+	//	bEquipped = false;
+	//	//combat->equippedBall->GetBallMesh()->AddForce(GetActorLocation() + (followCamera->GetForwardVector()  +followCamera->GetUpVector()) * throwPower * 75);
+	//	overlappingBall->GetBallMesh()->AddForce(GetActorForwardVector() + (followCamera->GetForwardVector()  /*+followCamera->GetUpVector()*/)  *throwPower * 1000);
+	//	//overlappingBall->FindHomingTarget();
 
-		//TODO: set equippedball to null
+	//	//TODO: set equippedball to null
 
-		combat->equippedBall = nullptr;
+	//	combat->equippedBall = nullptr;
 
-		//	combat->equippedBall->GetBallMesh()->AddImpulse(UKismetMathLibrary::GetForwardVector(GetControlRotation()));
+	//	//	combat->equippedBall->GetBallMesh()->AddImpulse(UKismetMathLibrary::GetForwardVector(GetControlRotation()));
 
-			//combat->equippedBall->GetBallMesh()->AddForce(forwardVec * throwPower * combat->equippedBall->GetBallMesh()->GetMass());
-	}
+	//		//combat->equippedBall->GetBallMesh()->AddForce(forwardVec * throwPower * combat->equippedBall->GetBallMesh()->GetMass());
+	//}
 }
 #pragma endregion
 
@@ -417,7 +483,7 @@ void ACPPTestCharacter::OnBallReleased()
 	if (combat)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("d5l ?"));
-		overlappingBall->OnReleased();
+		//overlappingBall->OnReleased();
 		//TODO
 		// 1- Stop Velocity
 		// 2- Add impulse
@@ -444,7 +510,108 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 	}
 }
 
+void ACPPTestCharacter::MyThrow()
+{
+	/*if (HasAuthority())*/
+	{
+		UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
+		const FVector forwardVec = this->GetMesh()->GetForwardVector();
+		combat->ThrowButtonPressed(false); //gded
+		combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
+		bThrown = true;
+		combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
 
+		if (lockOnTargets->GetTarget())
+		{
+		combat->equippedBall->GetBallMesh()->AddForce((((lockOnTargets->GetTarget()->GetTargetLocation()) - (GetActorLocation())) + GetActorUpVector()) * throwPower * 25);
+		}
+		else
+		{
+		combat->equippedBall->GetBallMesh()->AddForce((followCamera->GetForwardVector() + GetActorUpVector()) * throwPower * 2500);
+		}
+		//combat->equippedBall->GetBallMesh()->AddForce(  throwPower * 25);
+		//combat->equippedBall->ProjectileMovementComponent->bIsHomingProjectile = true;
+		//combat->equippedBall->ProjectileMovementComponent->HomingTargetComponent = Cast<USceneComponent>(lockOnTargets->GetTarget());
+		//combat->equippedBall->GetBallMesh()->AddForce((((GetActorLocation())) + followCamera->GetForwardVector() + GetActorUpVector()) * throwPower * 25);
+		bEquipped = false;
+		combat->equippedBall = nullptr;
+		OnBallReleased();
+	}
+	/*else
+	{
+		MyServerThrow();
+	}*/
+	
+}
+
+void ACPPTestCharacter::MyLockedThrow()
+{
+	/*if (HasAuthority())*/
+	{
+		UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
+		const FVector forwardVec = this->GetMesh()->GetForwardVector();
+		combat->ThrowButtonPressed(false); //gded
+		combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
+		bThrown = true;
+		combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
+		//	combat->equippedBall->GetBallMesh()->AddForce(/*GetActorLocation() +*/ (/*followCamera->GetForwardVector() +*/ GetActorForwardVector() + 0.1 * (GetActorUpVector())) * throwPower * 25);
+			//combat->equippedBall->GetBallMesh()->AddForce(  throwPower * 25);
+			//combat->equippedBall->ProjectileMovementComponent->bIsHomingProjectile = true;
+			//combat->equippedBall->ProjectileMovementComponent->HomingTargetComponent = Cast<USceneComponent>(lockOnTargets->GetTarget());
+		combat->equippedBall->GetBallMesh()->AddForce((((lockOnTargets->GetTarget()->GetTargetLocation()) - (GetActorLocation())) + GetActorUpVector()) * throwPower * 25);
+
+
+		bEquipped = false;
+		combat->equippedBall = nullptr;
+		OnBallReleased();
+	}
+	/*else
+	{
+		MyServerLockedThrow();
+	}*/
+}
+
+//void ACPPTestCharacter::MyServerLockedThrow_Implementation()
+//{
+//	UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
+//	const FVector forwardVec = this->GetMesh()->GetForwardVector();
+//	combat->ThrowButtonPressed(false); //gded
+//	combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+//	combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
+//	bThrown = true;
+//	combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
+//	//	combat->equippedBall->GetBallMesh()->AddForce(/*GetActorLocation() +*/ (/*followCamera->GetForwardVector() +*/ GetActorForwardVector() + 0.1 * (GetActorUpVector())) * throwPower * 25);
+//		//combat->equippedBall->GetBallMesh()->AddForce(  throwPower * 25);
+//		//combat->equippedBall->ProjectileMovementComponent->bIsHomingProjectile = true;
+//		//combat->equippedBall->ProjectileMovementComponent->HomingTargetComponent = Cast<USceneComponent>(lockOnTargets->GetTarget());
+//	combat->equippedBall->GetBallMesh()->AddForce((((lockOnTargets->GetTarget()->GetTargetLocation()) - (GetActorLocation())) + GetActorUpVector()) * throwPower * 25);
+//
+//
+//	bEquipped = false;
+//	combat->equippedBall = nullptr;
+//	OnBallReleased();
+//}
+
+//void ACPPTestCharacter::MyServerThrow_Implementation()
+//{
+//	UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
+//	const FVector forwardVec = this->GetMesh()->GetForwardVector();
+//	combat->ThrowButtonPressed(false); //gded
+//	combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+//	combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
+//	bThrown = true;
+//	combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
+//	combat->equippedBall->GetBallMesh()->AddForce(/*GetActorLocation() +*/ (/*followCamera->GetForwardVector() +*/ GetActorForwardVector() + 0.1 * (GetActorUpVector())) * throwPower * 25);
+//	//combat->equippedBall->GetBallMesh()->AddForce(  throwPower * 25);
+//	//combat->equippedBall->ProjectileMovementComponent->bIsHomingProjectile = true;
+//	//combat->equippedBall->ProjectileMovementComponent->HomingTargetComponent = Cast<USceneComponent>(lockOnTargets->GetTarget());
+////combat->equippedBall->GetBallMesh()->AddForce((((GetActorLocation())) + followCamera->GetForwardVector() + GetActorUpVector()) * throwPower * 25);
+//	bEquipped = false;
+//	combat->equippedBall = nullptr;
+//	OnBallReleased();
+//}
 
 void ACPPTestCharacter::SetOverlappingBall(ACPPBall* cppBall)
 {
@@ -479,7 +646,7 @@ void ACPPTestCharacter::OnRep_OverlappingBall(ACPPBall* lastBall)
 #pragma region Animations
 bool ACPPTestCharacter::IsBallEquipped()
 {
-
+	
 	return (combat && combat->equippedBall);
 	//return(bEquipped && );
 
@@ -498,6 +665,7 @@ void ACPPTestCharacter::StopThrow()
 	bThrown = false;
 	bCanThrow = false;
 }
+
 
 void ACPPTestCharacter::PlayThrowMontage()
 {

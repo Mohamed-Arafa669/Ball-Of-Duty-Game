@@ -20,13 +20,9 @@
 			"Enabled": true
 		},
 		{
-			"Name": "Bridge",
+			"Name": "LockOnTarget",
 			"Enabled": true,
-			"SupportedTargetPlatforms": [
-				"Win64",
-				"Mac",
-				"Linux"
-			]
+			"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/d58106fca28446ec88caad16c5a35fe8"
 		}
 	]
 }

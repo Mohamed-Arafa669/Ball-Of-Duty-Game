@@ -45,10 +45,55 @@ public:
 	UPROPERTY(visibleAnywhere)
 		class UCombatComponent* combat;
 
-	// Movement component for handling projectile movement.
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-		UProjectileMovementComponent* ProjectileMovementComponent;
+	//////////////////////////////////////////////////////////////////////////////
+	// ///////////////////////  Projectile Part  ////////////////////////////////
+	// /////////////////////////////////////////////////////////////////////////
+	// Sphere collision component.
+	//UPROPERTY(VisibleDefaultsOnly, Category = "Projectile")
+	//	USphereComponent* CollisionComponent;
 
+	//// Movement component for handling projectile movement.
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	//	UProjectileMovementComponent* ProjectileMovementComponent;
+
+	//// Function that initializes the projectile's velocity in the shoot direction.
+	//void FireInDirection(const FVector& ShootDirection);
+	// Sphere collision component
+
+	/*UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
+		class USphereComponent* CollisionComponent;*/
+
+	// Projectile movement component.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement)
+		class UProjectileMovementComponent* ProjectileMovementComponent;
+
+	//UFUNCTION(BlueprintImplementableEvent)
+		void FindHomingTarget();
+
+	/*UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+		void EventThrowing();*/
+
+		UPROPERTY(visibleAnywhere)
+		class UGameplayStatics* gameStatics;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		TSubclassOf<AActor> ClassToFind;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		TArray<AActor*> FoundActors;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		TArray<AActor*> OutActors;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		TArray<AActor*> CurrentHomingTargets;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		AActor* FoundHomingTarget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		FVector transform;
+
+	double closestDistance = 1000000.0f;
+/// <summary>
+/// /////////////////////
+/// </summary>
 
 protected:
 	virtual void BeginPlay() override;
@@ -79,6 +124,8 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Ball Properties")
 		class USphereComponent* AreaSphere;
 
+	UPROPERTY(VisibleAnywhere, Category = "Ball Properties")
+		class USceneComponent* ProjectileSceneComponent;
 	
 
 	UFUNCTION()
@@ -95,4 +142,42 @@ public:
 	void OnReleased();
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetBallMesh() const { return ballMesh; }
+
+	static FVector Slerp(const FVector& a, const FVector& b, const float t)
+	{
+		float omega = FGenericPlatformMath::Acos(FVector::DotProduct(
+			a.GetSafeNormal(),
+			b.GetSafeNormal()
+		));
+		float sinOmega = FGenericPlatformMath::Sin(omega);
+		FVector termOne = a * (FGenericPlatformMath::Sin(omega * (1.0 - t)) / sinOmega);
+		FVector termTwo = b * (FGenericPlatformMath::Sin(omega * (t)) / sinOmega);
+		return termOne + termTwo;
+	}
+	void mySlerp();
+	void GetCenter(FVector& direction);
+
+	UPROPERTY(EditAnywhere, Category = "ball")
+		float startTime = 100.f;
+
+	UPROPERTY(EditAnywhere, Category = "ball")
+		float journeyTime = 1.f;
+
+	UPROPERTY(EditAnywhere, Category = "ball")
+		float ballSpeed = 10000.f;
+
+	UPROPERTY(EditAnywhere, Category = "ball")
+		FVector centerpoint;
+
+	UPROPERTY(EditAnywhere, Category = "ball")
+		FVector startRelCenter;
+
+	UPROPERTY(EditAnywhere, Category = "ball")
+		FVector endRelCenter;
+
+	UPROPERTY(EditAnywhere, Category = "ball")
+		FVector myTransform;
+
+	UPROPERTY(visibleAnywhere)
+		class UWorld* world;
 };
