@@ -20,6 +20,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //Replication
 	virtual void PostInitializeComponents() override;
+	virtual void Jump() override;;
 
 
 	void PlayThrowMontage();
@@ -55,7 +56,28 @@ protected:
 	void CanCatch();
 	void ThrowButtonReleased();
 	void LockTarget();
+	void StunCoolDown();
+
+	void OnHealthUpdate();
+
+	void Knocked();
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+		void MultiKnocked();
+	bool MultiKnocked_Validate();
+	void MultiKnocked_Implementation();
+
+	UPROPERTY(Replicated)
+	bool bKnocked;
+
+//>>>>>>> origin/GoharyMain
 	USkeletalMeshComponent* CharacterMesh;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Health")
+		float MaxHealth;
+
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth)
+		float CurrentHealth;
 
 private:
 	UPROPERTY(visibleAnywhere, Category = Camera)
@@ -72,8 +94,12 @@ private:
 		class UAnimMontage* CatchAnim;
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingBall) //Replication
 		class ACPPBall* overlappingBall;
-;
-	
+
+
+	void CallDestroy();
+
+	UFUNCTION()
+	void OnRep_CurrentHealth();
 
 	UFUNCTION()
 	void OnRep_OverlappingBall(ACPPBall* lastBall); //Replication
@@ -114,7 +140,9 @@ private:
 
 	
 
-public:	
+public:
+	void Stunned();
+
 	 void SetOverlappingBall(ACPPBall* cppBall);
 
 	 bool IsBallEquipped();
@@ -130,6 +158,8 @@ public:
 
 	 UPROPERTY(Replicated)
 	 bool bEquipped;
+	 UPROPERTY(Replicated)
+	 bool bStunned;
 
 	 UPROPERTY(Replicated)
 		 bool bSlerps;
@@ -154,6 +184,20 @@ public:
 
 	 void StopThrow();
 
+	 bool IsAllowedToMove();
+
+	 UFUNCTION(BlueprintPure, Category = "Health")
+		 FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+
+
+	 UFUNCTION(BlueprintPure, Category = "Health")
+		 FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
+
+	 void SetCurrentHealth(float healthValue);
+
+	 UFUNCTION(BlueprintCallable, Category = "Health")
+	virtual float TakeDamage(float DamageTaken, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
 	UPROPERTY(EditAnywhere, Replicated, Category = "Movement")
 	 float DashDistance = 6000.f;
 
@@ -164,10 +208,18 @@ public:
 
 	FVector testVect;
 
-	
+	UPROPERTY(EditAnywhere, Replicated, Category = "Throw")
+		float throwPower = 20000.0f;
+	UPROPERTY(EditAnywhere)
+		float HitImpulse = 1000.f;
 
-	
+	UPROPERTY(EditAnywhere, Category = "Catching")
+		float CatchCooldown = 1.f;
 
-	
+	UPROPERTY(EditAnywhere, Category = "Abilities")
+		float StunDuration = 10.f;
+
+	UPROPERTY(Replicated)
+	FVector ballHitDirection;
 
 };
