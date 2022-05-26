@@ -16,6 +16,8 @@ AStealCharacter::AStealCharacter()
 
 	bHook = false;
 
+	CoolDownTime = 1.0f;
+
 }
 
 void AStealCharacter::BeginPlay()
@@ -93,14 +95,21 @@ void AStealCharacter::DoAbility()
 			if (ACPPTestCharacter* Target = Cast<ACPPTestCharacter>(Hit.GetActor()))
 			{
 				UE_LOG(LogTemp, Warning, TEXT("hHhHAIHDOWA"));
-
+				CoolDownTime = 10.0f;
 				if (Target->IsBallEquipped() && !IsBallEquipped())
 				{
 					StealBall(Target);
 				}
+				else if (IsBallEquipped())
+				{
+					ThrowTwice();
+				}
 			}
+			else
+				CoolDownTime = 1.0f;
+
 			FTimerHandle handle;
-			GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::AbilityCooldown, 1.f);
+			GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::AbilityCooldown, CoolDownTime);
 		}
 	}
 	else
@@ -118,14 +127,21 @@ void AStealCharacter::Server_DoAbility_Implementation()
 		if (ACPPTestCharacter* Target = Cast<ACPPTestCharacter>(Hit.GetActor()))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("hHhHAIHDOWA"));
+			CoolDownTime = 10.0f;
 
 			if (Target->IsBallEquipped() && !IsBallEquipped())
 			{
 				StealBall(Target);
 			}
+			else if (IsBallEquipped())
+			{
+				ThrowTwice();
+			}
 		}
+		else
+			CoolDownTime = 1.0f;
 		FTimerHandle handle;
-		GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::AbilityCooldown, 1.f);
+		GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::AbilityCooldown, CoolDownTime);
 	}
 }
 
@@ -164,3 +180,18 @@ void AStealCharacter::StealBall(ACPPTestCharacter* Target)
 		combat->equippedBall->SetBallState(EBallState::EBS_Equipped);
 	}*/
 }
+
+void AStealCharacter::ThrowTwice()
+{
+	MyThrow();
+
+	FVector spawnLocation = GetActorLocation() + (GetControlRotation().Vector() ) + (GetActorUpVector() );
+	FRotator spawnRotation = GetControlRotation();
+
+	FActorSpawnParameters spawnParameters;
+	spawnParameters.Instigator = GetInstigator();
+	spawnParameters.Owner = this;
+
+	ACPPBall* SpawnHook = GetWorld()->SpawnActor<ACPPBall>(BallClass, spawnLocation, spawnRotation);
+}
+
