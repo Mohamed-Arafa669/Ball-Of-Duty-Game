@@ -222,4 +222,11 @@ public:
 	UPROPERTY(Replicated)
 	FVector ballHitDirection;
 
+	
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class UUserWidget> RespawingCountWidgetClass;
+
+	UUserWidget* RespawingWidget;
+
+	void RemoveWidget();
 };

@@ -17,6 +17,7 @@ class TESTINGINBP_API AMyCPPGameModeBase : public AGameModeBase
 	
 public:
 	AMyCPPGameModeBase();
+	virtual void BeginPlay() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MyGame")
 		TSubclassOf<class ACharacter> FirstPawn; 
@@ -40,7 +41,7 @@ public:
 
 	//bool ShouldSpawnAtStartSpot(AController* Player) override { return false; };
 
-
+	void Respawn(AController* Controller);
 
 protected:
 
@@ -48,4 +49,29 @@ protected:
 		TSubclassOf<class ACharacter> CurrentPawnToAssign;
 
 	virtual UClass* GetDefaultPawnClassForController_Implementation(AController* InController) override;
+
+	TArray<class ASpawnPoint*> SpawnPoints;
+	FVector DefaultSpawnLocation;
+
+	class ASpawnPoint* GetSpawnPoint();
+
+	UFUNCTION()
+	void Spawn(AController* Controller);
+
+	FTimerHandle RespawnHandle;
+public:
+	UPROPERTY(EditAnywhere, Category = "Respawning")
+		float RespawnTime = 4.f;
+
+	void RespawnCountDown();
+
+	UPROPERTY(BlueprintReadOnly, Replicated)
+	int seconds = 5.f;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool isDead;
+
+
+
+	//RespawingWidget;
 };
