@@ -22,6 +22,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //Replication
 	virtual void PostInitializeComponents() override;
 	virtual void Jump() override;;
+	void Knocked();
 
 
 	void PlayThrowMontage();
@@ -48,6 +49,10 @@ public:
 	UPROPERTY(VisibleAnywhere)
 		class UCombatComponent* combat;
 
+	class ACPPPlayerController* CPPPlayerController;
+
+	class AMyPlayerState* MyPlayerState;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -59,18 +64,15 @@ protected:
 	void Catch();
 	void Dash();
 	void CanDash();
-	//void CanLock();
 	void CanCatch();
 	void ThrowButtonReleased();
 	void LockTarget();
 	void StunCoolDown();
-
 	void OnHealthUpdate();
 
-	void Knocked();
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
-		void MultiKnocked();
+	void MultiKnocked();
 	bool MultiKnocked_Validate();
 	void MultiKnocked_Implementation();
 
@@ -111,9 +113,6 @@ private:
 
 	UFUNCTION()
 	void OnRep_OverlappingBall(ACPPBall* lastBall); //Replication
-
-	// UPROPERTY(visibleAnywhere)
-	// class UCombatComponent* combat;
 
 	UPROPERTY(visibleAnywhere)
 	class UGameplayStatics* gameStatic;
@@ -178,20 +177,9 @@ public:
 	 UPROPERTY(Replicated)
 		 bool bisLocked;
 
-	 UFUNCTION()
-		 void MyLockedThrow();
 
 	 UFUNCTION()
 		 void MyThrow();
-
-	 //UFUNCTION(NetMulticast, Reliable)
-		// void MyServerLockedThrow();
-
-	 //UFUNCTION(NetMulticast, Reliable)
-		// void MyServerThrow();
-
-	 //UFUNCTION(NetMulticast, Reliable)
-		// void ServerLockTarget();
 
 	 void StopThrow();
 

@@ -26,11 +26,26 @@ class TESTINGINBP_API AGameHUD : public AHUD
 	GENERATED_BODY()
 public:
 	virtual void DrawHUD() override;
+
+	UPROPERTY(EditAnywhere, Category = "PlayerStats")
+		TSubclassOf<class UUserWidget> CharacterOverlayClass;
+
+	class UCharacterOverlays* CharacterOverlay;
+
+protected:
+	virtual void BeginPlay() override;
+	void AddCharacterOverlay();
+
+
 private:
 	FHUDPackage HUDPackage;
 
 	void DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter);
 
+	//class UCharacterOverlay* UCharacterOverlay;
 public:
-	FORCEINLINE void SetHUDPackage(const FHUDPackage& package) {HUDPackage = package ; }
+	FORCEINLINE void SetHUDPackage(const FHUDPackage& package) { HUDPackage = package; }
+
+	//UPROPERTY(meta = (BindWidget))
+	//class UTextBlock* MatchCountdownText;
 };

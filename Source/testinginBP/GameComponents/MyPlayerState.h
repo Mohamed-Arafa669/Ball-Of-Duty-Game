@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "testinginBP/GameComponents/Teams.h"
 #include "MyPlayerState.generated.h"
 
 /**
@@ -16,6 +17,19 @@ class TESTINGINBP_API AMyPlayerState : public APlayerState
 public:
 	//UPROPERTY(Replicated)
 	//	bool bTeamB;
-	//virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //Replication
+	virtual void OnRep_Score() override;
+	void AddToScore(float ScoreAmount);
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //Replication
 
+private:
+	class ACPPTestCharacter* Character;
+	class ACPPPlayerController* Controller;
+	UPROPERTY(VisibleAnywhere)
+		class UCombatComponent* combat;
+	UPROPERTY(Replicated)
+	ETeam Team = ETeam::ET_NoTeam;
+
+public:
+	FORCEINLINE ETeam GetTeam() const { return Team; }
+	FORCEINLINE void SetTeam(ETeam TeamToSet) { Team = TeamToSet; }
 };
