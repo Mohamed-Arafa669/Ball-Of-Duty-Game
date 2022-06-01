@@ -33,13 +33,6 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //Replication
 
-	//TODO : TEAMS 
-
-	//void PostLogin(APlayerController* NewPlayer) override;
-
-	//AActor* ChoosePlayerStart_Implementation(AController* Player) override;
-
-	//bool ShouldSpawnAtStartSpot(AController* Player) override { return false; };
 
 	void Respawn(AController* Controller);
 
@@ -61,17 +54,6 @@ protected:
 	FTimerHandle RespawnHandle;
 public:
 	UPROPERTY(EditAnywhere, Category = "Respawning")
-		float RespawnTime = 4.f;
+		float RespawnTime = 3.f;
 
-	void RespawnCountDown();
-
-	UPROPERTY(BlueprintReadOnly, Replicated)
-	int seconds = 5.f;
-
-	UPROPERTY(BlueprintReadWrite)
-	bool isDead;
-
-
-
-	//RespawingWidget;
 };

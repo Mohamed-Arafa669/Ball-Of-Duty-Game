@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "testinginBP/Ball/CPPBall.h"
 #include "Components/PrimitiveComponent.h"
+#include "testinginBP/HUD/UI/UI_RespawnWidget.h"
 #include "CPPTestCharacter.generated.h"
 
 UCLASS()
@@ -26,9 +27,10 @@ public:
 	void PlayThrowMontage();
 	UFUNCTION(BlueprintCallable, Category = "BallThrow")
 		void OnBallReleased();
-	UPROPERTY(visibleAnywhere, Category = Camera)
+	UPROPERTY(EditAnywhere, Category = Camera)
 		class UCameraComponent* followCamera;
-
+	UPROPERTY(EditAnywhere, Category = Camera)
+		class USpringArmComponent* cameraBoom;
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly,  meta = (AllowPrivateAccess = "true"))
 		class ULockOnTargetComponent* lockOnTargets;
 
@@ -40,6 +42,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void ThrowButtonPressed();
+
+	UFUNCTION(Client, Reliable)
+		void ClientRespawnCountDown(float seconds);
 
 protected:
 	virtual void BeginPlay() override;
@@ -80,8 +85,7 @@ protected:
 		float CurrentHealth;
 
 private:
-	UPROPERTY(visibleAnywhere, Category = Camera)
-		class USpringArmComponent* cameraBoom;
+
 	
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -224,9 +228,9 @@ public:
 
 	
 	UPROPERTY(EditAnywhere)
-		TSubclassOf<class UUserWidget> RespawingCountWidgetClass;
+		TSubclassOf<class UUI_RespawnWidget> RespawingCountWidgetClass;
 
-	UUserWidget* RespawingWidget;
+	UUI_RespawnWidget* RespawingWidget;
 
 	void RemoveWidget();
 };

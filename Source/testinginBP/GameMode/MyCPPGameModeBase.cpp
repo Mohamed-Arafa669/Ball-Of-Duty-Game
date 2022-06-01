@@ -37,7 +37,6 @@ void AMyCPPGameModeBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AMyCPPGameModeBase, CurrentPawnToAssign);
-	DOREPLIFETIME(AMyCPPGameModeBase, seconds);
 
 }
 
@@ -114,98 +113,25 @@ void AMyCPPGameModeBase::Spawn(AController* Controller)
 	
 }
 
-void AMyCPPGameModeBase::RespawnCountDown()
-{
-	
-	if (seconds != 0)
-	{
-		seconds--;
-		FTimerHandle RespawnCountHandle;
-		GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::RespawnCountDown, 1.f, false, 1.f);
-
-	} else
-	{
-		isDead = false;
-		seconds = 5;
-	}
-}
 
 
 void AMyCPPGameModeBase::Respawn(AController* Controller)
 {
-
 	if (Controller) {
-		isDead = true;
+
 		if (GetLocalRole() == ROLE_Authority)
 		{
-
-
-
-			RespawnCountDown();
 
 			FTimerDelegate RespawnDelegate;
 			RespawnDelegate.BindUFunction(this, FName("Spawn"), Controller);
 
 			GetWorld()->GetTimerManager().SetTimer(RespawnHandle, RespawnDelegate, RespawnTime, false);
 
-			FString HitMessage = FString::Printf(TEXT("Dead"));
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, HitMessage);
-		}
+			if(ACPPTestCharacter* MyChar = Cast<ACPPTestCharacter>(Controller->GetCharacter()))
+			{
+				MyChar->ClientRespawnCountDown(5);
+			}
+			
+		} 
 	}
 }
-//TODO : Teams 
-
-//void AMyCPPGameModeBase::PostLogin(APlayerController* NewPlayer)
-//{
-//	Super::PostLogin(NewPlayer);
-//	if (NewPlayer)
-//	{
-//		AMyPlayerState* PS = Cast<AMyPlayerState>(NewPlayer->PlayerState);
-//		if (PS && GameState)
-//		{
-//			uint8 NumTeamA = 0;
-//			uint8 NumTeamB = 0;
-//			for (APlayerState* It : GameState->PlayerArray)
-//			{
-//				AMyPlayerState* OtherPS = Cast<AMyPlayerState>(It);
-//				if (OtherPS)
-//				{
-//					if (OtherPS->bTeamB)
-//					{
-//						NumTeamB++;
-//					}
-//					else
-//					{
-//						NumTeamA++;
-//
-//					}
-//				}
-//			}
-//			if (NumTeamA > NumTeamB)
-//			{
-//				PS->bTeamB = true;
-//			}
-//		}
-//	}
-//}
-//
-//AActor* AMyCPPGameModeBase::ChoosePlayerStart_Implementation(AController* Player)
-//{
-//	if (Player)
-//	{
-//		AMyPlayerState* PS = Cast<AMyPlayerState>(Player->PlayerState);
-//		if (PS)
-//		{
-//			TArray<AMyPlayerState*> Starts;
-//			for (TActorIterator<AMyPlayerStart> StartItr(GetWorld()); StartItr; ++StartItr)
-//			{
-//				if (StartItr->bTeamB == PS->bTeamB)
-//				{
-//					Starts.Add(*StartItr);
-//				}
-//			}
-//			return Starts[FMath::RandRange(0, Starts.Num() - 1)];
-//		}
-//	}
-//	return NULL;		
-//}

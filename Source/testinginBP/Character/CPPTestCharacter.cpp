@@ -31,17 +31,14 @@ ACPPTestCharacter::ACPPTestCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	cameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	cameraBoom->SetupAttachment(GetMesh());
+	cameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
+	cameraBoom->SetupAttachment(RootComponent);
 	cameraBoom->TargetArmLength = 300.0f;
-	cameraBoom->bUsePawnControlRotation = true;
 
-	followCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+
+	followCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Follow Camera"));
 	followCamera->SetupAttachment(cameraBoom, USpringArmComponent::SocketName);
-	followCamera->bUsePawnControlRotation = false;
-
-	bUseControllerRotationYaw = false;
-	GetCharacterMovement()->bOrientRotationToMovement = true;
+	
 
 	overHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	overHeadWidget->SetupAttachment(RootComponent);
@@ -159,32 +156,36 @@ void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 #pragma region Movement and Dashing
 void ACPPTestCharacter::MoveForward(float value)
 {
-	if (Controller != nullptr && value != 0.0f && IsAllowedToMove())
+	/*if (Controller != nullptr && value != 0.0f && IsAllowedToMove())
 	{
 		const FRotator yawRotation(0.0f, Controller->GetControlRotation().Yaw, 0.0f);
 		const FVector direction(FRotationMatrix(yawRotation).GetUnitAxis(EAxis::X));
 		AddMovementInput(direction, value);
-	}
+	}*/
+
+	AddMovementInput(GetActorForwardVector() * value);
 }
 
 void ACPPTestCharacter::MoveRight(float value)
 {
-	if (Controller != nullptr && value != 0.0f && IsAllowedToMove())
+	/*if (Controller != nullptr && value != 0.0f && IsAllowedToMove())
 	{
 		const FRotator yawRotation(0.0f, Controller->GetControlRotation().Yaw, 0.0f);
 		const FVector direction(FRotationMatrix(yawRotation).GetUnitAxis(EAxis::Y));
 		AddMovementInput(direction, value);
-	}
+	}*/
+
+	AddMovementInput(GetActorRightVector() * value);
 }
 
 void ACPPTestCharacter::Turn(float value)
 {
-	AddControllerYawInput(value);
+	AddControllerYawInput(value * 20 * GetWorld()->GetDeltaSeconds());
 }
 
 void ACPPTestCharacter::LookUp(float value)
 {
-	AddControllerPitchInput(value);
+	AddControllerPitchInput(value * 20 * GetWorld()->GetDeltaSeconds());
 }
 
 // Lock on Target 
@@ -327,6 +328,20 @@ void ACPPTestCharacter::ThrowButtonPressed()
 		}
 	}
 }
+
+void ACPPTestCharacter::ClientRespawnCountDown_Implementation(float seconds)
+{
+	if (seconds  > 0.0 && bKnocked)
+	{
+		RespawingWidget = CreateWidget<UUI_RespawnWidget>(GetLocalViewingPlayerController(), RespawingCountWidgetClass);
+		RespawingWidget->CountdownTimeSeconds = seconds;
+		RespawingWidget->AddToViewport();
+
+		FTimerHandle RespawnCountHandle;
+		GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::RemoveWidget, seconds, false);
+	}
+}
+
 void ACPPTestCharacter::ServerThrowButtonPressed_Implementation()
 	{
 		if (combat && IsBallEquipped())
@@ -433,11 +448,7 @@ void ACPPTestCharacter::OnHealthUpdate()
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, deathMessage);
 
 			Knocked();*/
-			RespawingWidget = CreateWidget(GetLocalViewingPlayerController(), RespawingCountWidgetClass);
-			RespawingWidget->AddToViewport();
-
-			FTimerHandle RespawnCountHandle;
-			GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::RemoveWidget, 5.f, false);
+			
 
 		}
 		
@@ -478,13 +489,10 @@ void ACPPTestCharacter::Knocked()
 		{
 
 			FreeforallMode->Respawn(GetController());
+			
 		}
 	}
 
-	if (IsLocallyControlled())
-	{
-
-	}
 }
 
 bool ACPPTestCharacter::MultiKnocked_Validate()
@@ -498,7 +506,7 @@ void ACPPTestCharacter::MultiKnocked_Implementation()
 	this->GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 	this->GetMesh()->SetAllBodiesSimulatePhysics(true);
 	this->GetMesh()->AddImpulse( GetActorLocation() + (-ballHitDirection * HitImpulse * CharacterMesh->GetMass()));
-	
+
 }
 
 
@@ -653,7 +661,7 @@ void ACPPTestCharacter::MyThrow()
 	{
 		
 		UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
-		const FVector forwardVec = this->GetMesh()->GetForwardVector();
+		//const FVector forwardVec = this->GetMesh()->GetForwardVector();
 		combat->ThrowButtonPressed(false); //gded
 		combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 		combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
@@ -666,7 +674,7 @@ void ACPPTestCharacter::MyThrow()
 		}
 		else
 		{
-		combat->equippedBall->GetBallMesh()->AddForce((followCamera->GetForwardVector() + GetActorUpVector()) * throwPower * 2500);
+		combat->equippedBall->GetBallMesh()->AddForce((GetActorForwardVector() + GetActorUpVector()) * throwPower * 2500);
 		}
 		//combat->equippedBall->GetBallMesh()->AddForce(  throwPower * 25);
 		//combat->equippedBall->ProjectileMovementComponent->bIsHomingProjectile = true;
@@ -768,8 +776,6 @@ void ACPPTestCharacter::CallDestroy()
 	Destroy();
 	GetCapsuleComponent()->DestroyComponent();
 
-
-	
 }
 
 void ACPPTestCharacter::OnRep_CurrentHealth()
@@ -842,7 +848,11 @@ float ACPPTestCharacter::TakeDamage(float DamageTaken, FDamageEvent const& Damag
 
 void ACPPTestCharacter::RemoveWidget()
 {
-	RespawingWidget->RemoveFromViewport();
+	if (RespawingWidget)
+	{
+		RespawingWidget->RemoveFromViewport();
+		RespawingWidget = nullptr;
+	}
 }
 
 void ACPPTestCharacter::PlayThrowMontage()

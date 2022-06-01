@@ -26,7 +26,7 @@ ACPPBall::ACPPBall()
 
 	ballMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BallMesh"));
 	ballMesh->SetupAttachment(RootComponent);
-	SetRootComponent(ballMesh);
+	//SetRootComponent(ballMesh);
 
 	ballMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);							 //to bounce when dropped
 	ballMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn,ECollisionResponse::ECR_Block); //pawn ignore for not colliding
