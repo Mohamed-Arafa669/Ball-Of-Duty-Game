@@ -17,6 +17,7 @@ class TESTINGINBP_API AMyCPPGameModeBase : public AGameModeBase
 	
 public:
 	AMyCPPGameModeBase();
+	virtual void BeginPlay() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MyGame")
 		TSubclassOf<class ACharacter> FirstPawn; 
@@ -28,15 +29,8 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //Replication
 
-	//TODO : TEAMS 
 
-	//void PostLogin(APlayerController* NewPlayer) override;
-
-	//AActor* ChoosePlayerStart_Implementation(AController* Player) override;
-
-	//bool ShouldSpawnAtStartSpot(AController* Player) override { return false; };
-
-
+	void Respawn(AController* Controller);
 
 protected:
 
@@ -44,4 +38,18 @@ protected:
 		TSubclassOf<class ACharacter> CurrentPawnToAssign;
 
 	virtual UClass* GetDefaultPawnClassForController_Implementation(AController* InController) override;
+
+	TArray<class ASpawnPoint*> SpawnPoints;
+	FVector DefaultSpawnLocation;
+
+	class ASpawnPoint* GetSpawnPoint();
+
+	UFUNCTION()
+	void Spawn(AController* Controller);
+
+	FTimerHandle RespawnHandle;
+public:
+	UPROPERTY(EditAnywhere, Category = "Respawning")
+		float RespawnTime = 3.f;
+
 };

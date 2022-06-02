@@ -23,12 +23,17 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Gameplay|Projectile")
 		TSubclassOf<class AHook>ProjectileClass;
 
+	UPROPERTY(EditAnywhere, Category = "Gameplay|Projectile")
+		TSubclassOf<class ACPPBall>BallClass;
+
 protected:
 	virtual void BeginPlay() override;
 
 	void DoAbility();
 
 	void StealBall(ACPPTestCharacter* Target);
+
+	void ThrowTwice();
 
 	UFUNCTION(Server, Reliable)
 		void Server_DoAbility();
@@ -49,6 +54,8 @@ protected:
 	UPROPERTY(Replicated)
 		bool bHook;
 
+
+	float CoolDownTime;
 	
 	FVector Loc;
 	FRotator Rot;

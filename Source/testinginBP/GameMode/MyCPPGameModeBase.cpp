@@ -2,80 +2,45 @@
 
 
 #include "MyCPPGameModeBase.h"
+
+#include "EngineUtils.h"
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/PlayerStart.h"
 #include "../GameComponents/MyPlayerState.h"
 #include "GameFramework/GameModeBase.h"
 #include "../GameComponents/MyPlayerStart.h"
+#include "testinginBP/Character/CPPTestCharacter.h"
+#include "testinginBP/GameComponents/SpawnPoint.h"
+#include "TimerManager.h"
 
 AMyCPPGameModeBase::AMyCPPGameModeBase() 
 {
-PlayerStateClass = AMyPlayerState::StaticClass();
+	PlayerStateClass = AMyPlayerState::StaticClass();
+
+	DefaultSpawnLocation = FVector(500.002479, -830.000000, 232.001526);
+}
+
+void AMyCPPGameModeBase::BeginPlay()
+{
+	Super::BeginPlay();
+
+	UClass* SpawnPointClass = ASpawnPoint::StaticClass();
+	for (TActorIterator<AActor> Point (GetWorld(),SpawnPointClass); Point; ++Point)
+	{
+		SpawnPoints.Add(Cast<ASpawnPoint>(*Point));
+	}
+
 }
 
 void AMyCPPGameModeBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AMyCPPGameModeBase, CurrentPawnToAssign);
+
 }
 
-//TODO : Teams 
 
-//void AMyCPPGameModeBase::PostLogin(APlayerController* NewPlayer)
-//{
-//	Super::PostLogin(NewPlayer);
-//	if (NewPlayer)
-//	{
-//		AMyPlayerState* PS = Cast<AMyPlayerState>(NewPlayer->PlayerState);
-//		if (PS && GameState)
-//		{
-//			uint8 NumTeamA = 0;
-//			uint8 NumTeamB = 0;
-//			for (APlayerState* It : GameState->PlayerArray)
-//			{
-//				AMyPlayerState* OtherPS = Cast<AMyPlayerState>(It);
-//				if (OtherPS)
-//				{
-//					if (OtherPS->bTeamB)
-//					{
-//						NumTeamB++;
-//					}
-//					else
-//					{
-//						NumTeamA++;
-//
-//					}
-//				}
-//			}
-//			if (NumTeamA > NumTeamB)
-//			{
-//				PS->bTeamB = true;
-//			}
-//		}
-//	}
-//}
-//
-//AActor* AMyCPPGameModeBase::ChoosePlayerStart_Implementation(AController* Player)
-//{
-//	if (Player)
-//	{
-//		AMyPlayerState* PS = Cast<AMyPlayerState>(Player->PlayerState);
-//		if (PS)
-//		{
-//			TArray<AMyPlayerState*> Starts;
-//			for (TActorIterator<AMyPlayerStart> StartItr(GetWorld()); StartItr; ++StartItr)
-//			{
-//				if (StartItr->bTeamB == PS->bTeamB)
-//				{
-//					Starts.Add(*StartItr);
-//				}
-//			}
-//			return Starts[FMath::RandRange(0, Starts.Num() - 1)];
-//		}
-//	}
-//	return NULL;		
-//}
 
 UClass* AMyCPPGameModeBase::GetDefaultPawnClassForController_Implementation(AController* InController)
 {
@@ -107,4 +72,66 @@ UClass* AMyCPPGameModeBase::GetDefaultPawnClassForController_Implementation(ACon
 	
 	}
 	return CurrentPawnToAssign;
+}
+
+ASpawnPoint* AMyCPPGameModeBase::GetSpawnPoint()
+{
+	for (int32 i = 0; i < SpawnPoints.Num(); i++)
+	{
+		int32 Point = FMath::RandRange(0, SpawnPoints.Num() - 1);
+
+		if(SpawnPoints[Point])
+		{
+			return SpawnPoints[Point];
+		}
+	}
+	return nullptr;
+}
+
+void AMyCPPGameModeBase::Spawn(AController* Controller)
+{
+	
+	if (ASpawnPoint* SpawnPoint = GetSpawnPoint()) {
+
+		FVector Location = SpawnPoint->GetActorLocation();
+		FRotator Rotation = SpawnPoint->GetActorRotation();
+		if (APawn* Pawn = GetWorld()->SpawnActor<APawn>(Controller->GetPawn()->GetClass(), Location, Rotation))
+		{
+			Controller->Possess(Pawn);
+		}
+	}
+	else
+	{
+		FVector Location = DefaultSpawnLocation;
+		FRotator Rotation = FRotator::ZeroRotator;
+		if (APawn* Pawn = GetWorld()->SpawnActor<APawn>(Controller->GetPawn()->GetClass(), Location, Rotation))
+		{
+			Controller->Possess(Pawn);
+		}
+	}
+
+	
+}
+
+
+
+void AMyCPPGameModeBase::Respawn(AController* Controller)
+{
+	if (Controller) {
+
+		if (GetLocalRole() == ROLE_Authority)
+		{
+
+			FTimerDelegate RespawnDelegate;
+			RespawnDelegate.BindUFunction(this, FName("Spawn"), Controller);
+
+			GetWorld()->GetTimerManager().SetTimer(RespawnHandle, RespawnDelegate, RespawnTime, false);
+
+			if(ACPPTestCharacter* MyChar = Cast<ACPPTestCharacter>(Controller->GetCharacter()))
+			{
+				MyChar->ClientRespawnCountDown(5);
+			}
+			
+		} 
+	}
 }
