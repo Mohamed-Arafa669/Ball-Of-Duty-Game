@@ -21,26 +21,24 @@
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
-
+#include "testinginBP/GameMode/MyCPPGameModeBase.h"
 #include "Engine/Engine.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/GameModeBase.h"
+#include "testinginBP/PlayerController/CPPPlayerController.h"
 
 ACPPTestCharacter::ACPPTestCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	cameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	cameraBoom->SetupAttachment(GetMesh());
+	cameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
+	cameraBoom->SetupAttachment(RootComponent);
 	cameraBoom->TargetArmLength = 300.0f;
-	cameraBoom->bUsePawnControlRotation = true;
 
-	followCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+
+	followCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Follow Camera"));
 	followCamera->SetupAttachment(cameraBoom, USpringArmComponent::SocketName);
-	followCamera->bUsePawnControlRotation = false;
 	
-
-	bUseControllerRotationYaw = false;
-	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	overHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	overHeadWidget->SetupAttachment(RootComponent);
@@ -68,6 +66,10 @@ ACPPTestCharacter::ACPPTestCharacter()
 	bCanThrow = false;
 
 	bEquipped = false;
+
+	bKnocked = false;
+
+	//bSteal = false;
 	
 
 	bSteal = false;
@@ -99,6 +101,7 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ACPPTestCharacter, ballHitDirection);
 
 	DOREPLIFETIME(ACPPTestCharacter, throwPower);
+
 }
 
 
@@ -125,7 +128,9 @@ void ACPPTestCharacter::BeginPlay()
 
 	if (HasAuthority()) {
 		CharacterMesh->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
-	} 
+	}
+
+	
 }
 void ACPPTestCharacter::Tick(float DeltaTime)
 {
@@ -159,32 +164,36 @@ void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 #pragma region Movement and Dashing
 void ACPPTestCharacter::MoveForward(float value)
 {
-	if (Controller != nullptr && value != 0.0f && IsAllowedToMove())
+	/*if (Controller != nullptr && value != 0.0f && IsAllowedToMove())
 	{
 		const FRotator yawRotation(0.0f, Controller->GetControlRotation().Yaw, 0.0f);
 		const FVector direction(FRotationMatrix(yawRotation).GetUnitAxis(EAxis::X));
 		AddMovementInput(direction, value);
-	}
+	}*/
+
+	AddMovementInput(GetActorForwardVector() * value);
 }
 
 void ACPPTestCharacter::MoveRight(float value)
 {
-	if (Controller != nullptr && value != 0.0f && IsAllowedToMove())
+	/*if (Controller != nullptr && value != 0.0f && IsAllowedToMove())
 	{
 		const FRotator yawRotation(0.0f, Controller->GetControlRotation().Yaw, 0.0f);
 		const FVector direction(FRotationMatrix(yawRotation).GetUnitAxis(EAxis::Y));
 		AddMovementInput(direction, value);
-	}
+	}*/
+
+	AddMovementInput(GetActorRightVector() * value);
 }
 
 void ACPPTestCharacter::Turn(float value)
 {
-	AddControllerYawInput(value);
+	AddControllerYawInput(value * 20 * GetWorld()->GetDeltaSeconds());
 }
 
 void ACPPTestCharacter::LookUp(float value)
 {
-	AddControllerPitchInput(value);
+	AddControllerPitchInput(value * 20 * GetWorld()->GetDeltaSeconds());
 }
 
 // Lock on Target 
@@ -327,6 +336,20 @@ void ACPPTestCharacter::ThrowButtonPressed()
 		}
 	}
 }
+
+void ACPPTestCharacter::ClientRespawnCountDown_Implementation(float seconds)
+{
+	if (seconds  > 0.0 && bKnocked)
+	{
+		RespawingWidget = CreateWidget<UUI_RespawnWidget>(GetLocalViewingPlayerController(), RespawingCountWidgetClass);
+		RespawingWidget->CountdownTimeSeconds = seconds;
+		RespawingWidget->AddToViewport();
+
+		FTimerHandle RespawnCountHandle;
+		GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::RemoveWidget, seconds, false);
+	}
+}
+
 void ACPPTestCharacter::ServerThrowButtonPressed_Implementation()
 	{
 		if (combat && IsBallEquipped())
@@ -420,26 +443,35 @@ void ACPPTestCharacter::OnHealthUpdate()
 	
 	if (IsLocallyControlled())
 	{
-		FString healthMessage = FString::Printf(TEXT("You now have %f health remaining."), CurrentHealth);
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, healthMessage);
+		
 
 		if (CurrentHealth <= 0)
 		{
+
+			/*if (IsBallEquipped())
+			{
+				this->combat->UnEquipBall(combat->equippedBall);
+			}
 			FString deathMessage = FString::Printf(TEXT("You have been killed."));
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, deathMessage);
 
-			Knocked();
+			Knocked();*/
+			
+
 		}
+		
 	}
 
 	//Server-specific functionality
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		FString healthMessage = FString::Printf(TEXT("%s now has %f health remaining."), *GetFName().ToString(), CurrentHealth);
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, healthMessage);
 
 		if (CurrentHealth <= 0)
 		{
+			if (IsBallEquipped())
+			{
+				combat->UnEquipBall(combat->equippedBall);
+			}
 			FString deathMessage = FString::Printf(TEXT("You have been killed."));
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, deathMessage);
 
@@ -455,10 +487,20 @@ void ACPPTestCharacter::Knocked()
 	{
 		MultiKnocked();
 
-		FTimerHandle KnockedTimer;
+		FTimerHandle KnockedTimerDestroy;
 
-		GetWorld()->GetTimerManager().SetTimer(KnockedTimer, this, &ACPPTestCharacter::CallDestroy, 3.0f, false);
+		GetWorld()->GetTimerManager().SetTimer(KnockedTimerDestroy, this, &ACPPTestCharacter::CallDestroy, 7.0f, false);
+
+		AGameModeBase* Mode = GetWorld()->GetAuthGameMode();
+
+		if (AMyCPPGameModeBase* FreeforallMode = Cast<AMyCPPGameModeBase>(Mode))
+		{
+
+			FreeforallMode->Respawn(GetController());
+			
+		}
 	}
+
 }
 
 bool ACPPTestCharacter::MultiKnocked_Validate()
@@ -472,7 +514,7 @@ void ACPPTestCharacter::MultiKnocked_Implementation()
 	this->GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 	this->GetMesh()->SetAllBodiesSimulatePhysics(true);
 	this->GetMesh()->AddImpulse( GetActorLocation() + (-ballHitDirection * HitImpulse * CharacterMesh->GetMass()));
-	
+
 }
 
 
@@ -599,6 +641,9 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 			bCanThrow = true;
 			bSteal = false;
 			
+			//bSteal = false;
+
+
 
 		}
 
@@ -612,8 +657,8 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 			BallHit->SetBallState(EBallState::EBS_Initial);
 			ballHitDirection = BallHit->GetActorForwardVector();
 			BallHit->SetOwner(nullptr);
-		} else if ((BallHit->GetBallState() != EBallState::EBS_Dropped || 
-			BallHit->GetBallState() == EBallState::EBS_Initial) && combat && !IsBallEquipped())
+
+		} else if (BallHit->GetBallState() == EBallState::EBS_Initial && combat && !IsBallEquipped())
 		{
 			combat->EquipBall(BallHit);
 		}
@@ -626,7 +671,7 @@ void ACPPTestCharacter::MyThrow()
 	{
 		
 		UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
-		const FVector forwardVec = this->GetMesh()->GetForwardVector();
+		//const FVector forwardVec = this->GetMesh()->GetForwardVector();
 		combat->ThrowButtonPressed(false); //gded
 		combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 		combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
@@ -639,7 +684,7 @@ void ACPPTestCharacter::MyThrow()
 		}
 		else
 		{
-		combat->equippedBall->GetBallMesh()->AddForce((followCamera->GetForwardVector() + GetActorUpVector()) * throwPower * 2500);
+		combat->equippedBall->GetBallMesh()->AddForce((GetActorForwardVector() + GetActorUpVector()) * throwPower * 2500);
 		}
 		//combat->equippedBall->GetBallMesh()->AddForce(  throwPower * 25);
 		//combat->equippedBall->ProjectileMovementComponent->bIsHomingProjectile = true;
@@ -740,6 +785,7 @@ void ACPPTestCharacter::CallDestroy()
 {
 	Destroy();
 	GetCapsuleComponent()->DestroyComponent();
+
 }
 
 void ACPPTestCharacter::OnRep_CurrentHealth()
@@ -787,7 +833,7 @@ void ACPPTestCharacter::StopThrow()
 
 bool ACPPTestCharacter::IsAllowedToMove()
 {
-	return !bStunned;
+	return !bStunned && !bKnocked;
 
 }
 
@@ -808,6 +854,15 @@ float ACPPTestCharacter::TakeDamage(float DamageTaken, FDamageEvent const& Damag
 	SetCurrentHealth(DamageApplied);
 	return DamageApplied;
 
+}
+
+void ACPPTestCharacter::RemoveWidget()
+{
+	if (RespawingWidget)
+	{
+		RespawingWidget->RemoveFromViewport();
+		RespawingWidget = nullptr;
+	}
 }
 
 void ACPPTestCharacter::PlayThrowMontage()

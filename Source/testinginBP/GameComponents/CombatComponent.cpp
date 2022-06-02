@@ -9,6 +9,7 @@
 #include "testinginBP\PlayerController\CPPPlayerController.h"
 #include "testinginBP\HUD\GameHUD.h"
 #include "Animation/AnimMontage.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 UCombatComponent::UCombatComponent()
@@ -113,21 +114,13 @@ void UCombatComponent::EquipBall(class ACPPBall* ballToEquip)
 	
 }
 
-void UCombatComponent::UnEquipBall(ACPPBall* ballToEquip)
+void UCombatComponent::UnEquipBall(class ACPPBall* BalltoUnequip)
 {
-	if (character == nullptr || ballToEquip == nullptr) return;
-
-	equippedBall = ballToEquip;
-	//eqippedBall->SetBallState(EBallState::EBS_Initial);
-	handSocket = character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
-
-
-	if (handSocket)
-	{
-		equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-		equippedBall->GetBallMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		equippedBall->GetBallMesh()->SetSimulatePhysics(true);
-	}
-	equippedBall->SetOwner(character);
+	
+	BalltoUnequip->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	BalltoUnequip->SetBallState(EBallState::EBS_Dropped);
+	BalltoUnequip->GetBallMesh()->SetSimulatePhysics(true);
+	BalltoUnequip = nullptr;
+	
 }
 
