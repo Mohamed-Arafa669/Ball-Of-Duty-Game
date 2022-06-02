@@ -22,6 +22,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //Replication
 	virtual void PostInitializeComponents() override;
 	virtual void Jump() override;;
+
 	void Knocked();
 
 
@@ -51,6 +52,9 @@ public:
 
 	class ACPPPlayerController* CPPPlayerController;
 
+	class AGameHUD* GameHUD;
+
+
 	class AMyPlayerState* MyPlayerState;
 
 protected:
@@ -69,8 +73,8 @@ protected:
 	void LockTarget();
 	void StunCoolDown();
 	void OnHealthUpdate();
-
-
+	void UpdateHUDHealth();
+	void Elim();
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void MultiKnocked();
 	bool MultiKnocked_Validate();
@@ -84,9 +88,9 @@ protected:
 
 
 	UPROPERTY(EditDefaultsOnly, Category = "Health")
-		float MaxHealth;
+		float MaxHealth = 100.f;
 
-	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth)
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth , VisibleAnywhere , Category = "Health")
 		float CurrentHealth;
 
 private:
@@ -145,8 +149,11 @@ private:
 	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Animation)
 		void MulticastPlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
 
-	
+	FTimerHandle ElimTimer;
 
+	UPROPERTY(EditDefaultsOnly)
+		float ElimDelay = 3.f;
+	void ElimTimerFinished();
 public:
 	void Stunned();
 
@@ -196,7 +203,7 @@ public:
 
 	 UFUNCTION(BlueprintCallable, Category = "Health")
 	virtual float TakeDamage(float DamageTaken, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
-
+  
 	UPROPERTY(EditAnywhere, Replicated, Category = "Movement")
 	 float DashDistance = 6000.f;
 

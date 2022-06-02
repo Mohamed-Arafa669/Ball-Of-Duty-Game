@@ -15,13 +15,13 @@ class TESTINGINBP_API ACPPPlayerController : public APlayerController
 	GENERATED_BODY()
 	
 public:
+	void SetHUDHealth(float CurrentHealth, float MaxHealth);
 	void SetHUDScore(float Score);
+
+	class AGameHUD* GameHUD;
+
 protected:
 	virtual void BeginPlay() override;
 	//void SetHUDMatchCountdown(float CountdownTime);
-private:
-	class AGameHUD* GameHUD;
-	UPROPERTY(VisibleAnywhere)
-		class UCombatComponent* combat;
 
 };

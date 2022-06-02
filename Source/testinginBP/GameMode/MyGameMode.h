@@ -28,16 +28,9 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //Replication
 
-	//TODO : TEAMS 
-
-	//void PostLogin(APlayerController* NewPlayer) override;
-
-	//AActor* ChoosePlayerStart_Implementation(AController* Player) override;
-
-	//bool ShouldSpawnAtStartSpot(AController* Player) override { return false; };
-	// 
-	// 
 	virtual void PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, class ACPPPlayerController* VictimController, class ACPPPlayerController* AttackerController);
+
+	virtual void RequestRespawn(class ACharacter* ElimmedCharacter, AController* ElimmedController);
 
 protected:
 

@@ -10,8 +10,7 @@
 #include "../GameComponents/MyPlayerState.h"
 #include "GameFramework/GameMode.h"
 #include "../GameComponents/MyPlayerStart.h"
-
-
+#include "Kismet/GameplayStatics.h"
 
 AMyGameMode::AMyGameMode()
 {
@@ -27,17 +26,33 @@ void AMyGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 void AMyGameMode::PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, class ACPPPlayerController* VictimController, class ACPPPlayerController* AttackerController)
 {
-	AMyPlayerState* AttackerPlayerState = AttackerController ? Cast<AMyPlayerState>(AttackerController->PlayerState) : nullptr;
+	/*AMyPlayerState* AttackerPlayerState = AttackerController ? Cast<AMyPlayerState>(AttackerController->PlayerState) : nullptr;
 	AMyPlayerState* VictimPlayerState = VictimController ? Cast<AMyPlayerState>(VictimController->PlayerState) : nullptr;
 
-	if (AttackerPlayerState && AttackerPlayerState != VictimPlayerState)
+	if (AttackerPlayerState)
 	{
 		AttackerPlayerState->AddToScore(1.0f);
-	}
+	}*/
 
 	if (ElimmedCharacter)
 	{
 		ElimmedCharacter->Knocked();
+	}
+}
+
+void AMyGameMode::RequestRespawn(class ACharacter* ElimmedCharacter, AController* ElimmedController)
+{
+	if (ElimmedCharacter)
+	{
+		ElimmedCharacter->Reset();
+		ElimmedCharacter->Destroyed();
+	}
+	if (ElimmedController)
+	{
+		TArray<AActor*> PlayerStarts;
+		UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), PlayerStarts);
+		int32 Selection = FMath::RandRange(0, PlayerStarts.Num() - 1);
+		RestartPlayerAtPlayerStart(ElimmedController, PlayerStarts[Selection]);
 	}
 }
 
@@ -66,68 +81,6 @@ UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController
 		{
 			CurrentPawnToAssign = (true) ? FirstPawn : SecondPawn;
 		}
-
-
-
 	}
 	return CurrentPawnToAssign;
 }
-
-
-
-//TODO : Teams 
-
-//void AMyCPPGameModeBase::PostLogin(APlayerController* NewPlayer)
-//{
-//	Super::PostLogin(NewPlayer);
-//	if (NewPlayer)
-//	{
-//		AMyPlayerState* PS = Cast<AMyPlayerState>(NewPlayer->PlayerState);
-//		if (PS && GameState)
-//		{
-//			uint8 NumTeamA = 0;
-//			uint8 NumTeamB = 0;
-//			for (APlayerState* It : GameState->PlayerArray)
-//			{
-//				AMyPlayerState* OtherPS = Cast<AMyPlayerState>(It);
-//				if (OtherPS)
-//				{
-//					if (OtherPS->bTeamB)
-//					{
-//						NumTeamB++;
-//					}
-//					else
-//					{
-//						NumTeamA++;
-//
-//					}
-//				}
-//			}
-//			if (NumTeamA > NumTeamB)
-//			{
-//				PS->bTeamB = true;
-//			}
-//		}
-//	}
-//}
-//
-//AActor* AMyCPPGameModeBase::ChoosePlayerStart_Implementation(AController* Player)
-//{
-//	if (Player)
-//	{
-//		AMyPlayerState* PS = Cast<AMyPlayerState>(Player->PlayerState);
-//		if (PS)
-//		{
-//			TArray<AMyPlayerState*> Starts;
-//			for (TActorIterator<AMyPlayerStart> StartItr(GetWorld()); StartItr; ++StartItr)
-//			{
-//				if (StartItr->bTeamB == PS->bTeamB)
-//				{
-//					Starts.Add(*StartItr);
-//				}
-//			}
-//			return Starts[FMath::RandRange(0, Starts.Num() - 1)];
-//		}
-//	}
-//	return NULL;		
-//}

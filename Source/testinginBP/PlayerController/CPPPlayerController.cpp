@@ -6,6 +6,7 @@
 #include "testinginBP/HUD/CharacterOverlays.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
+#include "Kismet/GameplayStatics.h"
 
 
 
@@ -19,6 +20,17 @@ void ACPPPlayerController::BeginPlay()
 	Super::BeginPlay();
 	
 	GameHUD = Cast<AGameHUD>(GetHUD());
+	
+}
+
+void ACPPPlayerController::SetHUDHealth(float CurrentHealth, float MaxHealth)
+{
+	GameHUD = GameHUD == nullptr ? Cast<AGameHUD>(GetHUD()) : GameHUD;
+	if (GameHUD && GameHUD->CharacterOverlay && GameHUD->CharacterOverlay->HealthBar)
+	{
+		const float HealthPercent = CurrentHealth / MaxHealth;
+		GameHUD->CharacterOverlay->HealthBar->SetPercent(HealthPercent);
+	}
 }
 
 void ACPPPlayerController::SetHUDScore(float Score)

@@ -27,7 +27,9 @@
 
 #include "testinginBP/PlayerController/CPPPlayerController.h"
 #include "testinginBP/GameComponents/MyPlayerState.h"
+#include "testinginBP/GameMode/MyGameMode.h"
 
+#include "TimerManager.h"
 
 ACPPTestCharacter::ACPPTestCharacter()
 {
@@ -126,17 +128,15 @@ void ACPPTestCharacter::Jump()
 void ACPPTestCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
+	UpdateHUDHealth();
 	if (HasAuthority()) {
 		CharacterMesh->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
+		//OnTakeAnyDamage.AddDynamic(this, &ACPPTestCharacter::TakeDamage);
+		CPPPlayerController = Cast<ACPPPlayerController>(Controller);
+
 	} 
 
-	CPPPlayerController = Cast<ACPPPlayerController>(Controller);
-
-	/*if (CPPPlayerController)
-	{
-		CPPPlayerController->
-	}*/
+	
 
 }
 void ACPPTestCharacter::Tick(float DeltaTime)
@@ -405,7 +405,8 @@ void ACPPTestCharacter::OnHealthUpdate()
 			FString deathMessage = FString::Printf(TEXT("You have been killed."));
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, deathMessage);
 
-			Knocked();
+			
+			//Knocked();
 		}
 	}
 
@@ -425,6 +426,22 @@ void ACPPTestCharacter::OnHealthUpdate()
 	}
 }
 
+void ACPPTestCharacter::UpdateHUDHealth()
+{
+	CPPPlayerController = CPPPlayerController == nullptr ? Cast<ACPPPlayerController>(Controller) : CPPPlayerController;
+	MyPlayerState = MyPlayerState == nullptr ? Cast<AMyPlayerState>(MyPlayerState) : MyPlayerState;
+
+	if (CPPPlayerController)
+	{
+		CPPPlayerController->SetHUDHealth(CurrentHealth, MaxHealth);
+	}
+}
+
+void ACPPTestCharacter::Elim()
+{
+
+}
+
 void ACPPTestCharacter::Knocked()
 {
 	if (GetLocalRole() == ROLE_Authority)
@@ -433,9 +450,14 @@ void ACPPTestCharacter::Knocked()
 
 		FTimerHandle KnockedTimer;
 
-		GetWorld()->GetTimerManager().SetTimer(KnockedTimer, this, &ACPPTestCharacter::CallDestroy, 3.0f, false);
+	//	GetWorld()->GetTimerManager().SetTimer(KnockedTimer, this, &ACPPTestCharacter::CallDestroy, 3.0f, false);
+		GetWorldTimerManager().SetTimer(
+			ElimTimer,
+			this,
+			&ACPPTestCharacter::ElimTimerFinished,
+			ElimDelay
+		);
 
-		//MyPlayerState->AddToScore(1.0f);
 	}
 }
 
@@ -450,6 +472,15 @@ void ACPPTestCharacter::MultiKnocked_Implementation()
 	this->GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 	this->GetMesh()->SetAllBodiesSimulatePhysics(true);
 	this->GetMesh()->AddImpulse( GetActorLocation() + (-ballHitDirection * HitImpulse * CharacterMesh->GetMass()));	
+}
+
+void ACPPTestCharacter::ElimTimerFinished()
+{
+	AMyGameMode* MyGameMode = GetWorld()->GetAuthGameMode<AMyGameMode>();
+	if (MyGameMode)
+	{
+	MyGameMode->RequestRespawn(this, Controller);
+	}
 }
 
 #pragma endregion
@@ -549,6 +580,7 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 	}
 }
 
+
 void ACPPTestCharacter::MyThrow()
 {
 	if (combat && IsBallEquipped() && IsAllowedToMove())
@@ -599,7 +631,7 @@ void ACPPTestCharacter::CallDestroy()
 
 void ACPPTestCharacter::OnRep_CurrentHealth()
 {
-
+	UpdateHUDHealth();
 	OnHealthUpdate();
 
 }
@@ -646,8 +678,23 @@ void ACPPTestCharacter::SetCurrentHealth(float healthValue)
 float ACPPTestCharacter::TakeDamage(float DamageTaken, FDamageEvent const& DamageEvent, AController* EventInstigator,
 	AActor* DamageCauser)
 {
+	
+	UpdateHUDHealth();
 	float DamageApplied = CurrentHealth - DamageTaken;
 	SetCurrentHealth(DamageApplied);
+	CPPPlayerController->SetHUDHealth(CurrentHealth, MaxHealth);
+	if (CurrentHealth == 0.0f)
+	{
+		AMyGameMode* MyGameMode = GetWorld()->GetAuthGameMode<AMyGameMode>();
+		if (MyGameMode)
+		{
+			FString HitMessage = FString::Printf(TEXT("D5l wala la2 ?"));
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, HitMessage);
+			CPPPlayerController = CPPPlayerController == nullptr ? Cast<ACPPPlayerController>(Controller) : CPPPlayerController;
+			ACPPPlayerController* AttackerController = Cast<ACPPPlayerController>(EventInstigator);
+			MyGameMode->PlayerEliminated(this, CPPPlayerController, AttackerController);
+		}
+	}
 	return DamageApplied;
 
 }

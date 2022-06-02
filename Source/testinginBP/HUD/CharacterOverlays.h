@@ -16,5 +16,8 @@ class TESTINGINBP_API UCharacterOverlays : public UUserWidget
 
 public:
 	UPROPERTY(meta = (BindWidget))
-		UTextBlock* ScoreAmount;
+	class UProgressBar* HealthBar;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* ScoreAmount;
 };
