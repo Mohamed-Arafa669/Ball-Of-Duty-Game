@@ -6,6 +6,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "testinginBP\Character\CPPTestCharacter.h"
+#include "testinginBP/Character/StealCharacter.h"
 #include "Net/UnrealNetwork.h" //Replication
 #include "testinginBP\GameComponents\CombatComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -19,7 +20,7 @@
 
 ACPPBall::ACPPBall()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 
 	//SetBallState(EBallState::EBS_Dropped);
@@ -111,6 +112,7 @@ ACPPBall::ACPPBall()
 	pickUpWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickUpWidget"));
 	pickUpWidget->SetupAttachment(RootComponent);
 
+	bMove = false;
 	
 }
 
@@ -135,6 +137,27 @@ void ACPPBall::BeginPlay()
 void ACPPBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	if (bMove)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Moving"));
+
+		if (Target != nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Movinsssg"));
+
+			if (CurrentDistance < TotalDistance)
+			{
+				FVector Location = GetActorLocation();
+				Location += Direction * Speed * DeltaTime;
+				SetActorLocation(Location);
+				CurrentDistance = (Location - StartLocation).Size();
+				UE_LOG(LogTemp, Warning, TEXT("cURRENT DIS %f"), CurrentDistance);
+			}
+			else
+				bMove = false;
+		}
+	}
 
 }
 
@@ -224,6 +247,25 @@ void ACPPBall::OnReleased()
 	UE_LOG(LogTemp, Warning, TEXT("???"));
 }
 
+void ACPPBall::MoveHookedBall(class AStealCharacter* TargetPlayer)
+{
+	Target = TargetPlayer;
+	if (Target != nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Bla bla bla"));
+		StartLocation = GetActorLocation();
+		Direction = Target->GetActorLocation() - StartLocation;
+		TotalDistance = Direction.Size();
+
+		UE_LOG(LogTemp, Warning, TEXT("Distance = %f"), TotalDistance);
+
+		Direction = Direction.GetSafeNormal();
+		CurrentDistance = 0.0f;
+
+		bMove = true;
+
+	}
+}
 //void ACPPBall::mySlerp()
 //{
 //	

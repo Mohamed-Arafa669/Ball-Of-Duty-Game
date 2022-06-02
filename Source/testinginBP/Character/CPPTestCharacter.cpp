@@ -52,6 +52,11 @@ ACPPTestCharacter::ACPPTestCharacter()
 	combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	combat->SetIsReplicated(true);
 
+	if (!LockOnTargetComponent)
+	{
+		LockOnTargetComponent = CreateDefaultSubobject<ULockOnTargetComponent>(TEXT("LockOnTargetComponent"));
+	}
+
 	CharacterMesh = GetMesh();
 
 	bCanDash = true;
@@ -66,6 +71,8 @@ ACPPTestCharacter::ACPPTestCharacter()
 
 	//bSteal = false;
 	
+
+	bSteal = false;
 
 	bisLocked = false;
 	//overlappingBall->SetBallState(EBallState::EBS_Dropped);
@@ -85,6 +92,7 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ACPPTestCharacter, bEquipped);
 
 	DOREPLIFETIME(ACPPTestCharacter, bCatching);
+	DOREPLIFETIME(ACPPTestCharacter, bSteal);
 
 	DOREPLIFETIME(ACPPTestCharacter, bisLocked);
 	DOREPLIFETIME(ACPPTestCharacter, bStunned);
@@ -627,10 +635,12 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 	if (ACPPBall* BallHit = Cast<ACPPBall>(OtherActor))
 	{
 
-		if (bCatching && combat && !IsBallEquipped())
+		if (bCatching && combat && !IsBallEquipped() || bSteal)
 		{
 			combat->EquipBall(BallHit);
 			bCanThrow = true;
+			bSteal = false;
+			
 			//bSteal = false;
 
 

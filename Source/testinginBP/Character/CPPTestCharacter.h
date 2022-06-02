@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/Actor.h"
+#include "LockOnTargetComponent.h"
 #include "testinginBP/Ball/CPPBall.h"
 #include "Components/PrimitiveComponent.h"
 #include "testinginBP/HUD/UI/UI_RespawnWidget.h"
@@ -43,6 +44,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ThrowButtonPressed();
 
+	//Lock On Target
+	ULockOnTargetComponent* LockOnTargetComponent;
+
+	UPROPERTY(VisibleAnywhere)
+		class UCombatComponent* combat;
 	UFUNCTION(Client, Reliable)
 		void ClientRespawnCountDown(float seconds);
 
@@ -78,6 +84,7 @@ protected:
 //>>>>>>> origin/GoharyMain
 	USkeletalMeshComponent* CharacterMesh;
 
+
 	UPROPERTY(EditDefaultsOnly, Category = "Health")
 		float MaxHealth;
 
@@ -108,8 +115,8 @@ private:
 	UFUNCTION()
 	void OnRep_OverlappingBall(ACPPBall* lastBall); //Replication
 
-	UPROPERTY(visibleAnywhere)
-	class UCombatComponent* combat;
+	// UPROPERTY(visibleAnywhere)
+	// class UCombatComponent* combat;
 
 	UPROPERTY(visibleAnywhere)
 	class UGameplayStatics* gameStatic;
@@ -159,6 +166,9 @@ public:
 
 	UPROPERTY(Replicated)
 	 bool bCatching;
+
+	UPROPERTY(Replicated)
+		bool bSteal;
 
 	 UPROPERTY(Replicated)
 	 bool bEquipped;
