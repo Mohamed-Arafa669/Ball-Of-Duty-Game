@@ -9,12 +9,6 @@
 #include "Kismet/GameplayStatics.h"
 
 
-
-//void ACPPPlayerController::SetHUDMatchCountdown(float CountdownTime)
-//{
-//	GameHUD = GameHUD
-//}
-
 void ACPPPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
@@ -22,6 +16,26 @@ void ACPPPlayerController::BeginPlay()
 	GameHUD = Cast<AGameHUD>(GetHUD());
 	
 }
+
+
+void ACPPPlayerController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	SetHUDTime();
+
+	CheckTimeSync(DeltaTime);
+}
+
+void ACPPPlayerController::CheckTimeSync(float DeltaTime)
+{
+	TimeSyncRunningTime += DeltaTime;
+	if (IsLocalController() && TimeSyncRunningTime > TimeSyncFrequency)
+	{
+		ServerRequestServerTime(GetRealTime());
+		TimeSyncRunningTime = 0.f;
+	}
+}
+
 
 void ACPPPlayerController::SetHUDHealth(float CurrentHealth, float MaxHealth)
 {
@@ -62,3 +76,73 @@ void ACPPPlayerController::SetHUDDefeats(int32 Defeats)
 	}
 
 }
+
+void ACPPPlayerController::SetHUDMatchCountdown(float CountdownTime)
+{
+	GameHUD = GameHUD == nullptr ? Cast<AGameHUD>(GetHUD()) : GameHUD;
+	bool bHUDValidations = GameHUD &&
+		GameHUD->CharacterOverlay &&
+		GameHUD->CharacterOverlay->MatchCountdownText;
+
+	if (bHUDValidations)
+	{
+		int32 Minutes = FMath::FloorToInt(CountdownTime/60.0f);
+		int32 Seconds = CountdownTime - Minutes * 60;
+
+		FString CountdownText = FString::Printf(TEXT("%02d:%02d"),Minutes,Seconds);
+		GameHUD->CharacterOverlay->MatchCountdownText->SetText(FText::FromString(CountdownText));
+	}
+}
+
+void ACPPPlayerController::SetHUDTime()
+{
+	float MatchRemainingTime = MatchTime - GetServerTime();
+	uint32 SecondsLeft = FMath::CeilToInt(MatchRemainingTime);
+
+	if (CountdownInt != SecondsLeft)
+	{
+		SetHUDMatchCountdown(MatchTime - GetServerTime());
+	}
+
+	CountdownInt = SecondsLeft;
+}
+
+void ACPPPlayerController::ServerRequestServerTime_Implementation(float TimeOfClientRequest)
+{
+	float ServerTimeOfReceipt = GetRealTime();
+	ClientReportServerTime(TimeOfClientRequest, ServerTimeOfReceipt);
+}
+
+void ACPPPlayerController::ClientReportServerTime_Implementation(float TimeOfClientRequest, float TimeServerRecievedClientRequest)
+{
+	float RoundTripTime = GetRealTime() - TimeOfClientRequest;
+	float CurrentServerTime = TimeServerRecievedClientRequest + (0.5f * RoundTripTime);
+	ClientServerDelta = CurrentServerTime - GetRealTime();
+}
+
+float ACPPPlayerController::GetServerTime()
+{
+	if(HasAuthority())
+	{
+		return GetRealTime();
+	}
+	else
+	{
+		return GetRealTime() + ClientServerDelta;
+	}
+}
+
+void ACPPPlayerController::ReceivedPlayer()
+{
+	Super::ReceivedPlayer();
+	if (IsLocalController())
+	{
+		ServerRequestServerTime(GetRealTime());
+	}
+}
+
+float ACPPPlayerController::GetRealTime()
+{
+	return GetWorld()->GetTimeSeconds();
+}
+
