@@ -138,11 +138,6 @@ void ACPPTestCharacter::BeginPlay()
 		CPPPlayerController = Cast<ACPPPlayerController>(Controller);
 
 	} 
-
-	
-
-	
-
 	
 }
 void ACPPTestCharacter::Tick(float DeltaTime)
@@ -488,9 +483,9 @@ void ACPPTestCharacter::Knocked()
 
 		GetWorld()->GetTimerManager().SetTimer(KnockedTimerDestroy, this, &ACPPTestCharacter::CallDestroy, 7.0f, false);
 
-		AGameModeBase* Mode = GetWorld()->GetAuthGameMode();
+		AMyGameMode* Mode = GetWorld()->GetAuthGameMode<AMyGameMode>();
 
-		if (AMyCPPGameModeBase* FreeforallMode = Cast<AMyCPPGameModeBase>(Mode))
+		if (AMyGameMode* FreeforallMode = Cast<AMyGameMode>(Mode))
 		{
 
 			FreeforallMode->Respawn(GetController());
@@ -519,7 +514,7 @@ void ACPPTestCharacter::ElimTimerFinished()
 	AMyGameMode* MyGameMode = GetWorld()->GetAuthGameMode<AMyGameMode>();
 	if (MyGameMode)
 	{
-	MyGameMode->RequestRespawn(this, Controller);
+	//MyGameMode->RequestRespawn(this, Controller);
 	}
 }
 
