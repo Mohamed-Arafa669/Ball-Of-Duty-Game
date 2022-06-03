@@ -7,11 +7,12 @@
 #include "Net/UnrealNetwork.h"
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/PlayerStart.h"
-#include "../GameComponents/MyPlayerState.h"
 #include "GameFramework/GameMode.h"
 #include "../GameComponents/MyPlayerStart.h"
 #include "testinginBP/Character/CPPTestCharacter.h"
 #include "testinginBP/GameComponents/SpawnPoint.h"
+#include "testinginBP/GameComponents/MyPlayerState.h"
+#include "testinginBP/PlayerController/CPPPlayerController.h"
 #include "TimerManager.h"
 
 AMyGameMode::AMyGameMode()
@@ -39,15 +40,18 @@ void AMyGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(AMyGameMode, CurrentPawnToAssign);
 }
 
-void AMyGameMode::PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, class ACPPPlayerController* VictimController, class ACPPPlayerController* AttackerController)
+void AMyGameMode::PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, class ACPPPlayerController* VictimController, class APlayerController* AttackerController)
 {
-	/*AMyPlayerState* AttackerPlayerState = AttackerController ? Cast<AMyPlayerState>(AttackerController->PlayerState) : nullptr;
+	//if (AttackerController == nullptr || AttackerController->PlayerState == nullptr) return;
+	//if (VictimController == nullptr || VictimController->PlayerState == nullptr) return;
+	AMyPlayerState* AttackerPlayerState = AttackerController ? Cast<AMyPlayerState>(AttackerController->PlayerState) : nullptr;
 	AMyPlayerState* VictimPlayerState = VictimController ? Cast<AMyPlayerState>(VictimController->PlayerState) : nullptr;
 
-	if (AttackerPlayerState)
+	/*if (AttackerPlayerState && AttackerPlayerState != VictimPlayerState)
 	{
 		AttackerPlayerState->AddToScore(1.0f);
 	}*/
+	AttackerPlayerState->AddToScore(1.0f);
 
 	if (ElimmedCharacter)
 	{
@@ -55,23 +59,6 @@ void AMyGameMode::PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, cl
 	}
 }
 
-
-
-//void AMyGameMode::RequestRespawn(class ACharacter* ElimmedCharacter, AController* ElimmedController)
-//{
-//	if (ElimmedCharacter)
-//	{
-//		ElimmedCharacter->Reset();
-//		ElimmedCharacter->Destroyed();
-//	}
-//	if (ElimmedController)
-//	{
-//		TArray<AActor*> PlayerStarts;
-//		UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), PlayerStarts);
-//		int32 Selection = FMath::RandRange(0, PlayerStarts.Num() - 1);
-//		RestartPlayerAtPlayerStart(ElimmedController, PlayerStarts[Selection]);
-//	}
-//}
 
 UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
 {
@@ -152,7 +139,7 @@ void AMyGameMode::Respawn(AController* Controller)
 
 			if (ACPPTestCharacter* MyChar = Cast<ACPPTestCharacter>(Controller->GetCharacter()))
 			{
-				MyChar->ClientRespawnCountDown(5);
+				MyChar->ClientRespawnCountDown(3);
 			}
 
 		}

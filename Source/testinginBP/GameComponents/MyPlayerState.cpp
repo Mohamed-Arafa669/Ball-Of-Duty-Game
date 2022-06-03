@@ -8,44 +8,32 @@
 #include "testinginBP/PlayerController/CPPPlayerController.h"
 #include "testinginBP/GameComponents/CombatComponent.h"
 
-//void AMyPlayerState::AddToScore(float ScoreAmount)
-//{
-//	ScoreAmount = 5.0f;
+void AMyPlayerState::AddToScore(float ScoreAmount)
+{
+	Score += ScoreAmount;
+	Character = Character == nullptr ? Cast<ACPPTestCharacter>(GetPawn()) : Character;
+	if (Character)
+	{
+		Controller = Controller == nullptr ? Cast<ACPPPlayerController>(Character->Controller) : Controller;
+		if (Controller)
+		{
+			Controller->SetHUDScore(ScoreAmount);
+		}
+	}
+}
 //
-//	sCharacter = /*sCharacter == nullptr ?*/ Cast<ACPPTestCharacter>(GetPawn()) /*: sCharacter*/;
+void AMyPlayerState::OnRep_Score()
+{
+	Super::OnRep_Score();
 //
-//	if (sCharacter)
-//	{
-//		sController = sController == nullptr ? Cast<ACPPPlayerController>(sCharacter->Controller) : sController;
-//
-//		if (sController)
-//		{
-//			sController->SetHUDScore(ScoreAmount);
-//		}
-//	}
-//}
-//
-//void AMyPlayerState::OnRep_Score()
-//{
-//	Super::OnRep_Score();
-//
-//	sCharacter = sCharacter == nullptr ? Cast<ACPPTestCharacter>(GetPawn()) : sCharacter;
-//	if (sCharacter)
-//	{
-//		sController = sController == nullptr ? Cast<ACPPPlayerController>(sCharacter->Controller) : sController;
-//		if (sController)
-//		{
-//			sController->SetHUDScore(Score);
-//		}
-//	}
-//	
-//}
-//
-//
-//
-//void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-//{
-//	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-//	
-//	DOREPLIFETIME(AMyPlayerState, Team);
-//}
+	Character = Character == nullptr ? Cast<ACPPTestCharacter>(GetPawn()) : Character;
+	if (Character)
+	{
+	Controller = Controller == nullptr ? Cast<ACPPPlayerController>(Character->Controller) : Controller;
+	if (Controller)
+		{
+			Controller->SetHUDScore(Score);
+		}
+	}
+	
+}

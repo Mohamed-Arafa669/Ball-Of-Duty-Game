@@ -17,16 +17,16 @@ class TESTINGINBP_API AMyPlayerState : public APlayerState
 public:
 	//UPROPERTY(Replicated)
 	//	bool bTeamB;
-//	virtual void OnRep_Score() override;
+	virtual void OnRep_Score() override;
 //
-//	void AddToScore(float ScoreAmount);
+	void AddToScore(float ScoreAmount);
 //
 //	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //Replication
 //
-//private:
-//	class ACPPTestCharacter* sCharacter;
-//
-//	class ACPPPlayerController* sController;
+private:
+	class ACPPTestCharacter* Character;
+
+	class ACPPPlayerController* Controller;
 //
 //	UPROPERTY(VisibleAnywhere)
 //		class UCombatComponent* combat;

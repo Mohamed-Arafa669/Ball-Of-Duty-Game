@@ -369,7 +369,7 @@ void ACPPTestCharacter::ClientRespawnCountDown_Implementation(float seconds)
 		RespawingWidget->CountdownTimeSeconds = seconds;
 		RespawingWidget->AddToViewport();
 
-		FTimerHandle RespawnCountHandle;
+		FTimerHandle RespawnCountHandle ;
 		GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::RemoveWidget, seconds, false);
 	}
 }
@@ -592,12 +592,7 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 		{
 			combat->EquipBall(BallHit);
 			bCanThrow = true;
-			bSteal = false;
-			
-			//bSteal = false;
-
-
-
+			bSteal = false;		
 		}
 
 		else if (BallHit->GetBallState() == EBallState::EBS_Dropped && BallHit->GetOwner() != this)
@@ -606,10 +601,14 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 			FString HitMessage = FString::Printf(TEXT("HIT"));
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, HitMessage);
 			FDamageEvent GotHitEvent;
-			this->TakeDamage(50.f, GotHitEvent, BallHit->GetInstigatorController(), BallHit);
+			AController* ballOwnerController = BallHit->GetInstigatorController();
+			UGameplayStatics::ApplyDamage(this, 50.f, ballOwnerController, BallHit, NULL);
+			//this->TakeDamage(50.f, GotHitEvent, BallHit->GetInstigatorController(), BallHit);
 			BallHit->SetBallState(EBallState::EBS_Initial);
 			ballHitDirection = BallHit->GetActorForwardVector();
+			//TODO : Make A reset function for owner and instigator
 			BallHit->SetOwner(nullptr);
+			BallHit->SetInstigator(nullptr);
 
 		} else if (BallHit->GetBallState() == EBallState::EBS_Initial && combat && !IsBallEquipped())
 		{
@@ -729,9 +728,10 @@ float ACPPTestCharacter::TakeDamage(float DamageTaken, FDamageEvent const& Damag
 		{
 			FString HitMessage = FString::Printf(TEXT("D5l wala la2 ?"));
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, HitMessage);
-			CPPPlayerController = CPPPlayerController == nullptr ? Cast<ACPPPlayerController>(Controller) : CPPPlayerController;
-			ACPPPlayerController* AttackerController = Cast<ACPPPlayerController>(EventInstigator);
-			MyGameMode->PlayerEliminated(this, CPPPlayerController, AttackerController);
+			CPPPlayerController = CPPPlayerController == nullptr ? Cast<ACPPPlayerController>(Controller) : CPPPlayerController; // returns the victim (enemy)
+			ACPPTestCharacter* OwnerCharacter = Cast<ACPPTestCharacter>(GetOwner());
+			ACPPPlayerController* DamageCauserController = Cast<ACPPPlayerController>(EventInstigator); // why it's returning the enemy ????
+			MyGameMode->PlayerEliminated(this, CPPPlayerController, DamageCauserController);
 		}
 	}
 	return DamageApplied;
@@ -740,11 +740,14 @@ float ACPPTestCharacter::TakeDamage(float DamageTaken, FDamageEvent const& Damag
 
 void ACPPTestCharacter::RemoveWidget()
 {
+	
 	if (RespawingWidget)
 	{
+		//RespawingWidget->RemoveFromParent();
 		RespawingWidget->RemoveFromViewport();
 		RespawingWidget = nullptr;
 	}
+	
 }
 
 void ACPPTestCharacter::PlayThrowMontage()
