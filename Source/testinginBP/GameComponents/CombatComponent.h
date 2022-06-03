@@ -26,6 +26,7 @@ public:
 	UPROPERTY(visibleAnywhere)
 	 const USkeletalMeshSocket* handSocket;
 
+	UPROPERTY()
 	class ACPPTestCharacter* character;
 
 protected:
@@ -37,7 +38,12 @@ protected:
 	void SetHUDCrosshairs(float DeltaTime);
 
 private:
+
+	UPROPERTY()
 	class ACPPPlayerController* Controller;
+
+	UPROPERTY()
+
 	class AGameHUD* HUD;
 
 	

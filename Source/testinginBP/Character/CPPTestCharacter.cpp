@@ -75,14 +75,9 @@ ACPPTestCharacter::ACPPTestCharacter()
 
 	bKnocked = false;
 
-	//bSteal = false;
-	
-
 	bSteal = false;
 
 	bisLocked = false;
-	//overlappingBall->SetBallState(EBallState::EBS_Dropped);
-	//testVect = combat->character->GetActorForwardVector() -/*lockly->GetTarget()->GetActorForwardVector()*/;
 	UE_LOG(LogTemp, Warning, TEXT("The vector value is: %s"), *testVect.ToString());
 
 	MaxHealth = 100.0f;
@@ -96,16 +91,14 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME_CONDITION(ACPPTestCharacter, overlappingBall, COND_OwnerOnly);//Replication
 
 	DOREPLIFETIME(ACPPTestCharacter, bEquipped);
-
 	DOREPLIFETIME(ACPPTestCharacter, bCatching);
 	DOREPLIFETIME(ACPPTestCharacter, bSteal);
-
 	DOREPLIFETIME(ACPPTestCharacter, bisLocked);
 	DOREPLIFETIME(ACPPTestCharacter, bStunned);
 	DOREPLIFETIME(ACPPTestCharacter, bKnocked);
 	DOREPLIFETIME(ACPPTestCharacter, CurrentHealth);
+	DOREPLIFETIME(ACPPTestCharacter, MaxHealth);
 	DOREPLIFETIME(ACPPTestCharacter, ballHitDirection);
-
 	DOREPLIFETIME(ACPPTestCharacter, throwPower);
 
 }
@@ -134,7 +127,6 @@ void ACPPTestCharacter::BeginPlay()
 	UpdateHUDHealth();
 	if (HasAuthority()) {
 		CharacterMesh->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
-		//OnTakeAnyDamage.AddDynamic(this, &ACPPTestCharacter::TakeDamage);
 		CPPPlayerController = Cast<ACPPPlayerController>(Controller);
 
 	} 
@@ -143,13 +135,13 @@ void ACPPTestCharacter::BeginPlay()
 void ACPPTestCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	PollInit();
 }
 void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	//PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &ACPPTestCharacter::EquipButtonPressed);
 	PlayerInputComponent->BindAction("LockOn", IE_Pressed, this, &ACPPTestCharacter::LockTarget);
 
 
@@ -371,6 +363,8 @@ void ACPPTestCharacter::ClientRespawnCountDown_Implementation(float seconds)
 
 		FTimerHandle RespawnCountHandle ;
 		GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::RemoveWidget, seconds, false);
+		GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::ResetHealthHUD, seconds, false);
+
 	}
 }
 
@@ -507,6 +501,19 @@ void ACPPTestCharacter::MultiKnocked_Implementation()
 	this->GetMesh()->SetAllBodiesSimulatePhysics(true);
 	this->GetMesh()->AddImpulse( GetActorLocation() + (-ballHitDirection * HitImpulse * CharacterMesh->GetMass()));
 
+}
+
+void ACPPTestCharacter::PollInit()
+{
+	if (MyPlayerState == nullptr)
+	{
+		MyPlayerState = GetPlayerState<AMyPlayerState>();
+		if (MyPlayerState)
+		{
+			MyPlayerState->AddToScore(0.f);
+			MyPlayerState->AddToDefeats(0);
+		}
+	}
 }
 
 void ACPPTestCharacter::ElimTimerFinished()
@@ -667,6 +674,12 @@ void ACPPTestCharacter::CallDestroy()
 
 }
 
+void ACPPTestCharacter::ResetHealthHUD()
+{
+	CPPPlayerController->SetHUDHealth(100.0F, MaxHealth);
+
+}
+
 void ACPPTestCharacter::OnRep_CurrentHealth()
 {
 	UpdateHUDHealth();
@@ -726,11 +739,9 @@ float ACPPTestCharacter::TakeDamage(float DamageTaken, FDamageEvent const& Damag
 		AMyGameMode* MyGameMode = GetWorld()->GetAuthGameMode<AMyGameMode>();
 		if (MyGameMode)
 		{
-			FString HitMessage = FString::Printf(TEXT("D5l wala la2 ?"));
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, HitMessage);
-			CPPPlayerController = CPPPlayerController == nullptr ? Cast<ACPPPlayerController>(Controller) : CPPPlayerController; // returns the victim (enemy)
+			CPPPlayerController = CPPPlayerController == nullptr ? Cast<ACPPPlayerController>(Controller) : CPPPlayerController; 
 			ACPPTestCharacter* OwnerCharacter = Cast<ACPPTestCharacter>(GetOwner());
-			ACPPPlayerController* DamageCauserController = Cast<ACPPPlayerController>(EventInstigator); // why it's returning the enemy ????
+			ACPPPlayerController* DamageCauserController = Cast<ACPPPlayerController>(EventInstigator);
 			MyGameMode->PlayerEliminated(this, CPPPlayerController, DamageCauserController);
 		}
 	}

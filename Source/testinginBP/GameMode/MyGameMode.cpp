@@ -42,16 +42,19 @@ void AMyGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 void AMyGameMode::PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, class ACPPPlayerController* VictimController, class APlayerController* AttackerController)
 {
-	//if (AttackerController == nullptr || AttackerController->PlayerState == nullptr) return;
-	//if (VictimController == nullptr || VictimController->PlayerState == nullptr) return;
+	if (AttackerController == nullptr || AttackerController->PlayerState == nullptr) return;
+	if (VictimController == nullptr || VictimController->PlayerState == nullptr) return;
 	AMyPlayerState* AttackerPlayerState = AttackerController ? Cast<AMyPlayerState>(AttackerController->PlayerState) : nullptr;
 	AMyPlayerState* VictimPlayerState = VictimController ? Cast<AMyPlayerState>(VictimController->PlayerState) : nullptr;
 
-	/*if (AttackerPlayerState && AttackerPlayerState != VictimPlayerState)
+	if (AttackerPlayerState && AttackerPlayerState != VictimPlayerState)
 	{
 		AttackerPlayerState->AddToScore(1.0f);
-	}*/
-	AttackerPlayerState->AddToScore(1.0f);
+	}
+	if (VictimPlayerState)
+	{
+		VictimPlayerState->AddToDefeats(1);
+	}
 
 	if (ElimmedCharacter)
 	{
@@ -139,7 +142,7 @@ void AMyGameMode::Respawn(AController* Controller)
 
 			if (ACPPTestCharacter* MyChar = Cast<ACPPTestCharacter>(Controller->GetCharacter()))
 			{
-				MyChar->ClientRespawnCountDown(3);
+				MyChar->ClientRespawnCountDown(5);
 			}
 
 		}

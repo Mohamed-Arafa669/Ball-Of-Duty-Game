@@ -54,11 +54,13 @@ public:
 	UFUNCTION(Client, Reliable)
 		void ClientRespawnCountDown(float seconds);
 
+	UPROPERTY()
 	class ACPPPlayerController* CPPPlayerController;
 
+	UPROPERTY()
 	class AGameHUD* GameHUD;
 
-
+	UPROPERTY()
 	class AMyPlayerState* MyPlayerState;
 
 protected:
@@ -83,6 +85,8 @@ protected:
 	void MultiKnocked();
 	bool MultiKnocked_Validate();
 	void MultiKnocked_Implementation();
+	// Poll for any relivant classes and inits the HUD
+	void PollInit();
 
 	UPROPERTY(Replicated)
 	bool bKnocked;
@@ -91,7 +95,7 @@ protected:
 	USkeletalMeshComponent* CharacterMesh;
 
 
-	UPROPERTY(EditDefaultsOnly, Category = "Health")
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth, EditDefaultsOnly, Category = "Health")
 		float MaxHealth = 100.f;
 
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth , VisibleAnywhere , Category = "Health")
@@ -114,6 +118,8 @@ private:
 
 
 	void CallDestroy();
+
+	void ResetHealthHUD();
 
 	UFUNCTION()
 	void OnRep_CurrentHealth();
@@ -235,6 +241,7 @@ public:
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class UUI_RespawnWidget> RespawingCountWidgetClass;
 
+	UPROPERTY()
 	UUI_RespawnWidget* RespawingWidget;
 
 	void RemoveWidget();

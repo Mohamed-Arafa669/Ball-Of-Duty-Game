@@ -47,3 +47,18 @@ void ACPPPlayerController::SetHUDScore(float Score)
 	}
 
 }
+
+void ACPPPlayerController::SetHUDDefeats(int32 Defeats)
+{
+	GameHUD = GameHUD == nullptr ? Cast<AGameHUD>(GetHUD()) : GameHUD;
+	bool bHUDValidations = GameHUD &&
+		GameHUD->CharacterOverlay &&
+		GameHUD->CharacterOverlay->DefeatsAmount;
+
+	if (bHUDValidations)
+	{
+		FString DefeatsText = FString::Printf(TEXT("%d"),Defeats);
+		GameHUD->CharacterOverlay->DefeatsAmount->SetText(FText::FromString(DefeatsText));
+	}
+
+}

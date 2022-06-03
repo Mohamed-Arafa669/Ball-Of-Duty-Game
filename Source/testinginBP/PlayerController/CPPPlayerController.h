@@ -17,7 +17,9 @@ class TESTINGINBP_API ACPPPlayerController : public APlayerController
 public:
 	void SetHUDHealth(float CurrentHealth, float MaxHealth);
 	void SetHUDScore(float Score);
+	void SetHUDDefeats(int32 Defeats);
 
+	UPROPERTY()
 	class AGameHUD* GameHUD;
 
 protected:
