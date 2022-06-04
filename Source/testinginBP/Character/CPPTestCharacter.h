@@ -156,6 +156,7 @@ public:
 
 	 void SetOverlappingBall(ACPPBall* cppBall);
 
+	
 	 bool IsBallEquipped();
 
 	 bool bCanDash;
@@ -187,14 +188,6 @@ public:
 	 UFUNCTION()
 		 void MyThrow();
 
-	 //UFUNCTION(NetMulticast, Reliable)
-		// void MyServerLockedThrow();
-
-	 //UFUNCTION(NetMulticast, Reliable)
-		// void MyServerThrow();
-
-	 //UFUNCTION(NetMulticast, Reliable)
-		// void ServerLockTarget();
 
 	 void StopThrow();
 

@@ -54,6 +54,6 @@ protected:
 	FTimerHandle RespawnHandle;
 public:
 	UPROPERTY(EditAnywhere, Category = "Respawning")
-		float RespawnTime = 3.f;
+		float RespawnTime = 5.f;
 
 };
