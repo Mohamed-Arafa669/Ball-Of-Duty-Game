@@ -89,6 +89,11 @@ void AStealCharacter::DoAbility()
 	if (HasAuthority())
 	{
 		if (bHook) {
+
+			if (SpecialAbilityAnimation)
+			{
+				MulticastPlayAnimMontage(SpecialAbilityAnimation);
+			}
 			bHook = false; //hook cool down (bCanHook)
 			HandleFire();
 			TraceLine();
@@ -122,6 +127,12 @@ void AStealCharacter::Server_DoAbility_Implementation()
 {
 	if (bHook) {
 		bHook = false;
+
+		if (SpecialAbilityAnimation)
+		{
+			PlayAnimMontage(SpecialAbilityAnimation);
+			ServerPlayAnimMontage(SpecialAbilityAnimation);
+		}
 		HandleFire();
 		TraceLine();
 		if (ACPPTestCharacter* Target = Cast<ACPPTestCharacter>(Hit.GetActor()))
@@ -161,8 +172,6 @@ void AStealCharacter::HandleFire_Implementation()
 
 void AStealCharacter::StealBall(ACPPTestCharacter* Target)
 {
-	UE_LOG(LogTemp, Warning, TEXT("dropyasta"));
-
 
 	//TODO General Unequip Function
 	bSteal = true;
@@ -172,13 +181,6 @@ void AStealCharacter::StealBall(ACPPTestCharacter* Target)
 	combat->equippedBall = Target->combat->equippedBall;
 	Target->combat->equippedBall = nullptr;
 	Target->bEquipped = false;
-	//Target->combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
-	/*if (Target->combat->equippedBall->)
-	{
-	
-		combat->EquipBall(combat->equippedBall);
-		combat->equippedBall->SetBallState(EBallState::EBS_Equipped);
-	}*/
 }
 
 void AStealCharacter::ThrowTwice()
