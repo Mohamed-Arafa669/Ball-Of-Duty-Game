@@ -195,4 +195,7 @@ protected:
 
 	UPROPERTY(visibleAnywhere)
 		class UWorld* world;
+
+	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
+		UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 };

@@ -113,12 +113,14 @@ ACPPBall::ACPPBall()
 	pickUpWidget->SetupAttachment(RootComponent);
 
 	bMove = false;
-	
 }
 
 void ACPPBall::BeginPlay()
 {
 	Super::BeginPlay();
+
+	
+
 	if (pickUpWidget)
 	{
 		pickUpWidget->SetVisibility(false);
@@ -129,6 +131,8 @@ void ACPPBall::BeginPlay()
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &ACPPBall::OnSphereOverlap);
 		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &ACPPBall::OnSphereEndOverlap);
+		AreaSphere->OnComponentHit.AddDynamic(this, &ThisClass::OnHit);
+
 
 	}
 	//SetBallState(EBallState::EBS_Initial);
@@ -137,7 +141,10 @@ void ACPPBall::BeginPlay()
 void ACPPBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+
 	
+
 	if (bMove)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Moving"));
@@ -266,6 +273,22 @@ void ACPPBall::MoveHookedBall(class AStealCharacter* TargetPlayer)
 
 	}
 }
+
+void ACPPBall::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	FVector NormalImpulse, const FHitResult& Hit)
+{
+	if(ACPPTestCharacter* Player = Cast<ACPPTestCharacter>(OtherActor))
+	{
+		return;
+	} else
+	{
+		this->SetBallState(EBallState::EBS_Initial);
+	}
+
+	FString msg = FString::Printf(TEXT("ALO"));
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, msg);
+}
+
 //void ACPPBall::mySlerp()
 //{
 //	
