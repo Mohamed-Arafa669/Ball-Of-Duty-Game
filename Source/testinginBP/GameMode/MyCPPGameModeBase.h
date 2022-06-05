@@ -25,11 +25,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MyGame")
 		TSubclassOf<class ACharacter> SecondPawn; 
 
-	/*UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MyGame")
-		TSubclassOf<class ACharacter> ThirdPawn;*/
-
-	/*UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MyGame")
-		TSubclassOf<class ACharacter> FourthPawn; */
+	
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //Replication
 

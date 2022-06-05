@@ -24,6 +24,8 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void Jump() override;;
 
+	void Knocked();
+
 
 	void PlayThrowMontage();
 	UFUNCTION(BlueprintCallable, Category = "BallThrow")
@@ -52,6 +54,15 @@ public:
 	UFUNCTION(Client, Reliable)
 		void ClientRespawnCountDown(float seconds);
 
+	UPROPERTY()
+	class ACPPPlayerController* CPPPlayerController;
+
+	UPROPERTY()
+	class AGameHUD* GameHUD;
+
+	UPROPERTY()
+	class AMyPlayerState* MyPlayerState;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -63,20 +74,19 @@ protected:
 	void Catch();
 	void Dash();
 	void CanDash();
-	//void CanLock();
 	void CanCatch();
 	void ThrowButtonReleased();
 	void LockTarget();
 	void StunCoolDown();
-
 	void OnHealthUpdate();
-
-	void Knocked();
-
+	void UpdateHUDHealth();
+	void Elim();
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
-		void MultiKnocked();
+	void MultiKnocked();
 	bool MultiKnocked_Validate();
 	void MultiKnocked_Implementation();
+	// Poll for any relivant classes and inits the HUD
+	void PollInit();
 
 	UPROPERTY(Replicated)
 	bool bKnocked;
@@ -85,10 +95,10 @@ protected:
 	USkeletalMeshComponent* CharacterMesh;
 
 
-	UPROPERTY(EditDefaultsOnly, Category = "Health")
-		float MaxHealth;
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth, EditDefaultsOnly, Category = "Health")
+		float MaxHealth = 100.f;
 
-	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth)
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth , VisibleAnywhere , Category = "Health")
 		float CurrentHealth;
 
 private:
@@ -110,14 +120,13 @@ private:
 
 	void CallDestroy();
 
+	void ResetHealthHUD();
+
 	UFUNCTION()
 	void OnRep_CurrentHealth();
 
 	UFUNCTION()
 	void OnRep_OverlappingBall(ACPPBall* lastBall); //Replication
-
-	// UPROPERTY(visibleAnywhere)
-	// class UCombatComponent* combat;
 
 	UPROPERTY(visibleAnywhere)
 	class UGameplayStatics* gameStatic;
@@ -152,6 +161,12 @@ public:
 	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Animation)
 		void MulticastPlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
 
+	FTimerHandle ElimTimer;
+
+	UPROPERTY(EditDefaultsOnly)
+		float ElimDelay = 3.f;
+	void ElimTimerFinished();
+public:
 	void Stunned();
 
 	 void SetOverlappingBall(ACPPBall* cppBall);
@@ -181,20 +196,9 @@ public:
 	 UPROPERTY(Replicated)
 		 bool bisLocked;
 
-	 UFUNCTION()
-		 void MyLockedThrow();
 
 	 UFUNCTION()
 		 void MyThrow();
-
-	 //UFUNCTION(NetMulticast, Reliable)
-		// void MyServerLockedThrow();
-
-	 //UFUNCTION(NetMulticast, Reliable)
-		// void MyServerThrow();
-
-	 //UFUNCTION(NetMulticast, Reliable)
-		// void ServerLockTarget();
 
 	 void StopThrow();
 
@@ -211,7 +215,7 @@ public:
 
 	 UFUNCTION(BlueprintCallable, Category = "Health")
 	virtual float TakeDamage(float DamageTaken, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
-
+  
 	UPROPERTY(EditAnywhere, Replicated, Category = "Movement")
 	 float DashDistance = 6000.f;
 
@@ -240,6 +244,7 @@ public:
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class UUI_RespawnWidget> RespawingCountWidgetClass;
 
+	UPROPERTY()
 	UUI_RespawnWidget* RespawingWidget;
 
 	void RemoveWidget();
