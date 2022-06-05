@@ -2,6 +2,9 @@
 
 
 #include "GameHUD.h"
+#include "GameFramework/PlayerController.h"
+#include "Announcement.h"
+#include "CharacterOverlays.h"
 
 void AGameHUD::DrawHUD()
 {
@@ -36,6 +39,32 @@ void AGameHUD::DrawHUD()
 		
 		
 		
+	}
+}
+
+void AGameHUD::BeginPlay()
+{
+	Super::BeginPlay();
+	//AddCharacterOverlay();
+}
+
+void AGameHUD::AddCharacterOverlay()
+{
+	APlayerController* playerController = GetOwningPlayerController();
+	if (playerController && CharacterOverlayClass)
+	{
+		CharacterOverlay = CreateWidget<UCharacterOverlays>(playerController, CharacterOverlayClass);
+		CharacterOverlay->AddToViewport();
+	}
+}
+
+void AGameHUD::AddAnnouncement()
+{
+	APlayerController* playerController = GetOwningPlayerController();
+	if (playerController && AnnouncementClass)
+	{
+		Announcement = CreateWidget<UAnnouncement>(playerController, AnnouncementClass);
+		Announcement->AddToViewport();
 	}
 }
 

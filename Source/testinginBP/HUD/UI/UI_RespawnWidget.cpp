@@ -20,4 +20,7 @@ void UUI_RespawnWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTim
 
 	int32 NewSeconds = CountdownTimeSeconds - GetWorld()->TimeSince(CreationTime);
 	CounterTextBlock->SetText(FText::FromString(FString::FromInt(NewSeconds)));
+
+	/*ACPPTestCharacter* MyChar = Cast<ACPPTestCharacter>(GetOwningPlayerPawn());
+	MyChar->RemoveWidget();*/
 }

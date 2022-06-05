@@ -81,6 +81,7 @@ void UCombatComponent::EquipBall(class ACPPBall* ballToEquip)
 		equippedBall->GetBallMesh()->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("RightHandSocket"));
 	}
 	equippedBall->SetOwner(character);
+	equippedBall->SetInstigator(character);
 	
 }
 

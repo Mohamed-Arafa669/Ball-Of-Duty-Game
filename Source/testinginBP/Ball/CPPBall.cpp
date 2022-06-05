@@ -238,19 +238,6 @@ void ACPPBall::SetBallState(EBallState state)
 
 void ACPPBall::OnReleased()
 {
-	//combat->eqippedBall->SetBallState(EBallState::EBS_Dropped);
-	//ballMesh->DetachFromParent(true);
-	//if(ballMesh == nullptr) return
-
-	//ballMesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-	
-	//combat->eqippedBall->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	//combat->eqippedBall->DetachRootComponentFromParent();
-	//combat->eqippedBall -> ballMesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-	//combat->eqippedBall->ballMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	//ballMesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-	//ballMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-//	ballMesh->SetSimulatePhysics(true);
 	UE_LOG(LogTemp, Warning, TEXT("???"));
 }
 
@@ -308,45 +295,5 @@ void ACPPBall::ShowPickupWidget(bool bShowWidget)
 
 void ACPPBall::FindHomingTarget()
 {
-	
-		//FoundHomingTarget = combat->character->lockOnTargets->GetTarget();
-		//FoundHomingTarget->GetActorLocation();
-		DrawDebugSphere(combat->GetWorld(), FoundHomingTarget->GetActorLocation(), 100.0f, 12, FColor::Yellow);
-	
+		
 }
-
-//void ACPPBall::GetCenter(FVector& direction)
-//{
-//	centerpoint = (combat->character->GetActorLocation() + combat->character->lockOnTargets->GetTarget()->GetActorLocation()) * 0.5f;
-//	centerpoint -= direction;
-//	startRelCenter = combat->character->GetActorLocation() - centerpoint;
-//	endRelCenter = combat->character->lockOnTargets->GetTarget()->GetActorLocation() - centerpoint;
-//}
-
-
-//void ACPPBall::FindHomingTarget()
-//{
-//	/*FVector lengthDifferance;
-//	double lenght;
-//	UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(), ClassToFind, FName("Homing"), OutActors);
-//	for each (AActor *var in OutActors)
-//	{
-//		lengthDifferance = var->GetActorLocation() - this->GetActorLocation();
-//		lenght = lengthDifferance.Length();
-//		if (lenght < closestDistance)
-//		{
-//			closestDistance = lenght;
-//			CurrentHomingTargets = OutActors;
-//		}
-//		
-//	}*/
-//}
-
-
-
-//
-//void ACPPBall::FireInDirection(const FVector& ShootDirection)
-//{
-//	ProjectileMovementComponent->Velocity = ShootDirection * ProjectileMovementComponent->InitialSpeed;
-//}
-//

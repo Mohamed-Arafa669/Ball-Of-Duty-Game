@@ -26,6 +26,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Gameplay|Projectile")
 		TSubclassOf<class ACPPBall>BallClass;
 
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* SpecialAbilityAnimation;
+
 protected:
 	virtual void BeginPlay() override;
 
