@@ -30,11 +30,22 @@ public:
 	UPROPERTY(EditAnywhere, Category = "PlayerStats")
 		TSubclassOf<class UUserWidget> CharacterOverlayClass;
 
+
+	void AddCharacterOverlay();
+
+	UPROPERTY()
 	class UCharacterOverlays* CharacterOverlay;
+
+	UPROPERTY(EditAnywhere, Category = "Announcements")
+		TSubclassOf<class UUserWidget> AnnouncementClass;
+
+	UPROPERTY()
+		class UAnnouncement* Announcement;
+
+	void AddAnnouncement();
 
 protected:
 	virtual void BeginPlay() override;
-	void AddCharacterOverlay();
 
 
 private:
@@ -42,10 +53,7 @@ private:
 
 	void DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter);
 
-	//class UCharacterOverlay* UCharacterOverlay;
 public:
 	FORCEINLINE void SetHUDPackage(const FHUDPackage& package) { HUDPackage = package; }
 
-	//UPROPERTY(meta = (BindWidget))
-	//class UTextBlock* MatchCountdownText;
 };

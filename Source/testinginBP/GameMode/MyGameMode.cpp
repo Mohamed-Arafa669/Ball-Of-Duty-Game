@@ -15,17 +15,23 @@
 #include "testinginBP/PlayerController/CPPPlayerController.h"
 #include "TimerManager.h"
 
+namespace MatchState
+{
+	const FName Cooldown = FName("Cooldown");
+}
+
 AMyGameMode::AMyGameMode()
 {
+	bDelayedStart = true;
 	PlayerStateClass = AMyPlayerState::StaticClass();
 	DefaultSpawnLocation = FVector(500.002479, -830.000000, 232.001526);
-
-
 }
 
 void AMyGameMode::BeginPlay()
 {
 	Super::BeginPlay();
+
+	LevelStartingTime = CurrentTime();
 
 	UClass* SpawnPointClass = ASpawnPoint::StaticClass();
 	for (TActorIterator<AActor> Point(GetWorld(), SpawnPointClass); Point; ++Point)
@@ -33,6 +39,45 @@ void AMyGameMode::BeginPlay()
 		SpawnPoints.Add(Cast<ASpawnPoint>(*Point));
 	}
 }
+
+void AMyGameMode::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (MatchState == MatchState::WaitingToStart)
+	{
+		CountdownTime = WarmupTime - CurrentTime() + LevelStartingTime;
+		if (CountdownTime <= 0.f)
+		{
+			StartMatch();
+			
+		}
+	}
+	else if (MatchState == MatchState::InProgress)
+	{
+		CountdownTime = WarmupTime + MatchTime - CurrentTime() + LevelStartingTime;
+		if (CountdownTime <= 0.f)
+		{
+			SetMatchState(MatchState::Cooldown);
+		}
+	}
+}
+
+void AMyGameMode::OnMatchStateSet()
+{
+	Super::OnMatchStateSet();
+
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		ACPPPlayerController* MyPlayer = Cast<ACPPPlayerController>(*It);
+		if (MyPlayer)
+		{
+			MyPlayer->OnMatchStateSet(MatchState);
+		}
+	}
+
+}
+
 
 void AMyGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -65,8 +110,12 @@ void AMyGameMode::PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, cl
 
 UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
 {
+	if (CountdownTime <=0.f)
+	{
+
 	if (CurrentPawnToAssign)
 	{
+		
 		if (FirstPawn != nullptr && SecondPawn != nullptr)
 		{
 			if (CurrentPawnToAssign == FirstPawn)
@@ -89,7 +138,9 @@ UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController
 			CurrentPawnToAssign = (true) ? FirstPawn : SecondPawn;
 		}
 	}
+	}
 	return CurrentPawnToAssign;
+
 }
 
 class ASpawnPoint* AMyGameMode::GetSpawnPoint()
@@ -148,3 +199,9 @@ void AMyGameMode::Respawn(AController* Controller)
 		}
 	}
 }
+
+float AMyGameMode::CurrentTime()
+{
+	return GetWorld()->GetTimeSeconds();
+}
+
