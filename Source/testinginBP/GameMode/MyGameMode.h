@@ -16,11 +16,9 @@ namespace MatchState
 UCLASS()
 class TESTINGINBP_API AMyGameMode : public AGameMode
 {
-	GENERATED_BODY()
+	GENERATED_UCLASS_BODY()
 	
 public:
-	
-	AMyGameMode();
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
