@@ -72,9 +72,15 @@ void AGameHUD::AddAnnouncement()
 void AGameHUD::AddRespawnWidget()
 {
 	APlayerController* playerController = GetOwningPlayerController();
+<<<<<<< Updated upstream
 	if (playerController && RespawnClass)
 	{
 		RespawnWidgets = CreateWidget<UUI_RespawnWidget>(playerController, RespawnClass);
+=======
+	if (playerController && RespawnWidgetClass)
+	{
+		RespawnWidgets = CreateWidget<UUI_RespawnWidget>(playerController, RespawnWidgetClass);
+>>>>>>> Stashed changes
 		RespawnWidgets->AddToViewport();
 	}
 }

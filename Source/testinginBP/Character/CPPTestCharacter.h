@@ -238,6 +238,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Abilities")
 		float StunDuration = 10.f;
 
+	UPROPERTY(EditDefaultsOnly, Category = "RespawnTime")
+		float RespawnTime = 5.0f;
+
 	UPROPERTY(Replicated)
 	FVector ballHitDirection;
 

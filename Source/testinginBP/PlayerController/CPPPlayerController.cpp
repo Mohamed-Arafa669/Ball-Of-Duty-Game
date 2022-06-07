@@ -4,6 +4,7 @@
 #include "CPPPlayerController.h"
 #include "testinginBP/HUD/GameHUD.h"
 #include "testinginBP/HUD/CharacterOverlays.h"
+#include "testinginBP/HUD/UI/UI_RespawnWidget.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "Kismet/GameplayStatics.h"
@@ -177,6 +178,23 @@ void ACPPPlayerController::SetHUDMatchCountdown(float CountdownTime)
 	}
 }
 
+void ACPPPlayerController::SetHUDRespawnCountdown(float CountdownTime)
+{
+	GameHUD = GameHUD == nullptr ? Cast<AGameHUD>(GetHUD()) : GameHUD;
+	bool bHUDValidations = GameHUD &&
+		GameHUD->RespawnWidgets &&
+		GameHUD->RespawnWidgets->CounterTextBlock;
+
+	if (bHUDValidations)
+	{
+		int32 Minutes = FMath::FloorToInt(CountdownTime / 60.0f);
+		int32 Seconds = CountdownTime - Minutes * 60;
+
+		FString CountdownText = FString::Printf(TEXT("%02d"), Seconds);
+		GameHUD->RespawnWidgets->CounterTextBlock->SetText(FText::FromString(CountdownText));
+	}
+}
+
 void ACPPPlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
 {
 	GameHUD = GameHUD == nullptr ? Cast<AGameHUD>(GetHUD()) : GameHUD;
@@ -306,6 +324,20 @@ void ACPPPlayerController::HandleCooldown()
 		if (GameHUD->Announcement)
 		{
 			GameHUD->Announcement->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
+}
+
+void ACPPPlayerController::HandleRespawnCooldown()
+{
+	GameHUD = GameHUD == nullptr ? Cast<AGameHUD>(GetHUD()) : GameHUD;
+	if (GameHUD)
+	{
+		GameHUD->RespawnWidgets->RemoveFromParent();
+		if (GameHUD->RespawnWidgets)
+		{
+			GameHUD->RespawnWidgets->SetVisibility(ESlateVisibility::Hidden);
+			GameHUD->RespawnWidgets = nullptr;
 		}
 	}
 }

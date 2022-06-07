@@ -15,10 +15,13 @@ class TESTINGINBP_API UUI_RespawnWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
+	
+
+public:
+
 	UPROPERTY(meta = (BindWidget))
 		UTextBlock* CounterTextBlock;
 
-public:
 	virtual void NativeConstruct() override;
 
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;

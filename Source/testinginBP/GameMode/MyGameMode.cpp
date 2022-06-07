@@ -111,8 +111,7 @@ void AMyGameMode::PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, cl
 
 UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
 {
-	//if (CountdownTime <=0.f)
-	{
+	
 
 	if (CurrentPawnToAssign)
 	{
@@ -139,7 +138,7 @@ UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController
 			CurrentPawnToAssign = (true) ? FirstPawn : SecondPawn;
 		}
 	}
-	}
+	
 	return CurrentPawnToAssign;
 
 }

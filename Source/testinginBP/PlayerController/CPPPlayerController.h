@@ -20,6 +20,7 @@ public:
 	void SetHUDScore(float Score);
 	void SetHUDDefeats(int32 Defeats);
 	void SetHUDMatchCountdown(float CountdownTime);
+	void SetHUDRespawnCountdown(float CountdownTime);
 	void SetHUDAnnouncementCountdown(float CountdownTime);
 	void SetHUDTime();
 	virtual void Tick(float DeltaTime) override;
@@ -28,6 +29,7 @@ public:
 	void OnMatchStateSet(FName State);
 	void HandleMatchHasStarted();
 	void HandleCooldown();
+	void HandleRespawnCooldown();
 
 	/// <summary>
 	/// Time Sync Between Client and Server
