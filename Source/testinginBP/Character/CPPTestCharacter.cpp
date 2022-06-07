@@ -174,7 +174,9 @@ void ACPPTestCharacter::MoveForward(float value)
 		AddMovementInput(direction, value);
 	}*/
 
-	AddMovementInput(GetActorForwardVector() * value);
+	if (IsAllowedToMove()) {
+		AddMovementInput(GetActorForwardVector() * value);
+	}
 }
 
 void ACPPTestCharacter::MoveRight(float value)
@@ -186,7 +188,9 @@ void ACPPTestCharacter::MoveRight(float value)
 		AddMovementInput(direction, value);
 	}*/
 
-	AddMovementInput(GetActorRightVector() * value);
+	if (IsAllowedToMove()) {
+		AddMovementInput(GetActorRightVector() * value);
+	}
 }
 
 void ACPPTestCharacter::Turn(float value)
@@ -358,14 +362,14 @@ void ACPPTestCharacter::ClientRespawnCountDown_Implementation(float seconds)
 {
 	if (seconds > 0.0 && bKnocked)
 	{
-		//RespawingWidget = CreateWidget<UUI_RespawnWidget>(GetLocalViewingPlayerController(), RespawingCountWidgetClass);
-		//RespawingWidget->CountdownTimeSeconds = seconds;
-		//RespawingWidget->AddToViewport();
+		RespawingWidget = CreateWidget<UUI_RespawnWidget>(GetLocalViewingPlayerController(), RespawingCountWidgetClass);
+		RespawingWidget->CountdownTimeSeconds = seconds;
+		RespawingWidget->AddToViewport();
 
 		
-		//FTimerHandle RespawnCountHandle ;
-		//GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::RemoveWidget, 5, false);
-		//GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::ResetHealthHUD, seconds, false);
+		FTimerHandle RespawnCountHandle ;
+		GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::RemoveWidget, 5, false);
+		GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::ResetHealthHUD, seconds, false);
 
 	}
 }
