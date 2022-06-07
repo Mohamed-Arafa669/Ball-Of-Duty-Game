@@ -11,7 +11,7 @@
 #include "Net/UnrealNetwork.h"
 #include "testinginBP/GameMode/MyGameMode.h"
 #include "testinginBP/HUD/Announcement.h"
-
+#include "testinginBP/HUD/GameHUD.h"
 
 void ACPPPlayerController::BeginPlay()
 {

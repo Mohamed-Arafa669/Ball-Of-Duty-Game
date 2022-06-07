@@ -360,7 +360,6 @@ void ACPPTestCharacter::ClientRespawnCountDown_Implementation(float seconds)
 {
 	if (seconds > 0.0 && bKnocked)
 	{
-<<<<<<< Updated upstream
 		/*GameHUD = GameHUD == nullptr ? Cast<AGameHUD>(GetHUD()) : GameHUD;
 		if (GameHUD)
 		{
@@ -374,7 +373,6 @@ void ACPPTestCharacter::ClientRespawnCountDown_Implementation(float seconds)
 		//FTimerHandle RespawnCountHandle ;
 		//GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::RemoveWidget, 5, false);
 		//GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::ResetHealthHUD, seconds, false);
-=======
 		RespawingWidget = CreateWidget<UUI_RespawnWidget>(GetLocalViewingPlayerController(), RespawingCountWidgetClass);
 		RespawingWidget->CountdownTimeSeconds = seconds;
 		RespawingWidget->AddToViewport();
@@ -393,7 +391,6 @@ void ACPPTestCharacter::ClientRespawnCountDown_Implementation(float seconds)
 		FTimerHandle RespawnCountHandle ;
 		GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::RemoveWidget, seconds, false);
 		GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::ResetHealthHUD, seconds, false);
->>>>>>> Stashed changes
 
 	}
 }

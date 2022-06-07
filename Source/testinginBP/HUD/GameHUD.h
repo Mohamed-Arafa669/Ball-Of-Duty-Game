@@ -44,13 +44,10 @@ public:
 
 	void AddAnnouncement();
 
-<<<<<<< Updated upstream
 	UPROPERTY(EditAnywhere, Category = "Announcements")
 		TSubclassOf<class UUserWidget> RespawnClass;
-=======
 	UPROPERTY(EditAnywhere, Category = "RespawnWidget")
 		TSubclassOf<class UUserWidget> RespawnWidgetClass;
->>>>>>> Stashed changes
 
 	UPROPERTY()
 		class UUI_RespawnWidget* RespawnWidgets;
