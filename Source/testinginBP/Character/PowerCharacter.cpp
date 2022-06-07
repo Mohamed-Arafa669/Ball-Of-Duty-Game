@@ -74,6 +74,10 @@ void APowerCharacter::DoAbility()
 			GetWorld()->SweepMultiByChannel(OutHits, Start, End, FQuat::Identity, ECollisionChannel::ECC_Pawn,
 				FCollisionShape::MakeSphere(RangeRadius));
 
+			if(AbilityAnim)
+			{
+				MulticastPlayAnimMontage(AbilityAnim, 1, NAME_None);
+			}
 
 			if (OutHits.Num() > 0) {
 				for (int i = 0; i < OutHits.Num(); i++)
@@ -120,6 +124,11 @@ void APowerCharacter::Server_DoAbility_Implementation()
 	GetWorld()->SweepMultiByChannel(OutHits, Start, End, FQuat::Identity, ECollisionChannel::ECC_Pawn,
 		FCollisionShape::MakeSphere(RangeRadius));
 
+	if (AbilityAnim)
+	{
+		PlayAnimMontage(AbilityAnim, 1, NAME_None);
+		MulticastPlayAnimMontage(AbilityAnim, 1, NAME_None);
+	}
 
 	if (OutHits.Num() > 0) {
 		for (int i = 0; i < OutHits.Num(); i++)

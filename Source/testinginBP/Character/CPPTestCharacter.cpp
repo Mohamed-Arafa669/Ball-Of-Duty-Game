@@ -101,6 +101,7 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ACPPTestCharacter, MaxHealth);
 	DOREPLIFETIME(ACPPTestCharacter, ballHitDirection);
 	DOREPLIFETIME(ACPPTestCharacter, throwPower);
+	DOREPLIFETIME(ACPPTestCharacter, bIsDashing);
 
 }
 
@@ -246,19 +247,22 @@ void ACPPTestCharacter::Dash()
 
 
 
-			if (DashAnim)
+			/*if (DashAnim)
 			{
 				MulticastPlayAnimMontage(DashAnim, 1, NAME_None);
 
-			}
+			}*/
 
 			const FVector ForwardVector = GetMovementComponent()->GetLastInputVector();
 			LaunchCharacter(ForwardVector * DashDistance, true, true);
 
 			bCanDash = false;
-
+			bIsDashing = true;
 			FTimerHandle handle;
 			GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::CanDash, 1.f);
+
+			FTimerHandle AnimHandle;
+			GetWorld()->GetTimerManager().SetTimer(AnimHandle, this, &ThisClass::SetDashingAnimOff, DashAnimDuration);
 		}
 	}
 	else
@@ -272,6 +276,7 @@ void ACPPTestCharacter::Dash()
 void ACPPTestCharacter::CanDash()
 {
 	bCanDash = true;
+	
 }
 
 void ACPPTestCharacter::CanCatch()
@@ -283,18 +288,21 @@ void ACPPTestCharacter::DashButtonPressed_Implementation(FVector DashDir)
 {
 	if (bCanDash && CanJump() && IsAllowedToMove()) {
 
-		if (DashAnim)
-		{
-			PlayAnimMontage(DashAnim, 1, NAME_None);
-			MulticastPlayAnimMontage(DashAnim, 1, NAME_None); //todo: MultiStartedDash();
-		}
+		//if (DashAnim)
+		//{
+		//	PlayAnimMontage(DashAnim, 1, NAME_None);
+		//	MulticastPlayAnimMontage(DashAnim, 1, NAME_None); //todo: MultiStartedDash();
+		//}
 
 		LaunchCharacter(DashDir * DashDistance, true, true);
 
 		bCanDash = false;
-
+		bIsDashing = true;
 		FTimerHandle handle;
 		GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::CanDash, 1.f);
+
+		FTimerHandle AnimHandle;
+		GetWorld()->GetTimerManager().SetTimer(AnimHandle, this, &ThisClass::SetDashingAnimOff, DashAnimDuration);
 	}
 }
 #pragma endregion
@@ -623,6 +631,10 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 			//TODO : Make A reset function for owner and instigator
 			BallHit->SetOwner(nullptr);
 			BallHit->SetInstigator(nullptr);
+			
+			if (CurrentHealth > 0 && GetHitAnim) {
+				MulticastPlayAnimMontage(GetHitAnim, 1, NAME_None);
+			}
 
 		} else if (BallHit->GetBallState() == EBallState::EBS_Initial && combat && !IsBallEquipped())
 		{
@@ -636,12 +648,12 @@ void ACPPTestCharacter::MyThrow()
 {
 	if (combat && IsBallEquipped() && IsAllowedToMove())
 	{
+		
 		UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
 		//const FVector forwardVec = this->GetMesh()->GetForwardVector();
 		combat->ThrowButtonPressed(false); //gded
 		//combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 		combat->equippedBall->GetAreaSphere()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-
 		combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
 		bThrown = true;
 		//combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
@@ -661,6 +673,8 @@ void ACPPTestCharacter::MyThrow()
 
 		}
 		bEquipped = false;
+		combat->equippedBall->AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
+
 		combat->equippedBall = nullptr;
 		OnBallReleased();
 	}	
@@ -777,6 +791,11 @@ void ACPPTestCharacter::RemoveWidget()
 		RespawingWidget = nullptr;
 	}
 	
+}
+
+void ACPPTestCharacter::SetDashingAnimOff()
+{
+	bIsDashing = false;
 }
 
 void ACPPTestCharacter::SpawnActors()

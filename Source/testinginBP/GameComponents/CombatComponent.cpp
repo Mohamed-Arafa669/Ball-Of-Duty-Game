@@ -80,9 +80,14 @@ void UCombatComponent::EquipBall(class ACPPBall* ballToEquip)
 	{
 		//equippedBall->GetBallMesh()->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("RightHandSocket"));
 		equippedBall->GetAreaSphere()->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("RightHandSocket"));
+		
 	}
 	equippedBall->SetOwner(character);
 	equippedBall->SetInstigator(character);
+
+	equippedBall->AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Overlap);
+	
+
 	
 }
 
