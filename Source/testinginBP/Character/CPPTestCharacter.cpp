@@ -38,9 +38,11 @@ ACPPTestCharacter::ACPPTestCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	CharacterMesh = GetMesh();
+
 	cameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
-	cameraBoom->SetupAttachment(RootComponent);
-	cameraBoom->TargetArmLength = 300.0f;
+	cameraBoom->SetupAttachment(GetMesh());
+	//cameraBoom->TargetArmLength = 300.0f;
 
 
 	followCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Follow Camera"));
@@ -64,7 +66,6 @@ ACPPTestCharacter::ACPPTestCharacter()
 		LockOnTargetComponent = CreateDefaultSubobject<ULockOnTargetComponent>(TEXT("LockOnTargetComponent"));
 	}
 
-	CharacterMesh = GetMesh();
 
 	bCanDash = true;
 
@@ -102,6 +103,7 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ACPPTestCharacter, ballHitDirection);
 	DOREPLIFETIME(ACPPTestCharacter, throwPower);
 	DOREPLIFETIME(ACPPTestCharacter, bIsDashing);
+	DOREPLIFETIME(ACPPTestCharacter, bIsSpawnInvincible);
 
 }
 
@@ -131,7 +133,11 @@ void ACPPTestCharacter::BeginPlay()
 		CharacterMesh->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
 		CPPPlayerController = Cast<ACPPPlayerController>(Controller);
 
-	} 
+	}
+
+	bIsSpawnInvincible = true;
+	FTimerHandle InvincibleHandle;
+	GetWorld()->GetTimerManager().SetTimer(InvincibleHandle, this, &ThisClass::SetSpawnInvincibility, SpawnInvincibilityDuration);
 	
 }
 void ACPPTestCharacter::Tick(float DeltaTime)
@@ -512,9 +518,9 @@ bool ACPPTestCharacter::MultiKnocked_Validate()
 void ACPPTestCharacter::MultiKnocked_Implementation()
 {
 	bKnocked = true;
-	this->GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-	this->GetMesh()->SetAllBodiesSimulatePhysics(true);
-	this->GetMesh()->AddImpulse( GetActorLocation() + (-ballHitDirection * HitImpulse * CharacterMesh->GetMass()));
+	this->CharacterMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	this->CharacterMesh->SetAllBodiesSimulatePhysics(true);
+	this->CharacterMesh->AddImpulse( GetActorLocation() + (-ballHitDirection * HitImpulse * CharacterMesh->GetMass()));
 
 }
 
@@ -619,22 +625,23 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 
 		else if (BallHit->GetBallState() == EBallState::EBS_Dropped && BallHit->GetOwner() != this)
 		{
-
-			FString HitMessage = FString::Printf(TEXT("HIT"));
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, HitMessage);
-			FDamageEvent GotHitEvent;
-			AController* ballOwnerController = BallHit->GetInstigatorController();
-			UGameplayStatics::ApplyDamage(this, 50.f, ballOwnerController, BallHit, NULL);
+			if (!bIsSpawnInvincible) {
+				FString HitMessage = FString::Printf(TEXT("HIT"));
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, HitMessage);
+				FDamageEvent GotHitEvent;
+				AController* ballOwnerController = BallHit->GetInstigatorController();
+				UGameplayStatics::ApplyDamage(this, 50.f, ballOwnerController, BallHit, NULL);
+				ballHitDirection = BallHit->GetActorForwardVector();
+				if (CurrentHealth > 0 && GetHitAnim) {
+					MulticastPlayAnimMontage(GetHitAnim, 1, NAME_None);
+				}
+			}
 			//this->TakeDamage(50.f, GotHitEvent, BallHit->GetInstigatorController(), BallHit);
 			BallHit->SetBallState(EBallState::EBS_Initial);
-			ballHitDirection = BallHit->GetActorForwardVector();
 			//TODO : Make A reset function for owner and instigator
 			BallHit->SetOwner(nullptr);
 			BallHit->SetInstigator(nullptr);
 			
-			if (CurrentHealth > 0 && GetHitAnim) {
-				MulticastPlayAnimMontage(GetHitAnim, 1, NAME_None);
-			}
 
 		} else if (BallHit->GetBallState() == EBallState::EBS_Initial && combat && !IsBallEquipped())
 		{
@@ -732,6 +739,11 @@ void ACPPTestCharacter::OnRep_OverlappingBall(ACPPBall* lastBall)
 bool ACPPTestCharacter::IsBallEquipped()
 {
 	return (combat && combat->equippedBall);
+}
+
+void ACPPTestCharacter::SetSpawnInvincibility()
+{
+	bIsSpawnInvincible = false;
 }
 
 void ACPPTestCharacter::StopThrow()

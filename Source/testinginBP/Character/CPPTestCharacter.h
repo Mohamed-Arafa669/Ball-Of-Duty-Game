@@ -176,6 +176,18 @@ public:
 	
 	 bool IsBallEquipped();
 
+	UPROPERTY(Replicated)
+	 bool bIsSpawnInvincible;
+
+	void SetSpawnInvincibility();
+
+	UFUNCTION(BlueprintPure)
+		FORCEINLINE bool GetIsSpawnInvincibleState() const { return bIsSpawnInvincible; }
+
+	UPROPERTY(EditAnywhere, Category = "Respawn")
+		float SpawnInvincibilityDuration = 2.f;
+
+
 	 bool bCanDash;
 
 	 bool bThrown;

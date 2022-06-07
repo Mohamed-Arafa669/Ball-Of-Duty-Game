@@ -94,10 +94,12 @@ void UCombatComponent::EquipBall(class ACPPBall* ballToEquip)
 void UCombatComponent::UnEquipBall(class ACPPBall* BalltoUnequip)
 {
 	character->bEquipped = false;
-	BalltoUnequip->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-	BalltoUnequip->SetBallState(EBallState::EBS_Initial);
-	//BalltoUnequip->GetBallMesh()->SetSimulatePhysics(true);
-	BalltoUnequip = nullptr;
+	if (BalltoUnequip) {
+		BalltoUnequip->GetAreaSphere()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		BalltoUnequip->SetBallState(EBallState::EBS_Initial);
+		BalltoUnequip->GetAreaSphere()->SetSimulatePhysics(true);
+		BalltoUnequip = nullptr;
+	}
 	
 }
 
