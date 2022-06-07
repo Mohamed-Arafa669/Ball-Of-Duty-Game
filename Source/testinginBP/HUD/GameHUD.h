@@ -44,6 +44,14 @@ public:
 
 	void AddAnnouncement();
 
+	UPROPERTY(EditAnywhere, Category = "Announcements")
+		TSubclassOf<class UUserWidget> RespawnClass;
+
+	UPROPERTY()
+		class UUI_RespawnWidget* RespawnWidgets;
+
+	void AddRespawnWidget();
+
 protected:
 	virtual void BeginPlay() override;
 

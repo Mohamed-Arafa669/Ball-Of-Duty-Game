@@ -4,6 +4,7 @@
 #include "GameHUD.h"
 #include "GameFramework/PlayerController.h"
 #include "Announcement.h"
+#include "testinginBP/HUD/UI/UI_RespawnWidget.h"
 #include "CharacterOverlays.h"
 
 void AGameHUD::DrawHUD()
@@ -65,6 +66,16 @@ void AGameHUD::AddAnnouncement()
 	{
 		Announcement = CreateWidget<UAnnouncement>(playerController, AnnouncementClass);
 		Announcement->AddToViewport();
+	}
+}
+
+void AGameHUD::AddRespawnWidget()
+{
+	APlayerController* playerController = GetOwningPlayerController();
+	if (playerController && RespawnClass)
+	{
+		RespawnWidgets = CreateWidget<UUI_RespawnWidget>(playerController, RespawnClass);
+		RespawnWidgets->AddToViewport();
 	}
 }
 

@@ -358,6 +358,11 @@ void ACPPTestCharacter::ClientRespawnCountDown_Implementation(float seconds)
 {
 	if (seconds > 0.0 && bKnocked)
 	{
+		/*GameHUD = GameHUD == nullptr ? Cast<AGameHUD>(GetHUD()) : GameHUD;
+		if (GameHUD)
+		{
+			GameHUD->AddRespawnWidget();
+		}*/
 		//RespawingWidget = CreateWidget<UUI_RespawnWidget>(GetLocalViewingPlayerController(), RespawingCountWidgetClass);
 		//RespawingWidget->CountdownTimeSeconds = seconds;
 		//RespawingWidget->AddToViewport();
