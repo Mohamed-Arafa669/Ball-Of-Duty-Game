@@ -46,43 +46,13 @@ void UCombatComponent::ThrowButtonPressed(bool bPressed)
 void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	SetHUDCrosshairs(DeltaTime);
+
 
 }
 
 void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 {
-	if (character == nullptr || character->Controller == nullptr) return;
-
-	Controller = Controller == nullptr ? Cast<ACPPPlayerController>(character->Controller) : Controller;
-	if (Controller)
-	{
-		HUD = HUD == nullptr ? Cast<AGameHUD>(Controller->GetHUD()) : HUD;
-		if (HUD)
-		{
-			FHUDPackage HUDPackager;
-
-			/*if (eqippedBall)
-			{*/
-				HUDPackager.crosshairCenter = equippedBall->crosshairsCenter;
-				HUDPackager.crosshairLeft = equippedBall->crosshairsLeft;
-				HUDPackager.crosshairRight = equippedBall->crosshairsRight;
-				HUDPackager.crosshairBottom = equippedBall->crosshairsBottom;
-				HUDPackager.crosshairTop = equippedBall->crosshairsTop;
-				/*}
-				else
-				{
-					HUDPackager.crosshairCenter = nullptr;
-					HUDPackager.crosshairLeft = nullptr;
-					HUDPackager.crosshairRight = nullptr;
-					HUDPackager.crosshairBottom = nullptr;
-					HUDPackager.crosshairTop = nullptr;
-				}*/
-			HUD->SetHUDPackage(HUDPackager);
-
-
-		}
-	}
+	
 }
 
 
@@ -92,7 +62,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UCombatComponent, equippedBall);
-	//DOREPLIFETIME(UCombatComponent, )
+
 
 }
 
@@ -108,7 +78,8 @@ void UCombatComponent::EquipBall(class ACPPBall* ballToEquip)
 
 	if (handSocket)
 	{
-		equippedBall->GetBallMesh()->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("RightHandSocket"));
+		//equippedBall->GetBallMesh()->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("RightHandSocket"));
+		equippedBall->GetAreaSphere()->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("RightHandSocket"));
 	}
 	equippedBall->SetOwner(character);
 	equippedBall->SetInstigator(character);
@@ -117,10 +88,10 @@ void UCombatComponent::EquipBall(class ACPPBall* ballToEquip)
 
 void UCombatComponent::UnEquipBall(class ACPPBall* BalltoUnequip)
 {
-	
+	character->bEquipped = false;
 	BalltoUnequip->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-	BalltoUnequip->SetBallState(EBallState::EBS_Dropped);
-	BalltoUnequip->GetBallMesh()->SetSimulatePhysics(true);
+	BalltoUnequip->SetBallState(EBallState::EBS_Initial);
+	//BalltoUnequip->GetBallMesh()->SetSimulatePhysics(true);
 	BalltoUnequip = nullptr;
 	
 }

@@ -147,7 +147,7 @@ private:
 		void ServerThrowButtonReleased();
 
 	UFUNCTION(Server, Reliable)
-	void DashButtonPressed();
+	void DashButtonPressed(FVector DashDir);
 
 	UFUNCTION()
 		void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
@@ -171,6 +171,7 @@ public:
 
 	 void SetOverlappingBall(ACPPBall* cppBall);
 
+	
 	 bool IsBallEquipped();
 
 	 bool bCanDash;
@@ -242,11 +243,12 @@ public:
 
 	
 	UPROPERTY(EditAnywhere)
-		TSubclassOf<class UUI_RespawnWidget> RespawingCountWidgetClass;
+		TSubclassOf<UUI_RespawnWidget> RespawingCountWidgetClass;
 
 	UPROPERTY()
 	UUI_RespawnWidget* RespawingWidget;
 
+	
 	void RemoveWidget();
 
 

@@ -248,7 +248,7 @@ void ACPPTestCharacter::Dash()
 
 			}
 
-			const FVector ForwardVector = this->GetActorRotation().Vector();
+			const FVector ForwardVector = GetMovementComponent()->GetLastInputVector();
 			LaunchCharacter(ForwardVector * DashDistance, true, true);
 
 			bCanDash = false;
@@ -259,7 +259,7 @@ void ACPPTestCharacter::Dash()
 	}
 	else
 	{
-		DashButtonPressed();
+		DashButtonPressed(GetLastMovementInputVector());
 	}
 
 }
@@ -275,19 +275,17 @@ void ACPPTestCharacter::CanCatch()
 	bCatching = false;
 }
 
-void ACPPTestCharacter::DashButtonPressed_Implementation()
+void ACPPTestCharacter::DashButtonPressed_Implementation(FVector DashDir)
 {
 	if (bCanDash && CanJump() && IsAllowedToMove()) {
 
 		if (DashAnim)
 		{
 			PlayAnimMontage(DashAnim, 1, NAME_None);
-			ServerPlayAnimMontage(DashAnim, 1, NAME_None);
-
+			MulticastPlayAnimMontage(DashAnim, 1, NAME_None); //todo: MultiStartedDash();
 		}
 
-		const FVector ForwardVector = this->GetActorRotation().Vector();
-		LaunchCharacter(ForwardVector * DashDistance, true, true);
+		LaunchCharacter(DashDir * DashDistance, true, true);
 
 		bCanDash = false;
 
@@ -358,15 +356,16 @@ void ACPPTestCharacter::ThrowButtonPressed()
 
 void ACPPTestCharacter::ClientRespawnCountDown_Implementation(float seconds)
 {
-	if (seconds  > 0.0 && bKnocked)
+	if (seconds > 0.0 && bKnocked)
 	{
-		RespawingWidget = CreateWidget<UUI_RespawnWidget>(GetLocalViewingPlayerController(), RespawingCountWidgetClass);
-		RespawingWidget->CountdownTimeSeconds = seconds;
-		RespawingWidget->AddToViewport();
+		//RespawingWidget = CreateWidget<UUI_RespawnWidget>(GetLocalViewingPlayerController(), RespawingCountWidgetClass);
+		//RespawingWidget->CountdownTimeSeconds = seconds;
+		//RespawingWidget->AddToViewport();
 
-		FTimerHandle RespawnCountHandle ;
-		GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::RemoveWidget, seconds, false);
-		GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::ResetHealthHUD, seconds, false);
+		
+		//FTimerHandle RespawnCountHandle ;
+		//GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::RemoveWidget, 5, false);
+		//GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::ResetHealthHUD, seconds, false);
 
 	}
 }
@@ -487,6 +486,7 @@ void ACPPTestCharacter::Knocked()
 
 			FreeforallMode->Respawn(GetController());
 			
+			
 		}
 	}
 
@@ -593,7 +593,7 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	// BallHit;
-	//TODO: overlapping ball to be removed and/or change name
+	
 
 	if (ACPPBall* BallHit = Cast<ACPPBall>(OtherActor))
 	{
@@ -635,18 +635,26 @@ void ACPPTestCharacter::MyThrow()
 		UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
 		//const FVector forwardVec = this->GetMesh()->GetForwardVector();
 		combat->ThrowButtonPressed(false); //gded
-		combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		//combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		combat->equippedBall->GetAreaSphere()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+
 		combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
 		bThrown = true;
-		combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
+		//combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
+		combat->equippedBall->GetAreaSphere()->SetSimulatePhysics(true);
+		
 
 		if (lockOnTargets->GetTarget())
 		{
-		combat->equippedBall->GetBallMesh()->AddForce((((lockOnTargets->GetTarget()->GetTargetLocation()) - (GetActorLocation())) + GetActorUpVector()) * throwPower * 25);
+		//combat->equippedBall->GetBallMesh()->AddForce((((lockOnTargets->GetTarget()->GetTargetLocation()) - (GetActorLocation())) + GetActorUpVector()) * throwPower * 25);
+		combat->equippedBall->GetAreaSphere()->AddForce((((lockOnTargets->GetTarget()->GetTargetLocation()) - (GetActorLocation())) + GetActorUpVector()) * throwPower * 25);
+
 		}
 		else
 		{
-		combat->equippedBall->GetBallMesh()->AddForce((GetActorForwardVector() + GetActorUpVector()) * throwPower * 2500);
+		//combat->equippedBall->GetBallMesh()->AddForce((GetActorForwardVector() + GetActorUpVector()) * throwPower * 2500);
+		combat->equippedBall->GetAreaSphere()->AddForce((GetActorForwardVector() + GetActorUpVector()) * throwPower * 2500);
+
 		}
 		bEquipped = false;
 		combat->equippedBall = nullptr;
@@ -754,9 +762,12 @@ float ACPPTestCharacter::TakeDamage(float DamageTaken, FDamageEvent const& Damag
 
 void ACPPTestCharacter::RemoveWidget()
 {
-	
+
 	if (RespawingWidget)
 	{
+		FString lol = FString::Printf(TEXT("LOL mn el widget"));
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Emerald, lol);
+
 		//RespawingWidget->RemoveFromParent();
 		RespawingWidget->RemoveFromViewport();
 		RespawingWidget = nullptr;

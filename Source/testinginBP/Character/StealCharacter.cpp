@@ -175,7 +175,7 @@ void AStealCharacter::StealBall(ACPPTestCharacter* Target)
 
 	//TODO General Unequip Function
 	bSteal = true;
-	Target->combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	Target->combat->equippedBall->GetAreaSphere()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 	Target->combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
 	Target->combat->equippedBall->MoveHookedBall(this);
 	combat->equippedBall = Target->combat->equippedBall;

@@ -20,7 +20,8 @@ namespace MatchState
 	const FName Cooldown = FName("Cooldown");
 }
 
-AMyGameMode::AMyGameMode()
+AMyGameMode::AMyGameMode(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	bDelayedStart = true;
 	PlayerStateClass = AMyPlayerState::StaticClass();
@@ -126,7 +127,7 @@ void AMyGameMode::PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, cl
 
 UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
 {
-	if (CountdownTime <=0.f)
+	//if (CountdownTime <=0.f)
 	{
 
 	if (CurrentPawnToAssign)
@@ -207,11 +208,11 @@ void AMyGameMode::Respawn(AController* Controller)
 
 			GetWorld()->GetTimerManager().SetTimer(RespawnHandle, RespawnDelegate, RespawnTime, false);
 
+
 			if (ACPPTestCharacter* MyChar = Cast<ACPPTestCharacter>(Controller->GetCharacter()))
 			{
 				MyChar->ClientRespawnCountDown(5);
 			}
-
 		}
 	}
 }

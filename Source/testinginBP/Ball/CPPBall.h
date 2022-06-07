@@ -28,6 +28,16 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //Replication
 	void ShowPickupWidget(bool bShowWidget);
+
+
+
+	UPROPERTY(EditAnywhere, Category = "Ball Properties")
+		UStaticMeshComponent* ballMesh;
+
+	UPROPERTY(EditAnywhere, Category = "Ball Properties")
+		class USphereComponent* AreaSphere;
+
+
 	UPROPERTY(ReplicatedUsing = OnRep_BallState, VisibleAnywhere, Category = "Ball Properties")
 		EBallState ballState;
 	//Textures for the crosshair
@@ -119,11 +129,7 @@ protected:
 	);
 
 private:
-	UPROPERTY(VisibleAnywhere, Category = "Ball Properties")
-		USkeletalMeshComponent* ballMesh;
 
-	UPROPERTY(VisibleAnywhere, Category = "Ball Properties")
-		class USphereComponent* AreaSphere;
 
 	UPROPERTY(VisibleAnywhere, Category = "Ball Properties")
 		class USceneComponent* ProjectileSceneComponent;
@@ -142,7 +148,7 @@ public:
 	EBallState GetBallState() const { return ballState; }
 	void OnReleased();
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
-	FORCEINLINE USkeletalMeshComponent* GetBallMesh() const { return ballMesh; }
+	FORCEINLINE UStaticMeshComponent* GetBallMesh() const { return ballMesh; }
 
 	void MoveHookedBall(class AStealCharacter* TargetPlayer);
 
@@ -195,4 +201,10 @@ protected:
 
 	UPROPERTY(visibleAnywhere)
 		class UWorld* world;
+
+
+
+	UFUNCTION()
+		void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
+			UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 };

@@ -23,47 +23,18 @@ ACPPBall::ACPPBall()
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 
+	
 	//SetBallState(EBallState::EBS_Dropped);
-
-	ballMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BallMesh"));
-	ballMesh->SetupAttachment(RootComponent);
-	//SetRootComponent(ballMesh);
-
-	ballMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);							 //to bounce when dropped
-	ballMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn,ECollisionResponse::ECR_Block); //pawn ignore for not colliding
-	ballMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-
 	AreaSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AreaSphere"));
-	AreaSphere->SetupAttachment(RootComponent);
-	AreaSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
+	RootComponent = AreaSphere;
+
+	/*ballMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BallMesh"));
+	ballMesh->SetupAttachment(RootComponent);*/
+
+
 	AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
-	////Definition for the Projectile Movement Component.
-	//ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
-	//ProjectileMovementComponent->SetUpdatedComponent(AreaSphere);
-	//ProjectileMovementComponent->InitialSpeed = 1500.0f;
-	//ProjectileMovementComponent->MaxSpeed = 1500.0f;
-	//ProjectileMovementComponent->bRotationFollowsVelocity = true;
-	//ProjectileMovementComponent->ProjectileGravityScale = 1.0f;
-	//ProjectileMovementComponent->bIsHomingProjectile = false; //To be set later
 
-	//////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////// PROJECTILE ////////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////
-	// 
-	//if (!ProjectileSceneComponent)
-	//{
-	//	ProjectileSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("ProjectileSceneComponent"));
-	//}
-	//if (!CollisionComponent)
-	//{
-	//	// Use a sphere as a simple collision representation.
-	//	CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
-	//	// Set the sphere's collision radius.
-	//	CollisionComponent->InitSphereRadius(15.0f);
-	//	// Set the root component to be the collision component.
-	//	RootComponent = CollisionComponent;
-	//}
 
 	if (!ProjectileMovementComponent)
 	{
@@ -77,48 +48,24 @@ ACPPBall::ACPPBall()
 		ProjectileMovementComponent->Bounciness = 0.3f;
 		ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
 	}
-	// 
-	// 
-	////if (!RootComponent)
-	////{
-	////	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("ProjectileSceneComponent"));
-	////}
 
-	////if (!CollisionComponent)
-	////{
-	////	// Use a sphere as a simple collision representation.
-	////	CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
-	////	// Set the sphere's collision radius.
-	////	CollisionComponent->InitSphereRadius(15.0f);
-	////	// Set the root component to be the collision component.
-	////	RootComponent = CollisionComponent;
-	////}
-	////if (!ProjectileMovementComponent)
-	////{
-	////	// Use this component to drive this projectile's movement.
-	////	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
-	////	ProjectileMovementComponent->SetUpdatedComponent(CollisionComponent);
-	////	ProjectileMovementComponent->InitialSpeed = 3000.0f;
-	////	ProjectileMovementComponent->MaxSpeed = 3000.0f;
-	////	ProjectileMovementComponent->bRotationFollowsVelocity = true;
-	////	ProjectileMovementComponent->bShouldBounce = true;
-	////	ProjectileMovementComponent->Bounciness = 0.3f;
-	////	ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
-	////}
-
-	/// <summary>
-	/// //////////////////
-	/// </summary>
 	pickUpWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("PickUpWidget"));
 	pickUpWidget->SetupAttachment(RootComponent);
 
 	bMove = false;
-	
+
 }
 
 void ACPPBall::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		AreaSphere->OnComponentHit.AddDynamic(this, &ThisClass::OnHit);
+	}
+	
+
 	if (pickUpWidget)
 	{
 		pickUpWidget->SetVisibility(false);
@@ -137,7 +84,10 @@ void ACPPBall::BeginPlay()
 void ACPPBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+
 	
+
 	if (bMove)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Moving"));
@@ -253,6 +203,27 @@ void ACPPBall::MoveHookedBall(class AStealCharacter* TargetPlayer)
 
 	}
 }
+
+void ACPPBall::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	FVector NormalImpulse, const FHitResult& Hit)
+{
+	if(ACPPTestCharacter* Player = Cast<ACPPTestCharacter>(OtherActor))
+	{
+		return;
+	} else
+	{
+		SetBallState(EBallState::EBS_Initial);
+	}
+}
+
+//void ACPPBall::mySlerp()
+//{
+//	
+//	SetActorLocation(Slerp(startRelCenter, endRelCenter, ballSpeed), false, (FHitResult*) nullptr, ETeleportType::ResetPhysics);
+//	//SetActorLocationAndRotation(,GetActorRotation());
+//	 ;
+//	//myTransform += centerpoint;
+//}
 
 void ACPPBall::ShowPickupWidget(bool bShowWidget)
 {
