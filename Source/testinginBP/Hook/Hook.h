@@ -32,7 +32,7 @@ public:
 		class UParticleSystem* ExplosionEffect;
 
 	UPROPERTY(EditAnywhere, Category = "Effects")
-	class UNiagaraSystem* Effect;
+	class UNiagaraComponent* NiagaraComponent;
 
 
 protected:
