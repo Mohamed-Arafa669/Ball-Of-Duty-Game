@@ -152,7 +152,7 @@ void ACPPBall::OnRep_BallState()
 
 	case EBallState::EBS_Dropped:
 		ShowPickupWidget(true);
-		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		//AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	default:
 		break;
@@ -166,12 +166,12 @@ void ACPPBall::SetBallState(EBallState state)
 	{
 	case EBallState::EBS_Equipped:
 		ShowPickupWidget(false);
-		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		//AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		break;
 
 	case EBallState::EBS_Dropped:
 		ShowPickupWidget(true);
-		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		//AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	default:
 		break;

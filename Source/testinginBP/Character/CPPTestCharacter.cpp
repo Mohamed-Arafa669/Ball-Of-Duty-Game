@@ -38,9 +38,11 @@ ACPPTestCharacter::ACPPTestCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	CharacterMesh = GetMesh();
+
 	cameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
-	cameraBoom->SetupAttachment(RootComponent);
-	cameraBoom->TargetArmLength = 300.0f;
+	cameraBoom->SetupAttachment(GetMesh());
+	//cameraBoom->TargetArmLength = 300.0f;
 
 
 	followCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Follow Camera"));
@@ -64,7 +66,6 @@ ACPPTestCharacter::ACPPTestCharacter()
 		LockOnTargetComponent = CreateDefaultSubobject<ULockOnTargetComponent>(TEXT("LockOnTargetComponent"));
 	}
 
-	CharacterMesh = GetMesh();
 
 	bCanDash = true;
 
@@ -101,6 +102,8 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ACPPTestCharacter, MaxHealth);
 	DOREPLIFETIME(ACPPTestCharacter, ballHitDirection);
 	DOREPLIFETIME(ACPPTestCharacter, throwPower);
+	DOREPLIFETIME(ACPPTestCharacter, bIsDashing);
+	DOREPLIFETIME(ACPPTestCharacter, bIsSpawnInvincible);
 
 }
 
@@ -130,7 +133,11 @@ void ACPPTestCharacter::BeginPlay()
 		CharacterMesh->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
 		CPPPlayerController = Cast<ACPPPlayerController>(Controller);
 
-	} 
+	}
+
+	bIsSpawnInvincible = true;
+	FTimerHandle InvincibleHandle;
+	GetWorld()->GetTimerManager().SetTimer(InvincibleHandle, this, &ThisClass::SetSpawnInvincibility, SpawnInvincibilityDuration);
 	
 }
 void ACPPTestCharacter::Tick(float DeltaTime)
@@ -174,7 +181,9 @@ void ACPPTestCharacter::MoveForward(float value)
 		AddMovementInput(direction, value);
 	}*/
 
-	AddMovementInput(GetActorForwardVector() * value);
+	if (IsAllowedToMove()) {
+		AddMovementInput(GetActorForwardVector() * value);
+	}
 }
 
 void ACPPTestCharacter::MoveRight(float value)
@@ -186,7 +195,9 @@ void ACPPTestCharacter::MoveRight(float value)
 		AddMovementInput(direction, value);
 	}*/
 
-	AddMovementInput(GetActorRightVector() * value);
+	if (IsAllowedToMove()) {
+		AddMovementInput(GetActorRightVector() * value);
+	}
 }
 
 void ACPPTestCharacter::Turn(float value)
@@ -242,19 +253,22 @@ void ACPPTestCharacter::Dash()
 
 
 
-			if (DashAnim)
+			/*if (DashAnim)
 			{
 				MulticastPlayAnimMontage(DashAnim, 1, NAME_None);
 
-			}
+			}*/
 
 			const FVector ForwardVector = GetMovementComponent()->GetLastInputVector();
 			LaunchCharacter(ForwardVector * DashDistance, true, true);
 
 			bCanDash = false;
-
+			bIsDashing = true;
 			FTimerHandle handle;
 			GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::CanDash, 1.f);
+
+			FTimerHandle AnimHandle;
+			GetWorld()->GetTimerManager().SetTimer(AnimHandle, this, &ThisClass::SetDashingAnimOff, DashAnimDuration);
 		}
 	}
 	else
@@ -268,6 +282,7 @@ void ACPPTestCharacter::Dash()
 void ACPPTestCharacter::CanDash()
 {
 	bCanDash = true;
+	
 }
 
 void ACPPTestCharacter::CanCatch()
@@ -279,18 +294,21 @@ void ACPPTestCharacter::DashButtonPressed_Implementation(FVector DashDir)
 {
 	if (bCanDash && CanJump() && IsAllowedToMove()) {
 
-		if (DashAnim)
-		{
-			PlayAnimMontage(DashAnim, 1, NAME_None);
-			MulticastPlayAnimMontage(DashAnim, 1, NAME_None); //todo: MultiStartedDash();
-		}
+		//if (DashAnim)
+		//{
+		//	PlayAnimMontage(DashAnim, 1, NAME_None);
+		//	MulticastPlayAnimMontage(DashAnim, 1, NAME_None); //todo: MultiStartedDash();
+		//}
 
 		LaunchCharacter(DashDir * DashDistance, true, true);
 
 		bCanDash = false;
-
+		bIsDashing = true;
 		FTimerHandle handle;
 		GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::CanDash, 1.f);
+
+		FTimerHandle AnimHandle;
+		GetWorld()->GetTimerManager().SetTimer(AnimHandle, this, &ThisClass::SetDashingAnimOff, DashAnimDuration);
 	}
 }
 #pragma endregion
@@ -358,14 +376,14 @@ void ACPPTestCharacter::ClientRespawnCountDown_Implementation(float seconds)
 {
 	if (seconds > 0.0 && bKnocked)
 	{
-		//RespawingWidget = CreateWidget<UUI_RespawnWidget>(GetLocalViewingPlayerController(), RespawingCountWidgetClass);
-		//RespawingWidget->CountdownTimeSeconds = seconds;
-		//RespawingWidget->AddToViewport();
+		RespawingWidget = CreateWidget<UUI_RespawnWidget>(GetLocalViewingPlayerController(), RespawingCountWidgetClass);
+		RespawingWidget->CountdownTimeSeconds = seconds;
+		RespawingWidget->AddToViewport();
 
 		
-		//FTimerHandle RespawnCountHandle ;
-		//GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::RemoveWidget, 5, false);
-		//GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::ResetHealthHUD, seconds, false);
+		FTimerHandle RespawnCountHandle ;
+		GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::RemoveWidget, 5, false);
+		GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::ResetHealthHUD, seconds, false);
 
 	}
 }
@@ -500,9 +518,9 @@ bool ACPPTestCharacter::MultiKnocked_Validate()
 void ACPPTestCharacter::MultiKnocked_Implementation()
 {
 	bKnocked = true;
-	this->GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-	this->GetMesh()->SetAllBodiesSimulatePhysics(true);
-	this->GetMesh()->AddImpulse( GetActorLocation() + (-ballHitDirection * HitImpulse * CharacterMesh->GetMass()));
+	this->CharacterMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	this->CharacterMesh->SetAllBodiesSimulatePhysics(true);
+	this->CharacterMesh->AddImpulse( GetActorLocation() + (-ballHitDirection * HitImpulse * CharacterMesh->GetMass()));
 
 }
 
@@ -607,18 +625,23 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 
 		else if (BallHit->GetBallState() == EBallState::EBS_Dropped && BallHit->GetOwner() != this)
 		{
-
-			FString HitMessage = FString::Printf(TEXT("HIT"));
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, HitMessage);
-			FDamageEvent GotHitEvent;
-			AController* ballOwnerController = BallHit->GetInstigatorController();
-			UGameplayStatics::ApplyDamage(this, 50.f, ballOwnerController, BallHit, NULL);
+			if (!bIsSpawnInvincible) {
+				FString HitMessage = FString::Printf(TEXT("HIT"));
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, HitMessage);
+				FDamageEvent GotHitEvent;
+				AController* ballOwnerController = BallHit->GetInstigatorController();
+				UGameplayStatics::ApplyDamage(this, 50.f, ballOwnerController, BallHit, NULL);
+				ballHitDirection = BallHit->GetActorForwardVector();
+				if (CurrentHealth > 0 && GetHitAnim) {
+					MulticastPlayAnimMontage(GetHitAnim, 1, NAME_None);
+				}
+			}
 			//this->TakeDamage(50.f, GotHitEvent, BallHit->GetInstigatorController(), BallHit);
 			BallHit->SetBallState(EBallState::EBS_Initial);
-			ballHitDirection = BallHit->GetActorForwardVector();
 			//TODO : Make A reset function for owner and instigator
 			BallHit->SetOwner(nullptr);
 			BallHit->SetInstigator(nullptr);
+			
 
 		} else if (BallHit->GetBallState() == EBallState::EBS_Initial && combat && !IsBallEquipped())
 		{
@@ -632,12 +655,12 @@ void ACPPTestCharacter::MyThrow()
 {
 	if (combat && IsBallEquipped() && IsAllowedToMove())
 	{
+		
 		UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
 		//const FVector forwardVec = this->GetMesh()->GetForwardVector();
 		combat->ThrowButtonPressed(false); //gded
 		//combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 		combat->equippedBall->GetAreaSphere()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-
 		combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
 		bThrown = true;
 		//combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
@@ -657,6 +680,8 @@ void ACPPTestCharacter::MyThrow()
 
 		}
 		bEquipped = false;
+		combat->equippedBall->AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
+
 		combat->equippedBall = nullptr;
 		OnBallReleased();
 	}	
@@ -716,6 +741,11 @@ bool ACPPTestCharacter::IsBallEquipped()
 	return (combat && combat->equippedBall);
 }
 
+void ACPPTestCharacter::SetSpawnInvincibility()
+{
+	bIsSpawnInvincible = false;
+}
+
 void ACPPTestCharacter::StopThrow()
 {
 	bThrown = false;
@@ -773,6 +803,11 @@ void ACPPTestCharacter::RemoveWidget()
 		RespawingWidget = nullptr;
 	}
 	
+}
+
+void ACPPTestCharacter::SetDashingAnimOff()
+{
+	bIsDashing = false;
 }
 
 void ACPPTestCharacter::SpawnActors()

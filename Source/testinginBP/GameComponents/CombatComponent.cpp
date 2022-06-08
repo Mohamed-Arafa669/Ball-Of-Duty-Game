@@ -80,19 +80,26 @@ void UCombatComponent::EquipBall(class ACPPBall* ballToEquip)
 	{
 		//equippedBall->GetBallMesh()->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("RightHandSocket"));
 		equippedBall->GetAreaSphere()->AttachToComponent(character->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName("RightHandSocket"));
+		
 	}
 	equippedBall->SetOwner(character);
 	equippedBall->SetInstigator(character);
+
+	equippedBall->AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Overlap);
+	
+
 	
 }
 
 void UCombatComponent::UnEquipBall(class ACPPBall* BalltoUnequip)
 {
 	character->bEquipped = false;
-	BalltoUnequip->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-	BalltoUnequip->SetBallState(EBallState::EBS_Initial);
-	//BalltoUnequip->GetBallMesh()->SetSimulatePhysics(true);
-	BalltoUnequip = nullptr;
+	if (BalltoUnequip) {
+		BalltoUnequip->GetAreaSphere()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		BalltoUnequip->SetBallState(EBallState::EBS_Initial);
+		BalltoUnequip->GetAreaSphere()->SetSimulatePhysics(true);
+		BalltoUnequip = nullptr;
+	}
 	
 }
 

@@ -46,4 +46,7 @@ protected:
 		float RangeRadius = 100;
 
 	TArray<FHitResult> OutHits;
+
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* AbilityAnim;
 };

@@ -113,6 +113,8 @@ private:
 		class UAnimMontage* DashAnim;
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* CatchAnim;
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* GetHitAnim;
 
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingBall) //Replication
 		class ACPPBall* overlappingBall;
@@ -174,6 +176,18 @@ public:
 	
 	 bool IsBallEquipped();
 
+	UPROPERTY(Replicated)
+	 bool bIsSpawnInvincible;
+
+	void SetSpawnInvincibility();
+
+	UFUNCTION(BlueprintPure)
+		FORCEINLINE bool GetIsSpawnInvincibleState() const { return bIsSpawnInvincible; }
+
+	UPROPERTY(EditAnywhere, Category = "Respawn")
+		float SpawnInvincibilityDuration = 2.f;
+
+
 	 bool bCanDash;
 
 	 bool bThrown;
@@ -185,6 +199,9 @@ public:
 
 	UPROPERTY(Replicated)
 		bool bSteal;
+
+	UPROPERTY(EditAnywhere, Replicated)
+		bool bIsDashing;
 
 	 UPROPERTY(Replicated)
 	 bool bEquipped;
@@ -211,6 +228,12 @@ public:
 
 	 UFUNCTION(BlueprintPure, Category = "Health")
 		 FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
+
+	 UFUNCTION(BlueprintPure, Category = "Abilities")
+		 FORCEINLINE bool GetStunnedState() const { return bStunned; }
+
+	 UFUNCTION(BlueprintPure, Category = "Abilities")
+		 FORCEINLINE bool GetDashingState() const { return bIsDashing; }
 
 	 void SetCurrentHealth(float healthValue);
 
@@ -251,6 +274,8 @@ public:
 	
 	void RemoveWidget();
 
-
+	UPROPERTY(EditAnywhere)
+		float DashAnimDuration = 0.3;
+	void SetDashingAnimOff();
 	void SpawnActors();
 };
