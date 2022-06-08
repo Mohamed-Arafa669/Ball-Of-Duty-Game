@@ -31,6 +31,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Effects")
 		class UParticleSystem* ExplosionEffect;
 
+	UPROPERTY(EditAnywhere, Category = "Effects")
+	class UNiagaraComponent* NiagaraComponent;
+
 
 protected:
 	// Called when the game starts or when spawned

@@ -62,6 +62,21 @@ void AMyGameMode::Tick(float DeltaTime)
 			SetMatchState(MatchState::Cooldown);
 		}
 	}
+
+	//SpawnTimer -= DeltaTime;
+	//if (SpawnTimer < 0)
+	//{
+	//	SpawnTimer = NumerOfSecondBetweenSpawns;
+
+	//	BallSpawner[GetRandomLocation()]->SpawnActor();
+	//}
+}
+
+int32 AMyGameMode::GetRandomLocation()
+{
+	int32 Location = FMath::RandRange(0, BallSpawner.Num());
+
+	return Location;
 }
 
 void AMyGameMode::OnMatchStateSet()
@@ -78,6 +93,7 @@ void AMyGameMode::OnMatchStateSet()
 	}
 
 }
+
 
 
 void AMyGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

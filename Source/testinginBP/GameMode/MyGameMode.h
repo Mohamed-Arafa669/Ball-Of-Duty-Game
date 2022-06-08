@@ -22,6 +22,16 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SpawnBall")
+	TArray<TSubclassOf<class ABallSpawner>> BallSpawner;
+
+	UPROPERTY(EditAnywhere, Category = "SpawnBall")
+		float NumerOfSecondBetweenSpawns = 1.0f;
+
+	float SpawnTimer;
+
+	int32 GetRandomLocation();
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MyGame")
 	TSubclassOf<class ACharacter> FirstPawn;
 

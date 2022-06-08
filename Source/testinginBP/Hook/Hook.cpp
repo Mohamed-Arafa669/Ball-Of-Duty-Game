@@ -6,6 +6,9 @@
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Particles/ParticleSystem.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -22,8 +25,8 @@ AHook::AHook()
 	RootComponent = SphereComponent;
 
 	//Definition for the Mesh that will serve as our visual representation.
-	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
-	StaticMesh->SetupAttachment(RootComponent);
+	//StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	//StaticMesh->SetupAttachment(RootComponent);
 
 	//Definition for the Projectile Movement Component.
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
@@ -33,9 +36,14 @@ AHook::AHook()
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
 	ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
 
-	//Definition for the Projectile Particle System.
-	ExplosionEffect = CreateDefaultSubobject<UParticleSystem>(TEXT("ExplosionEffect"));
+	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
+	NiagaraComponent->SetupAttachment(RootComponent);
 
+	//Definition for the Projectile Particle System.
+	//ExplosionEffect = CreateDefaultSubobject<UParticleSystem>(TEXT("ExplosionEffect"));
+
+	//Effect = CreateDefaultSubobject<UNiagaraSystem>(TEXT("NiagaraSystem"));
+	//Effect->ActivateSystem(false);
 
 	// Delete the projectile after 3 seconds.
 	/*InitialLifeSpan = 0.3f;*/
@@ -43,7 +51,6 @@ AHook::AHook()
 
 	///TODO Pull player by Impulse
 	//USE CableComponent (Just Cosmetic)
-
 
 	//Registering the Projectile Impact function on a Hit event.
 	if (GetLocalRole() == ROLE_Authority)
@@ -57,15 +64,16 @@ AHook::AHook()
 void AHook::BeginPlay()
 {
 	Super::BeginPlay();
-
-
-	
+	NiagaraComponent->Activate(true);
 }
 
 void AHook::Destroyed()
 {
 	FVector spawnLocation = GetActorLocation();
 	UGameplayStatics::SpawnEmitterAtLocation(this, ExplosionEffect, spawnLocation, FRotator::ZeroRotator, true, EPSCPoolMethod::AutoRelease);
+	//Effect->ActivateSystem(true);
+	//UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, Effect, spawnLocation);
+	NiagaraComponent->Deactivate();
 }
 
 void AHook::OnProjectileImpact(UPrimitiveComponent* HitComponent, AActor* OtherActor, 
