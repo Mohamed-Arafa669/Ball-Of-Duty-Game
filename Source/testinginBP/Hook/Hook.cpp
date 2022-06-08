@@ -6,6 +6,9 @@
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Particles/ParticleSystem.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
 
 // Sets default values
@@ -34,8 +37,10 @@ AHook::AHook()
 	ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
 
 	//Definition for the Projectile Particle System.
-	ExplosionEffect = CreateDefaultSubobject<UParticleSystem>(TEXT("ExplosionEffect"));
+	//ExplosionEffect = CreateDefaultSubobject<UParticleSystem>(TEXT("ExplosionEffect"));
 
+	//Effect = CreateDefaultSubobject<UNiagaraSystem>(TEXT("NiagaraSystem"));
+	//Effect->ActivateSystem(false);
 
 	// Delete the projectile after 3 seconds.
 	/*InitialLifeSpan = 0.3f;*/
@@ -43,6 +48,7 @@ AHook::AHook()
 
 	///TODO Pull player by Impulse
 	//USE CableComponent (Just Cosmetic)
+
 
 
 	//Registering the Projectile Impact function on a Hit event.
@@ -58,6 +64,7 @@ void AHook::BeginPlay()
 {
 	Super::BeginPlay();
 
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, Effect, GetActorLocation());
 
 	
 }
@@ -66,6 +73,8 @@ void AHook::Destroyed()
 {
 	FVector spawnLocation = GetActorLocation();
 	UGameplayStatics::SpawnEmitterAtLocation(this, ExplosionEffect, spawnLocation, FRotator::ZeroRotator, true, EPSCPoolMethod::AutoRelease);
+	//Effect->ActivateSystem(true);
+	//UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, Effect, spawnLocation);
 }
 
 void AHook::OnProjectileImpact(UPrimitiveComponent* HitComponent, AActor* OtherActor, 

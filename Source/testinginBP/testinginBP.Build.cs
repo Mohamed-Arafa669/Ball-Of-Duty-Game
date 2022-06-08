@@ -8,7 +8,7 @@ public class testinginBP : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "UMG", "LockOnTarget" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "UMG", "LockOnTarget", "Niagara" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
