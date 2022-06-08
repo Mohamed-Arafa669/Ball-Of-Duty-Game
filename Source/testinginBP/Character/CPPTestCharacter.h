@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "LockOnTargetComponent.h"
 #include "testinginBP/Ball/CPPBall.h"
+#include "NiagaraComponent.h"
 #include "Components/PrimitiveComponent.h"
 #include "testinginBP/HUD/UI/UI_RespawnWidget.h"
 #include "CPPTestCharacter.generated.h"
@@ -66,6 +67,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void Falling() override;
 	void MoveForward(float value);
 	void MoveRight(float value);
 	void Turn(float value);
@@ -162,6 +164,12 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Animation)
 		void MulticastPlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
+
+	UFUNCTION(Server, Reliable, WithValidation, Category = Effects)
+		void ServerPlayNiagara(UNiagaraComponent* fx, bool state);
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Effects)
+		void MulticastPlayNiagara(UNiagaraComponent* fx, bool state);
 
 	FTimerHandle ElimTimer;
 
@@ -278,4 +286,7 @@ public:
 		float DashAnimDuration = 0.3;
 	void SetDashingAnimOff();
 	void SpawnActors();
+
+	UPROPERTY(EditAnywhere)
+	UNiagaraComponent* DashFX;
 };

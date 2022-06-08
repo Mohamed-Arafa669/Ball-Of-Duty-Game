@@ -48,6 +48,8 @@ ACPPTestCharacter::ACPPTestCharacter()
 	followCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Follow Camera"));
 	followCamera->SetupAttachment(cameraBoom, USpringArmComponent::SocketName);
 	
+	DashFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DashFX"));
+	DashFX->SetupAttachment(GetMesh());
 
 	overHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	overHeadWidget->SetupAttachment(RootComponent);
@@ -140,6 +142,14 @@ void ACPPTestCharacter::BeginPlay()
 	GetWorld()->GetTimerManager().SetTimer(InvincibleHandle, this, &ThisClass::SetSpawnInvincibility, SpawnInvincibilityDuration);
 	
 }
+
+void ACPPTestCharacter::Falling()
+{
+	Super::Falling();
+
+	bCanDash = false;
+}
+
 void ACPPTestCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -258,6 +268,7 @@ void ACPPTestCharacter::Dash()
 				MulticastPlayAnimMontage(DashAnim, 1, NAME_None);
 
 			}*/
+			MulticastPlayNiagara(DashFX, true);
 
 			const FVector ForwardVector = GetMovementComponent()->GetLastInputVector();
 			LaunchCharacter(ForwardVector * DashDistance, true, true);
@@ -300,6 +311,8 @@ void ACPPTestCharacter::DashButtonPressed_Implementation(FVector DashDir)
 		//	MulticastPlayAnimMontage(DashAnim, 1, NAME_None); //todo: MultiStartedDash();
 		//}
 
+		MulticastPlayNiagara(DashFX, true);
+		
 		LaunchCharacter(DashDir * DashDistance, true, true);
 
 		bCanDash = false;
@@ -536,6 +549,7 @@ void ACPPTestCharacter::PollInit()
 		}
 	}
 }
+
 
 void ACPPTestCharacter::ElimTimerFinished()
 {
@@ -808,6 +822,9 @@ void ACPPTestCharacter::RemoveWidget()
 void ACPPTestCharacter::SetDashingAnimOff()
 {
 	bIsDashing = false;
+	if (DashFX) {
+		MulticastPlayNiagara(DashFX, false);
+	}
 }
 
 void ACPPTestCharacter::SpawnActors()
@@ -859,6 +876,32 @@ bool ACPPTestCharacter::MulticastPlayAnimMontage_Validate(UAnimMontage* AnimMont
 }
 
 
+void ACPPTestCharacter::MulticastPlayNiagara_Implementation(UNiagaraComponent* fx, bool state)
+{
+	
+	if (!state)
+	{
+		fx->Deactivate();
+	} else
+	{
+		fx->Activate(state);
+	}
+}
+
+bool ACPPTestCharacter::MulticastPlayNiagara_Validate(UNiagaraComponent* fx, bool state)
+{
+	return true;
+}
+
+void ACPPTestCharacter::ServerPlayNiagara_Implementation(UNiagaraComponent* fx, bool state)
+{
+	MulticastPlayNiagara(fx, state);
+}
+
+bool ACPPTestCharacter::ServerPlayNiagara_Validate(UNiagaraComponent* fx, bool state)
+{
+	return true;
+}
 
 #pragma endregion
 

@@ -8,11 +8,13 @@ public class testinginBP : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "UMG", "LockOnTarget" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "UMG", "LockOnTarget", "Niagara" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
-		// Uncomment if you are using Slate UI
+		PublicIncludePaths.AddRange(new string[] { "S:\\Game Dev\\UE_5.0\\Engine\\Plugins\\FX\\Niagara\\Source\\Niagara\\Public"});
+
+
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 		
 		// Uncomment if you are using online features
