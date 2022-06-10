@@ -731,7 +731,7 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 				if (BallHit->GetBallState() == EBallState::EBS_SuperThrow)
 				{
 					Knocked(ballHitDirection, false);
-					
+					UGameplayStatics::ApplyDamage(this, 100.f, ballOwnerController, BallHit, NULL);	
 				}
 				else
 				{
