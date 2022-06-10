@@ -4,7 +4,6 @@
 #include "MyGameMode.h"
 
 #include "EngineUtils.h"
-#include "Net/UnrealNetwork.h"
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/PlayerStart.h"
 #include "GameFramework/GameMode.h"
@@ -14,6 +13,7 @@
 #include "testinginBP/GameComponents/MyPlayerState.h"
 #include "testinginBP/PlayerController/CPPPlayerController.h"
 #include "TimerManager.h"
+#include "Kismet/GameplayStatics.h"
 
 namespace MatchState
 {
@@ -51,7 +51,6 @@ void AMyGameMode::Tick(float DeltaTime)
 		if (CountdownTime <= 0.f)
 		{
 			StartMatch();
-			
 		}
 	}
 	else if (MatchState == MatchState::InProgress)
@@ -60,6 +59,15 @@ void AMyGameMode::Tick(float DeltaTime)
 		if (CountdownTime <= 0.f)
 		{
 			SetMatchState(MatchState::Cooldown);
+		}
+	}
+	else if (MatchState == MatchState::Cooldown)
+	{
+		CountdownTime = CooldownTime + WarmupTime + MatchTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
+		if (CountdownTime <= 0.f)
+		{
+			//RestartGame();
+			UGameplayStatics::OpenLevel(GetWorld(), FName("GameStartupMap1"));
 		}
 	}
 }
@@ -79,12 +87,6 @@ void AMyGameMode::OnMatchStateSet()
 
 }
 
-
-void AMyGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AMyGameMode, CurrentPawnToAssign);
-}
 
 void AMyGameMode::PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, class ACPPPlayerController* VictimController, class APlayerController* AttackerController)
 {
@@ -111,38 +113,33 @@ void AMyGameMode::PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, cl
 
 UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
 {
-	//if (CountdownTime <=0.f)
-	{
-
 	if (CurrentPawnToAssign)
 	{
-		
+
 		if (FirstPawn != nullptr && SecondPawn != nullptr)
 		{
 			if (CurrentPawnToAssign == FirstPawn)
 			{
-				CurrentPawnToAssign = SecondPawn;
+				CurrentPawnToAssign = FirstPawn;
 			}
-
 			else
 			{
-				CurrentPawnToAssign = FirstPawn;
+				CurrentPawnToAssign = SecondPawn;
 
 			}
-
-		}
+		}	
 	}
 	else
 	{
 		if (FirstPawn != nullptr && SecondPawn != nullptr)
 		{
-			CurrentPawnToAssign = (true) ? FirstPawn : SecondPawn;
+			CurrentPawnToAssign = CurrentPawnToAssign == nullptr ? FirstPawn : SecondPawn;
 		}
 	}
-	}
-	return CurrentPawnToAssign;
 
+	return CurrentPawnToAssign;
 }
+
 
 class ASpawnPoint* AMyGameMode::GetSpawnPoint()
 {

@@ -10,7 +10,8 @@
 #include "Net/UnrealNetwork.h"
 #include "testinginBP/GameMode/MyGameMode.h"
 #include "testinginBP/HUD/Announcement.h"
-
+#include "testinginBP/Character/CPPTestCharacter.h"
+#include "testinginBP/GameComponents/CombatComponent.h"
 
 void ACPPPlayerController::BeginPlay()
 {
@@ -21,54 +22,6 @@ void ACPPPlayerController::BeginPlay()
 	ServerCheckMatchState();
 
 }
-
-
-void ACPPPlayerController::PollInit()
-{
-	if (CharacterOverlay == nullptr)
-	{
-		if (GameHUD && GameHUD->CharacterOverlay)
-		{
-			CharacterOverlay = GameHUD->CharacterOverlay;
-			if (CharacterOverlay)
-			{
-				SetHUDHealth(HUDHealth, HUDMaxHealth);
-				SetHUDScore(HUDScore);
-				SetHUDDefeats(HUDDefeats);
-			}
-		}
-	}
-}
-
-void ACPPPlayerController::ServerCheckMatchState_Implementation()
-{
-	AMyGameMode* GameMode = Cast<AMyGameMode>(UGameplayStatics::GetGameMode(this));
-	if (GameMode)
-	{
-		WarmupTime = GameMode->WarmupTime;
-		MatchTime = GameMode->MatchTime;
-		LevelStartingTime = GameMode->LevelStartingTime;
-		MatchState = GameMode->GetMatchState();
-
-		ClientJoinMidgame(MatchState, WarmupTime, MatchTime, LevelStartingTime);
-
-		
-	}
-}
-void ACPPPlayerController::ClientJoinMidgame_Implementation(FName StateOfMatch, float Warmup, float Match, float StartingTime)
-{
-	WarmupTime = Warmup;
-	MatchTime = Match;
-	StartingTime = LevelStartingTime;
-	MatchState = StateOfMatch; 
-	OnMatchStateSet(MatchState);
-
-	if (GameHUD && MatchState == MatchState::WaitingToStart)
-	{
-		GameHUD->AddAnnouncement();
-	}
-}
-
 
 void ACPPPlayerController::Tick(float DeltaTime)
 {
@@ -90,7 +43,52 @@ void ACPPPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 	DOREPLIFETIME(ACPPPlayerController, MatchState);
 }
 
+void ACPPPlayerController::PollInit()
+{
+	if (CharacterOverlay == nullptr)
+	{
+		if (GameHUD && GameHUD->CharacterOverlay)
+		{
+			CharacterOverlay = GameHUD->CharacterOverlay;
+			if (CharacterOverlay)
+			{
+				SetHUDHealth(HUDHealth, HUDMaxHealth);
+				SetHUDScore(HUDScore);
+				SetHUDDefeats(HUDDefeats);
+			}
+		}
+	}
+}
 
+void ACPPPlayerController::ServerCheckMatchState_Implementation()
+{
+	GameMode = GameMode == nullptr ? Cast<AMyGameMode>(UGameplayStatics::GetGameMode(this)) : GameMode;
+	//AMyGameMode* GameMode = Cast<AMyGameMode>(UGameplayStatics::GetGameMode(this));
+	if (GameMode)
+	{
+		WarmupTime = GameMode->WarmupTime;
+		MatchTime = GameMode->MatchTime;
+		CooldownTime = GameMode->CooldownTime;
+		LevelStartingTime = GameMode->LevelStartingTime;
+		MatchState = GameMode->GetMatchState();
+
+		ClientJoinMidgame(MatchState, WarmupTime, MatchTime,CooldownTime, LevelStartingTime);	
+	}
+}
+void ACPPPlayerController::ClientJoinMidgame_Implementation(FName StateOfMatch, float Warmup, float Match, float Cooldown, float StartingTime)
+{
+	WarmupTime = Warmup;
+	MatchTime = Match;
+	CooldownTime = Cooldown;
+	LevelStartingTime = StartingTime;
+	MatchState = StateOfMatch; 
+	OnMatchStateSet(MatchState);
+
+	if (GameHUD && MatchState == MatchState::WaitingToStart)
+	{
+		GameHUD->AddAnnouncement();
+	}
+}
 
 void ACPPPlayerController::CheckTimeSync(float DeltaTime)
 {
@@ -110,6 +108,8 @@ void ACPPPlayerController::SetHUDHealth(float CurrentHealth, float MaxHealth)
 	{
 		const float HealthPercent = CurrentHealth / MaxHealth;
 		GameHUD->CharacterOverlay->HealthBar->SetPercent(HealthPercent);
+
+		
 	}
 	else
 	{
@@ -169,6 +169,12 @@ void ACPPPlayerController::SetHUDMatchCountdown(float CountdownTime)
 
 	if (bHUDValidations)
 	{
+		if (CooldownTime < 0.f)
+		{
+			GameHUD->CharacterOverlay->MatchCountdownText->SetText(FText());
+			return;
+
+		}
 		int32 Minutes = FMath::FloorToInt(CountdownTime/60.0f);
 		int32 Seconds = CountdownTime - Minutes * 60;
 
@@ -186,6 +192,12 @@ void ACPPPlayerController::SetHUDAnnouncementCountdown(float CountdownTime)
 
 	if (bHUDValidations)
 	{
+		if (CountdownTime < 0.f)
+		{
+			GameHUD->Announcement->WarmupTime->SetText(FText());
+			return;
+
+		}
 		int32 Minutes = FMath::FloorToInt(CountdownTime / 60.0f);
 		int32 Seconds = CountdownTime - Minutes * 60;
 
@@ -199,20 +211,25 @@ void ACPPPlayerController::SetHUDTime()
 	float MatchRemainingTime = MatchTime - GetServerTime();
 
 	float TimeLeft = 0.f;
-	if (MatchState == MatchState::WaitingToStart)
-	{
-		TimeLeft = WarmupTime - GetServerTime() + LevelStartingTime;
-	}
-	else if (MatchState == MatchState::InProgress)
-	{
-		TimeLeft = WarmupTime + MatchRemainingTime + LevelStartingTime;
-	}
-
+	if (MatchState == MatchState::WaitingToStart)	TimeLeft = WarmupTime - GetServerTime() + LevelStartingTime;
+	else if (MatchState == MatchState::InProgress)	TimeLeft = WarmupTime + MatchRemainingTime + LevelStartingTime;
+	else if (MatchState == MatchState::Cooldown)	TimeLeft = WarmupTime + MatchRemainingTime + LevelStartingTime + CooldownTime;
+	
 	uint32 SecondsLeft = FMath::CeilToInt(TimeLeft);
+
+	if (HasAuthority())
+	{ 
+		GameMode = GameMode == nullptr ? Cast<AMyGameMode>(UGameplayStatics::GetGameMode(this)) : GameMode;
+		if (GameMode)
+		{
+			SecondsLeft = FMath::CeilToInt(GameMode->GetCountdownTime() + LevelStartingTime);
+		}
+
+	}
 
 	if (CountdownInt != SecondsLeft)
 	{
-		if (MatchState == MatchState::WaitingToStart)
+		if (MatchState == MatchState::WaitingToStart || MatchState == MatchState::Cooldown)
 		{
 			SetHUDAnnouncementCountdown(TimeLeft);
 		}
@@ -221,8 +238,9 @@ void ACPPPlayerController::SetHUDTime()
 			SetHUDMatchCountdown(TimeLeft);
 		}
 	}
-
 	CountdownInt = SecondsLeft;
+
+	
 }
 
 void ACPPPlayerController::ServerRequestServerTime_Implementation(float TimeOfClientRequest)
@@ -284,6 +302,17 @@ void ACPPPlayerController::OnRep_MatchState()
 	}
 }
 
+void ACPPPlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+	MyCharacter = MyCharacter == nullptr ? Cast<ACPPTestCharacter>(InPawn) : MyCharacter;
+	//ACPPTestCharacter* MyCharacter = Cast<ACPPTestCharacter>(InPawn);
+	if (MyCharacter)
+	{
+		SetHUDHealth(MyCharacter->GetCurrentHealth(), MyCharacter->GetMaxHealth());
+	}
+}
+
 void ACPPPlayerController::HandleMatchHasStarted()
 {
 	GameHUD = GameHUD == nullptr ? Cast<AGameHUD>(GetHUD()) : GameHUD;
@@ -303,10 +332,23 @@ void ACPPPlayerController::HandleCooldown()
 	if (GameHUD)
 	{
 		GameHUD->CharacterOverlay->RemoveFromParent();
-		if (GameHUD->Announcement)
+
+		bool bHUDValidations = GameHUD->Announcement &&
+			GameHUD->Announcement->AnnouncementText &&
+			GameHUD->Announcement->InfoText;
+		if (bHUDValidations)
 		{
 			GameHUD->Announcement->SetVisibility(ESlateVisibility::Visible);
+			FString AnnouncementText("Returning to Main Menu In:");
+			GameHUD->Announcement->AnnouncementText->SetText(FText::FromString(AnnouncementText));
+			GameHUD->Announcement->InfoText->SetText(FText());
 		}
 	}
+	/*MyCharacter = MyCharacter == nullptr ? Cast<ACPPTestCharacter>(GetPawn()) : MyCharacter;
+	if (MyCharacter && MyCharacter->GetCombat() )
+	{
+		MyCharacter->bDisableGameplay = true;
+		MyCharacter->GetCombat()->ThrowButtonPressed(false);
+	}*/
 }
 

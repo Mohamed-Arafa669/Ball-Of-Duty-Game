@@ -26,6 +26,8 @@ public:
 
 	void Knocked();
 
+	//UPROPERTY(Replicated)
+	//	bool bDisableGameplay = false;
 
 	void PlayThrowMontage();
 	UFUNCTION(BlueprintCallable, Category = "BallThrow")
@@ -90,6 +92,8 @@ protected:
 
 	UPROPERTY(Replicated)
 	bool bKnocked;
+
+	
 
 //>>>>>>> origin/GoharyMain
 	USkeletalMeshComponent* CharacterMesh;
@@ -278,4 +282,9 @@ public:
 		float DashAnimDuration = 0.3;
 	void SetDashingAnimOff();
 	void SpawnActors();
+
+public:
+
+		FORCEINLINE UCombatComponent* GetCombat() const { return combat; }
+
 };

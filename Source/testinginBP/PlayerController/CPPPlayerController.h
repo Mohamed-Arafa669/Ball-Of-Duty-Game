@@ -59,6 +59,8 @@ public:
 
 	float WarmupTime = 0.f;
 
+	float CooldownTime = 0.f;
+
 	uint32 CountdownInt = 0;
 
 	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
@@ -67,8 +69,15 @@ public:
 	UFUNCTION()
 	void OnRep_MatchState();
 
+
 	UPROPERTY()
 		class UCharacterOverlays* CharacterOverlay;
+
+	UPROPERTY()
+		class AMyGameMode* GameMode;
+
+	UPROPERTY()
+		class ACPPTestCharacter* MyCharacter;
 
 	bool bInitializeCharacterOverlay = false;
 
@@ -85,5 +94,8 @@ protected:
 		void ServerCheckMatchState();
 
 	UFUNCTION(Client, Reliable)
-		void ClientJoinMidgame(FName StateOfMatch, float Warmup, float Match, float StartingTime);
+		void ClientJoinMidgame(FName StateOfMatch, float Warmup, float Match, float Cooldown, float StartingTime);
+
+	void OnPossess(APawn* InPawn) override;
+
 };

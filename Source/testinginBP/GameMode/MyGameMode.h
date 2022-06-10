@@ -28,7 +28,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MyGame")
 	TSubclassOf<class ACharacter> SecondPawn;
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override; //Replication
 
 	virtual void PlayerEliminated(
 		class ACPPTestCharacter* ElimmedCharacter,
@@ -55,7 +54,6 @@ private:
 
 protected:
 
-	UPROPERTY(Replicated)
 	TSubclassOf<class ACharacter> CurrentPawnToAssign;
 
 	virtual UClass* GetDefaultPawnClassForController_Implementation(AController* InController) override;
@@ -80,4 +78,5 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Respawning")
 	float RespawnTime = 3.f;
 
+	FORCEINLINE float GetCountdownTime() const { return CountdownTime; }
 };

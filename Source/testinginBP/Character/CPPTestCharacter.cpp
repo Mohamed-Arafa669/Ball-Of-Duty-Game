@@ -104,6 +104,7 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ACPPTestCharacter, throwPower);
 	DOREPLIFETIME(ACPPTestCharacter, bIsDashing);
 	DOREPLIFETIME(ACPPTestCharacter, bIsSpawnInvincible);
+	//DOREPLIFETIME(ACPPTestCharacter, bDisableGameplay);
 
 }
 
@@ -355,6 +356,7 @@ void ACPPTestCharacter::ServerEquipButtonPressed_Implementation() //RPC
 #pragma region ThrowMechanics
 void ACPPTestCharacter::ThrowButtonPressed()
 {
+	//if (bDisableGameplay) return;
 	if (combat)
 	{
 		if (HasAuthority())
@@ -403,6 +405,7 @@ void ACPPTestCharacter::ServerThrowButtonPressed_Implementation()
 
 void ACPPTestCharacter::ThrowButtonReleased()
 {
+
 }
 void ACPPTestCharacter::ServerThrowButtonReleased_Implementation()
 {
@@ -551,6 +554,7 @@ void ACPPTestCharacter::ElimTimerFinished()
 
 void ACPPTestCharacter::Catch()
 {
+	//if (bDisableGameplay) return;
 	//TODO
 	// -> implement Catch Mechanics
 
