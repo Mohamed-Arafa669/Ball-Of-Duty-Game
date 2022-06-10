@@ -5,6 +5,7 @@
 #include "Net/UnrealNetwork.h"
 #include "CPPTestCharacter.h"
 #include "DrawDebugHelpers.h"
+#include "testinginBP/GameComponents/CombatComponent.h"
 
 
 APowerCharacter::APowerCharacter()
@@ -25,8 +26,8 @@ void APowerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction("Ability", IE_Pressed, this, &ThisClass::DoAbility);
-
+	PlayerInputComponent->BindAction("Ability", IE_Pressed, this, &ACPPTestCharacter::LockTarget);
+	PlayerInputComponent->BindAction("Ability", IE_Released, this, &ThisClass::DoAbility);
 
 }
 
@@ -35,9 +36,9 @@ void APowerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(APowerCharacter, bSmash);
+	DOREPLIFETIME(APowerCharacter, bSuperBall);
 
 }
-
 
 void APowerCharacter::BeginPlay()
 {
@@ -46,90 +47,14 @@ void APowerCharacter::BeginPlay()
 	bSmash = false;
 }
 
-
-
 void APowerCharacter::AbilityCooldown()
 {
 	bSmash = false;
 	OutHits.Empty();
 }
 
-
-
-void APowerCharacter::DoAbility()
+void APowerCharacter::LoopHitActors()
 {
-
-	if (!bSmash) {
-
-		if (HasAuthority()) {
-
-			bSmash = true;
-			FTimerHandle AbilityHandle;
-			GetWorld()->GetTimerManager().SetTimer(AbilityHandle, this, &ThisClass::AbilityCooldown, Ability_Cooldown_Duration);
-
-
-			FVector Start = GetActorLocation() + GetActorForwardVector() * StartDistance;
-			FVector End = Start + (GetControlRotation().Vector() * EndDistance);
-
-			GetWorld()->SweepMultiByChannel(OutHits, Start, End, FQuat::Identity, ECollisionChannel::ECC_Pawn,
-				FCollisionShape::MakeSphere(RangeRadius));
-
-			if(AbilityAnim)
-			{
-				MulticastPlayAnimMontage(AbilityAnim, 1, NAME_None);
-			}
-
-			if (OutHits.Num() > 0) {
-				for (int i = 0; i < OutHits.Num(); i++)
-				{
-
-					DrawDebugSphere(GetWorld(), OutHits[i].GetActor()->GetActorLocation(), 100.f, 30, FColor::Red, false, 2.f);
-
-					if (ACPPTestCharacter* Temp = Cast<ACPPTestCharacter>(OutHits[i].GetActor())) {
-
-
-						if (GEngine)
-						{
-							GEngine->AddOnScreenDebugMessage(-1,
-								5.f, FColor::Green, FString(Temp->GetName()));
-						}
-
-						Temp->Stunned();
-					}
-
-				}
-
-			}
-
-		}
-		else
-		{
-			Server_DoAbility();
-		}
-	}
-}
-
-
-
-void APowerCharacter::Server_DoAbility_Implementation()
-{
-	bSmash = true;
-	FTimerHandle AbilityHandle;
-	GetWorld()->GetTimerManager().SetTimer(AbilityHandle, this, &ThisClass::AbilityCooldown, Ability_Cooldown_Duration);
-
-
-	FVector Start = GetActorLocation() + GetActorForwardVector() * StartDistance;
-	FVector End = Start + (GetControlRotation().Vector() * EndDistance);
-
-	GetWorld()->SweepMultiByChannel(OutHits, Start, End, FQuat::Identity, ECollisionChannel::ECC_Pawn,
-		FCollisionShape::MakeSphere(RangeRadius));
-
-	if (AbilityAnim)
-	{
-		PlayAnimMontage(AbilityAnim, 1, NAME_None);
-		MulticastPlayAnimMontage(AbilityAnim, 1, NAME_None);
-	}
-
 	if (OutHits.Num() > 0) {
 		for (int i = 0; i < OutHits.Num(); i++)
 		{
@@ -144,14 +69,101 @@ void APowerCharacter::Server_DoAbility_Implementation()
 					GEngine->AddOnScreenDebugMessage(-1,
 						5.f, FColor::Green, FString(Temp->GetName()));
 				}
-
+				if (Temp == this) continue;
 				Temp->Stunned();
 			}
-
 		}
+	}
+}
 
+void APowerCharacter::StartAbilityTimer()
+{
+	bSmash = true;
+	FTimerHandle AbilityHandle;
+	GetWorld()->GetTimerManager().SetTimer(AbilityHandle, this, &ThisClass::AbilityCooldown, Ability_Cooldown_Duration);
+}
+
+void APowerCharacter::DoSweep()
+{
+	if (!IsBallEquipped()) {
+
+		FVector Start = GetActorLocation() + GetActorForwardVector() * StartDistance;
+		FVector End = Start + (GetControlRotation().Vector() * EndDistance);
+
+		
+		
+
+		GetWorld()->SweepMultiByChannel(OutHits, Start, End, FQuat::Identity, ECollisionChannel::ECC_Pawn,
+			FCollisionShape::MakeSphere(RangeRadius));
+
+		LoopHitActors();
+	}
+}
+
+void APowerCharacter::SuperUpBall()
+{
+	if (IsBallEquipped())
+	{
+		combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
+		MyThrow();
+	}
+}
+
+void APowerCharacter::AbilityDelay()
+{
+	DoSweep();
+	SuperUpBall();
+}
+
+void APowerCharacter::AbilityDelayTimer()
+{
+	FTimerHandle AbilityDelay;
+	GetWorld()->GetTimerManager().SetTimer(AbilityDelay, this, &ThisClass::AbilityDelay, AbilityDelayTime);
+
+}
+
+void APowerCharacter::DoAbility()
+{
+
+	if (!bSmash) {
+
+		FTimerHandle ClearHandle;
+		GetWorld()->GetTimerManager().SetTimer(ClearHandle, this, &ACPPTestCharacter::ClearTarget, 1.1f);
+		
+		if (HasAuthority()) {
+
+			StartAbilityTimer();
+
+			
+
+			if (AbilityAnim)
+			{
+				MulticastPlayAnimMontage(AbilityAnim, 1, NAME_None);
+			}
+
+			AbilityDelayTimer();
+		}
+		else
+		{
+			Server_DoAbility();
+		}
+	}
+}
+
+void APowerCharacter::Server_DoAbility_Implementation()
+{
+	StartAbilityTimer();
+
+	/*FTimerHandle ClearHandle1;
+	GetWorld()->GetTimerManager().SetTimer(ClearHandle1, this, &ACPPTestCharacter::ClearTarget, 1.1f);*/
+
+	if (AbilityAnim)
+	{
+		PlayAnimMontage(AbilityAnim, 1, NAME_None);
+		ServerPlayAnimMontage(AbilityAnim, 1, NAME_None);
 	}
 
+	AbilityDelayTimer();
 
 }
 

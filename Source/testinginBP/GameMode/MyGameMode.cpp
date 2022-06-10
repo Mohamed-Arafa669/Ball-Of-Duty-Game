@@ -70,6 +70,21 @@ void AMyGameMode::Tick(float DeltaTime)
 			UGameplayStatics::OpenLevel(GetWorld(), FName("GameStartupMap1"));
 		}
 	}
+
+	//SpawnTimer -= DeltaTime;
+	//if (SpawnTimer < 0)
+	//{
+	//	SpawnTimer = NumerOfSecondBetweenSpawns;
+
+	//	BallSpawner[GetRandomLocation()]->SpawnActor();
+	//}
+}
+
+int32 AMyGameMode::GetRandomLocation()
+{
+	int32 Location = FMath::RandRange(0, BallSpawner.Num());
+
+	return Location;
 }
 
 void AMyGameMode::OnMatchStateSet()
@@ -108,7 +123,7 @@ void AMyGameMode::PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, cl
 
 	if (ElimmedCharacter)
 	{
-		ElimmedCharacter->Knocked(false);
+		ElimmedCharacter->Knocked(FVector::ZeroVector,false);
 	}
 
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
@@ -134,7 +149,7 @@ void AMyGameMode::PlayerLeftGame(AMyPlayerState* PlayerLeaving)
 	ACPPTestCharacter* CharacterLeaving = Cast<ACPPTestCharacter>(PlayerLeaving->GetPawn());
 	if (CharacterLeaving)
 	{
-		CharacterLeaving->Knocked(true);
+		CharacterLeaving->Knocked(FVector::ZeroVector,true);
 	}
 }
 
