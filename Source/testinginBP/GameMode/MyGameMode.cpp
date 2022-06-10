@@ -120,7 +120,7 @@ void AMyGameMode::PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, cl
 
 	if (ElimmedCharacter)
 	{
-		ElimmedCharacter->Knocked();
+		ElimmedCharacter->Knocked(FVector::ZeroVector);
 	}
 }
 

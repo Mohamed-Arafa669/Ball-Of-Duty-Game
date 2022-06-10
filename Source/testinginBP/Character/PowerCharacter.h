@@ -20,21 +20,41 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	
+
+
+	UPROPERTY(Replicated)
+		bool bSuperBall;
+
+	FORCEINLINE bool IsSuperBall() const { return bSuperBall; }
 
 protected:
 	virtual void BeginPlay() override;
 
-
 	void AbilityCooldown();
 
 	void DoAbility();
+
+	void LoopHitActors();
+
+	void StartAbilityTimer();
+
+	void DoSweep();
+
+	void SuperUpBall();
+
+	UPROPERTY()
+		float AbilityDelayTime = 1.f;
+
+	void AbilityDelay();
+
+	void AbilityDelayTimer();
 
 	UFUNCTION(Server, Reliable)
 	void Server_DoAbility();
 
 	UPROPERTY(Replicated)
 	bool bSmash;
+
 
 	UPROPERTY(EditAnywhere, Category = "Ability")
 		float Ability_Cooldown_Duration = 2.f;
@@ -49,4 +69,5 @@ protected:
 
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* AbilityAnim;
+
 };

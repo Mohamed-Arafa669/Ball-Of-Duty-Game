@@ -25,8 +25,10 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void Jump() override;;
 
-	void Knocked();
+	void Knocked(FVector ImpulseDirection);
 
+	void LockTarget();
+	void ClearTarget();
 
 	void PlayThrowMontage();
 	UFUNCTION(BlueprintCallable, Category = "BallThrow")
@@ -78,20 +80,25 @@ protected:
 	void CanDash();
 	void CanCatch();
 	void ThrowButtonReleased();
-	void LockTarget();
 	void StunCoolDown();
 	void OnHealthUpdate();
 	void UpdateHUDHealth();
 	void Elim();
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
-	void MultiKnocked();
-	bool MultiKnocked_Validate();
-	void MultiKnocked_Implementation();
+	void MultiKnocked(FVector ImpulseDirection);
+	auto MultiKnocked_Validate(FVector ImpulseDirection) -> bool;
+	void MultiKnocked_Implementation(FVector ImpulseDirection);
 	// Poll for any relivant classes and inits the HUD
 	void PollInit();
 
 	UPROPERTY(Replicated)
 	bool bKnocked;
+
+	UPROPERTY(EditAnywhere)
+	float DashCoolDownDuration = 0.7f;
+
+	UPROPERTY(Replicated)
+	bool bIsTargeting;
 
 //>>>>>>> origin/GoharyMain
 	USkeletalMeshComponent* CharacterMesh;
