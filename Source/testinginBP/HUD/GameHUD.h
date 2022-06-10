@@ -62,6 +62,18 @@ private:
 	UPROPERTY(EditAnywhere, Category = "ElimAnnouncements")
 	TSubclassOf<class UElimAnnouncements> ElimAnnouncementClass;
 
+	UPROPERTY(EditAnywhere)
+	float ElimAnnouncementTime = 3.f;
+	UPROPERTY(EditAnywhere)
+	float RespawnAnnouncementTime = 5.f;
+
+	UFUNCTION()
+	void ElimAnnouncementTimerFinished(UElimAnnouncements* MsgToRemove);
+
+	UFUNCTION()
+	void RespawnAnnouncementTimerFinished(UUI_RespawnWidget* MsgToRemove);
+
+
 public:
 	FORCEINLINE void SetHUDPackage(const FHUDPackage& package) { HUDPackage = package; }
 

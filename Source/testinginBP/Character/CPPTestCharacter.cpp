@@ -384,8 +384,14 @@ void ACPPTestCharacter::ClientRespawnCountDown_Implementation(float seconds)
 
 		
 		FTimerHandle RespawnCountHandle ;
-		GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::RemoveWidget, 5, false);
-		GetWorldTimerManager().SetTimer(RespawnCountHandle, this, &ThisClass::ResetHealthHUD, seconds, false);
+		FTimerDelegate RespawnCountDelegate;
+		RespawnCountDelegate.BindUFunction(this, FName("RemoveWidget"), RespawingWidget);
+		GetWorldTimerManager().SetTimer(
+			RespawnCountHandle,
+			RespawnCountDelegate, 
+			seconds, 
+			false
+		);
 
 	}
 }
@@ -729,10 +735,16 @@ void ACPPTestCharacter::CallDestroy()
 
 }
 
-void ACPPTestCharacter::ResetHealthHUD()
+void ACPPTestCharacter::ResetHealthHUD(float timer)
 {
-	CPPPlayerController->SetHUDHealth(100.0F, MaxHealth);
+	FTimerHandle handle;
+	GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::ResetHealthTest, timer);
 
+}
+void ACPPTestCharacter::ResetHealthTest()
+{
+	if(HasAuthority())
+	CPPPlayerController->SetHUDHealth(100.0F, MaxHealth);
 }
 
 void ACPPTestCharacter::OnRep_CurrentHealth()
@@ -809,19 +821,17 @@ float ACPPTestCharacter::TakeDamage(float DamageTaken, FDamageEvent const& Damag
 
 }
 
-void ACPPTestCharacter::RemoveWidget()
+void ACPPTestCharacter::RemoveWidget(UUI_RespawnWidget* MsgToRemove)
 {
-
-	if (RespawingWidget)
+	if (MsgToRemove)
 	{
 		FString lol = FString::Printf(TEXT("LOL mn el widget"));
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Emerald, lol);
 
-		//RespawingWidget->RemoveFromParent();
-		RespawingWidget->RemoveFromViewport();
-		RespawingWidget = nullptr;
+		MsgToRemove->RemoveFromParent();
 	}
-	
+		
+		//RespawingWidget->RemoveFromViewport();
 }
 
 void ACPPTestCharacter::SetDashingAnimOff()

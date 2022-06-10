@@ -5,6 +5,7 @@
 #include "GameFramework/PlayerController.h"
 #include "Announcement.h"
 #include "testinginBP/HUD/ElimAnnouncements.h"
+#include "testinginBP/HUD/UI/UI_RespawnWidget.h"
 #include "CharacterOverlays.h"
 
 void AGameHUD::DrawHUD()
@@ -78,8 +79,38 @@ void AGameHUD::AddElimAnnouncement(FString Attacker, FString Victim)
 		{
 			ElimAnnouncementWidget->SetElimAnnouncemetText(Attacker, Victim);
 			ElimAnnouncementWidget->AddToViewport();
+
+			FTimerHandle ElimMsgTimer;
+			FTimerDelegate ElimMsgDelegate;
+
+			ElimMsgDelegate.BindUFunction(this, FName("ElimAnnouncementTimerFinished"), ElimAnnouncementWidget);
+			GetWorldTimerManager().SetTimer(
+				ElimMsgTimer,
+				ElimMsgDelegate,
+				ElimAnnouncementTime,
+				false
+			);
+
+
 		}
 	}
+}
+
+void AGameHUD::ElimAnnouncementTimerFinished(UElimAnnouncements* MsgToRemove)
+{
+	if (MsgToRemove)
+	{
+		MsgToRemove->RemoveFromParent();
+	}
+}
+
+void AGameHUD::RespawnAnnouncementTimerFinished(UUI_RespawnWidget* MsgToRemove)
+{
+	if (MsgToRemove)
+	{
+		MsgToRemove->RemoveFromParent();
+	}
+
 }
 
 void AGameHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter)
@@ -101,3 +132,4 @@ void AGameHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter)
 		FLinearColor::Red
 	);
 }
+

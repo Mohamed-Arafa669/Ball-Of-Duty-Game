@@ -67,6 +67,12 @@ public:
 	UPROPERTY()
 	class AMyPlayerState* MyPlayerState;
 
+	UFUNCTION()
+		void ResetHealthHUD(float timer);
+
+	UFUNCTION()
+		void ResetHealthTest();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -128,7 +134,7 @@ private:
 
 	void CallDestroy();
 
-	void ResetHealthHUD();
+	
 
 	UFUNCTION()
 	void OnRep_CurrentHealth();
@@ -290,8 +296,8 @@ public:
 	UPROPERTY()
 	UUI_RespawnWidget* RespawingWidget;
 
-	
-	void RemoveWidget();
+	UFUNCTION()
+	void RemoveWidget(UUI_RespawnWidget* MsgToRemove);
 
 	UPROPERTY(EditAnywhere)
 		float DashAnimDuration = 0.3;

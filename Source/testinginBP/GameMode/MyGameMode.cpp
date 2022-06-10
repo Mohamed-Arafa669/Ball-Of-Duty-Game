@@ -220,6 +220,7 @@ void AMyGameMode::Respawn(AController* Controller)
 			if (ACPPTestCharacter* MyChar = Cast<ACPPTestCharacter>(Controller->GetCharacter()))
 			{
 				MyChar->ClientRespawnCountDown(5);
+				MyChar->ResetHealthHUD(5);
 			}
 		}
 	}
