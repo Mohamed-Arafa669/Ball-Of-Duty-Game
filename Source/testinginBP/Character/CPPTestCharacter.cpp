@@ -180,6 +180,7 @@ void ACPPTestCharacter::Tick(float DeltaTime)
 	{
 		lockOnTargets->FindTarget();
 	}
+
 }
 void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -729,7 +730,7 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 				
 				if (BallHit->GetBallState() == EBallState::EBS_SuperThrow)
 				{
-					Knocked(ballHitDirection);
+					Knocked(ballHitDirection, false);
 					
 				}
 				else
