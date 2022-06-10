@@ -110,6 +110,15 @@ void AMyGameMode::PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, cl
 	{
 		ElimmedCharacter->Knocked(false);
 	}
+
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		ACPPPlayerController* PlayerController = Cast<ACPPPlayerController>(*It);
+		if (PlayerController && AttackerPlayerState && VictimPlayerState)
+		{
+			PlayerController->BroadcastElim(AttackerPlayerState, VictimPlayerState);
+		}
+	}
 } 
 
 

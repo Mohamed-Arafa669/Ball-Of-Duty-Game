@@ -4,6 +4,7 @@
 #include "GameHUD.h"
 #include "GameFramework/PlayerController.h"
 #include "Announcement.h"
+#include "testinginBP/HUD/ElimAnnouncements.h"
 #include "CharacterOverlays.h"
 
 void AGameHUD::DrawHUD()
@@ -45,7 +46,6 @@ void AGameHUD::DrawHUD()
 void AGameHUD::BeginPlay()
 {
 	Super::BeginPlay();
-	//AddCharacterOverlay();
 }
 
 void AGameHUD::AddCharacterOverlay()
@@ -65,6 +65,20 @@ void AGameHUD::AddAnnouncement()
 	{
 		Announcement = CreateWidget<UAnnouncement>(playerController, AnnouncementClass);
 		Announcement->AddToViewport();
+	}
+}
+
+void AGameHUD::AddElimAnnouncement(FString Attacker, FString Victim)
+{
+	OwningPlayer = OwningPlayer == nullptr ? GetOwningPlayerController() : OwningPlayer;
+	if (OwningPlayer && ElimAnnouncementClass)
+	{
+		UElimAnnouncements* ElimAnnouncementWidget = CreateWidget<UElimAnnouncements>(OwningPlayer, ElimAnnouncementClass);
+		if (ElimAnnouncementWidget)
+		{
+			ElimAnnouncementWidget->SetElimAnnouncemetText(Attacker, Victim);
+			ElimAnnouncementWidget->AddToViewport();
+		}
 	}
 }
 

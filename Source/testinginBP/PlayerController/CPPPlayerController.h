@@ -28,7 +28,7 @@ public:
 	void OnMatchStateSet(FName State);
 	void HandleMatchHasStarted();
 	void HandleCooldown();
-
+	void BroadcastElim(APlayerState* Attacker, APlayerState* Victim);
 
 	/// <summary>
 	/// Time Sync Between Client and Server
@@ -108,6 +108,9 @@ protected:
 
 	UFUNCTION(Client, Reliable)
 		void ClientJoinMidgame(FName StateOfMatch, float Warmup, float Match, float Cooldown, float StartingTime);
+
+	UFUNCTION(Client, Reliable)
+	void ClientElimAnnouncement(APlayerState* Attacker, APlayerState* Victim);
 
 	void OnPossess(APawn* InPawn) override;
 
