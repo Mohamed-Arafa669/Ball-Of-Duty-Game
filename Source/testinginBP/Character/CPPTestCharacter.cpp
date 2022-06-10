@@ -204,7 +204,14 @@ void ACPPTestCharacter::MoveForward(float value)
 	}*/
 
 	if (IsAllowedToMove()) {
-		AddMovementInput(GetActorForwardVector() * value);
+		if(value < 0 && !bIsDashing)
+		{
+			AddMovementInput(GetActorForwardVector() * (value * 0.7f));
+		} else
+		{
+			
+			AddMovementInput(GetActorForwardVector() * value);
+		}
 	}
 }
 
@@ -218,7 +225,13 @@ void ACPPTestCharacter::MoveRight(float value)
 	}*/
 
 	if (IsAllowedToMove()) {
-		AddMovementInput(GetActorRightVector() * value);
+		if(!bIsDashing)
+		{
+			AddMovementInput(GetActorRightVector() * (value * 0.7f));
+		} else
+		{
+			AddMovementInput(GetActorRightVector() * value);
+		}
 	}
 }
 
