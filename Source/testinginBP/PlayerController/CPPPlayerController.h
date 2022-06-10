@@ -29,6 +29,7 @@ public:
 	void HandleMatchHasStarted();
 	void HandleCooldown();
 
+
 	/// <summary>
 	/// Time Sync Between Client and Server
 	/// </summary>
@@ -79,6 +80,16 @@ public:
 	UPROPERTY()
 		class ACPPTestCharacter* MyCharacter;
 
+	UPROPERTY()
+		class AMyPlayerState* MyPlayerState;
+
+	UPROPERTY()
+		class AMyGameState* MyGameState;
+
+	UPROPERTY()
+		TArray<AMyPlayerState*> TopPlayers;
+
+
 	bool bInitializeCharacterOverlay = false;
 
 	float HUDHealth;
@@ -89,7 +100,9 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	void PollInit();
-	
+	virtual void SetupInputComponent() override;
+	void ShowReturnToMainMenu();
+
 	UFUNCTION(Server, Reliable)
 		void ServerCheckMatchState();
 
@@ -98,4 +111,17 @@ protected:
 
 	void OnPossess(APawn* InPawn) override;
 
+private:
+	
+	///
+	/// Return To Main Menu
+	/// 
+
+	UPROPERTY(EditAnywhere, Category = HUD)
+		TSubclassOf<class UUserWidget> ReturnToMainMenuWidget;
+
+	UPROPERTY()
+	class UInGameMenu* ReturnToMainMenu;
+
+	bool bIsInMenu = false;
 };

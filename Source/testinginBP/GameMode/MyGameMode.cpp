@@ -14,7 +14,7 @@
 #include "testinginBP/PlayerController/CPPPlayerController.h"
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "testinginBP/GameState/MyGameState.h"
 namespace MatchState
 {
 	const FName Cooldown = FName("Cooldown");
@@ -94,10 +94,12 @@ void AMyGameMode::PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, cl
 	if (VictimController == nullptr || VictimController->PlayerState == nullptr) return;
 	AMyPlayerState* AttackerPlayerState = AttackerController ? Cast<AMyPlayerState>(AttackerController->PlayerState) : nullptr;
 	AMyPlayerState* VictimPlayerState = VictimController ? Cast<AMyPlayerState>(VictimController->PlayerState) : nullptr;
+	AMyGameState* MGameState = GetGameState<AMyGameState>();
 
-	if (AttackerPlayerState && AttackerPlayerState != VictimPlayerState)
+	if (AttackerPlayerState && AttackerPlayerState != VictimPlayerState && MGameState)
 	{
 		AttackerPlayerState->AddToScore(1.0f);
+		MGameState->UpdateTopScore(AttackerPlayerState);
 	}
 	if (VictimPlayerState)
 	{
@@ -106,10 +108,26 @@ void AMyGameMode::PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, cl
 
 	if (ElimmedCharacter)
 	{
-		ElimmedCharacter->Knocked();
+		ElimmedCharacter->Knocked(false);
+	}
+} 
+
+
+void AMyGameMode::PlayerLeftGame(AMyPlayerState* PlayerLeaving)
+{
+	if (PlayerLeaving == nullptr) return;
+
+	AMyGameState* MGameState = GetGameState<AMyGameState>();
+	if (MGameState && MGameState->TopScoringPlayers.Contains(PlayerLeaving))
+	{
+		MGameState->TopScoringPlayers.Remove(PlayerLeaving);
+	}
+	ACPPTestCharacter* CharacterLeaving = Cast<ACPPTestCharacter>(PlayerLeaving->GetPawn());
+	if (CharacterLeaving)
+	{
+		CharacterLeaving->Knocked(true);
 	}
 }
-
 
 UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
 {

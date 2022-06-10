@@ -412,6 +412,16 @@ void ACPPTestCharacter::ServerThrowButtonReleased_Implementation()
 }
 
 
+void ACPPTestCharacter::ServerLeaveGame_Implementation()
+{
+	AMyGameMode* GameMode = GetWorld()->GetAuthGameMode<AMyGameMode>();
+	MyPlayerState = MyPlayerState == nullptr ? GetPlayerState<AMyPlayerState>() : MyPlayerState;
+	if (GameMode && MyPlayerState)
+	{
+		GameMode->PlayerLeftGame(MyPlayerState);
+	}
+}
+
 void ACPPTestCharacter::Stunned()
 {
 	if (GEngine)
@@ -469,7 +479,7 @@ void ACPPTestCharacter::OnHealthUpdate()
 			FString deathMessage = FString::Printf(TEXT("You have been killed."));
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, deathMessage);
 
-			Knocked();
+			Knocked(bLeftGame);
 		}
 	}
 }
@@ -490,36 +500,41 @@ void ACPPTestCharacter::Elim()
 
 }
 
-void ACPPTestCharacter::Knocked()
+void ACPPTestCharacter::Knocked(bool bPlayerLeftGame)
 {
 	if (GetLocalRole() == ROLE_Authority)
 	{
-		MultiKnocked();
+		MultiKnocked(bPlayerLeftGame);
 
 		FTimerHandle KnockedTimerDestroy;
 
 		GetWorld()->GetTimerManager().SetTimer(KnockedTimerDestroy, this, &ACPPTestCharacter::CallDestroy, 7.0f, false);
 
 		AMyGameMode* Mode = GetWorld()->GetAuthGameMode<AMyGameMode>();
+		AMyGameMode* FreeforallMode = Cast<AMyGameMode>(Mode);
 
-		if (AMyGameMode* FreeforallMode = Cast<AMyGameMode>(Mode))
+		if (FreeforallMode && !bLeftGame)
 		{
 
 			FreeforallMode->Respawn(GetController());
-			
-			
+		
+		}
+		if (bLeftGame && IsLocallyControlled())
+		{
+			OnLeftGame.Broadcast();
 		}
 	}
 
 }
 
-bool ACPPTestCharacter::MultiKnocked_Validate()
+bool ACPPTestCharacter::MultiKnocked_Validate(bool bPlayerLeftGame)
 {
 	return true;
 }
 
-void ACPPTestCharacter::MultiKnocked_Implementation()
+void ACPPTestCharacter::MultiKnocked_Implementation(bool bPlayerLeftGame)
 {
+	bLeftGame = bPlayerLeftGame;
 	bKnocked = true;
 	this->CharacterMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 	this->CharacterMesh->SetAllBodiesSimulatePhysics(true);

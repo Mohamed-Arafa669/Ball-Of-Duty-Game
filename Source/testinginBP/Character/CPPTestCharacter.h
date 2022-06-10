@@ -11,6 +11,8 @@
 #include "testinginBP/HUD/UI/UI_RespawnWidget.h"
 #include "CPPTestCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftGame);
+
 UCLASS()
 class TESTINGINBP_API ACPPTestCharacter : public ACharacter
 {
@@ -24,7 +26,7 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void Jump() override;;
 
-	void Knocked();
+	void Knocked(bool bPlayerLeftGame);
 
 	//UPROPERTY(Replicated)
 	//	bool bDisableGameplay = false;
@@ -84,9 +86,9 @@ protected:
 	void UpdateHUDHealth();
 	void Elim();
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
-	void MultiKnocked();
-	bool MultiKnocked_Validate();
-	void MultiKnocked_Implementation();
+	void MultiKnocked(bool bPlayerLeftGame);
+	bool MultiKnocked_Validate(bool bPlayerLeftGame);
+	void MultiKnocked_Implementation(bool bPlayerLeftGame);
 	// Poll for any relivant classes and inits the HUD
 	void PollInit();
 
@@ -172,7 +174,20 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 		float ElimDelay = 3.f;
 	void ElimTimerFinished();
+
+	bool bLeftGame = false;
+
+
+	
+
 public:
+
+	UFUNCTION(Server, Reliable)
+		void ServerLeaveGame();
+
+	FOnLeftGame OnLeftGame;
+
+
 	void Stunned();
 
 	 void SetOverlappingBall(ACPPBall* cppBall);

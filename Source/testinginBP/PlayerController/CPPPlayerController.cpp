@@ -12,6 +12,9 @@
 #include "testinginBP/HUD/Announcement.h"
 #include "testinginBP/Character/CPPTestCharacter.h"
 #include "testinginBP/GameComponents/CombatComponent.h"
+#include "testinginBP/GameState/MyGameState.h"
+#include "testinginBP/GameComponents/MyPlayerState.h"
+#include "testinginBP/HUD/InGameMenu.h"
 
 void ACPPPlayerController::BeginPlay()
 {
@@ -56,6 +59,37 @@ void ACPPPlayerController::PollInit()
 				SetHUDScore(HUDScore);
 				SetHUDDefeats(HUDDefeats);
 			}
+		}
+	}
+}
+
+void ACPPPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+	if (InputComponent == nullptr) return;
+
+	InputComponent->BindAction("Quit", IE_Pressed, this, &ACPPPlayerController::ShowReturnToMainMenu);  
+	
+}
+
+void ACPPPlayerController::ShowReturnToMainMenu()
+{
+	if (ReturnToMainMenuWidget == nullptr) return;
+	if (ReturnToMainMenu == nullptr)
+	{
+		ReturnToMainMenu = CreateWidget<UInGameMenu>(this, ReturnToMainMenuWidget);
+	}
+	if (ReturnToMainMenu)
+	{
+		bIsInMenu = !bIsInMenu;
+
+		if (bIsInMenu)
+		{
+			ReturnToMainMenu->MenuSetup();
+		}
+		else
+		{
+			ReturnToMainMenu->MenuTearDown();
 		}
 	}
 }
@@ -341,7 +375,44 @@ void ACPPPlayerController::HandleCooldown()
 			GameHUD->Announcement->SetVisibility(ESlateVisibility::Visible);
 			FString AnnouncementText("Returning to Main Menu In:");
 			GameHUD->Announcement->AnnouncementText->SetText(FText::FromString(AnnouncementText));
-			GameHUD->Announcement->InfoText->SetText(FText());
+
+			/// <summary>
+			/// THE SCOREBOARD DISPLAY
+			/// </summary>
+			//AMyGameState* GameState = Cast<AMyGameState>(UGameplayStatics::GetGameState(this));
+			//AMyPlayerState* MPlayerState = GetPlayerState<AMyPlayerState>();
+			MyGameState = MyGameState == nullptr ? Cast<AMyGameState>(UGameplayStatics::GetGameState(this)) : MyGameState;
+			MyPlayerState = MyPlayerState == nullptr ? GetPlayerState<AMyPlayerState>() : MyPlayerState;
+
+			TopPlayers = MyGameState->TopScoringPlayers;
+
+			if (MyGameState && MyPlayerState)
+			{
+
+				FString InfoTextString;
+				if (TopPlayers.Num() == 0)
+				{
+					InfoTextString = FString("It's A TIE");
+				}
+				else if (TopPlayers.Num() == 1 && TopPlayers[0] == MyPlayerState)
+				{
+					InfoTextString = FString("YOU ARE THE MASTER OF KNOCKS");
+				}
+				else if (TopPlayers.Num() == 1)
+				{
+					InfoTextString = FString::Printf(TEXT("THE MASTER OF KNOCKS is: \n%s "), *TopPlayers[0]->GetPlayerName());  
+				}
+				else if (TopPlayers.Num() > 1)
+				{
+					InfoTextString = FString("Players tied for the win:\n");
+					for (auto TiedPlayers : TopPlayers)
+					{
+						InfoTextString.Append(FString::Printf(TEXT("%s\n"), *TiedPlayers->GetPlayerName()));
+					}
+				}
+				GameHUD->Announcement->InfoText->SetText(FText::FromString(InfoTextString));
+
+			}
 		}
 	}
 	/*MyCharacter = MyCharacter == nullptr ? Cast<ACPPTestCharacter>(GetPawn()) : MyCharacter;

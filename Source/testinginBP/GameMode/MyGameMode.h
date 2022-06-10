@@ -35,6 +35,8 @@ public:
 		class APlayerController* AttackerController
 	);
 
+	void PlayerLeftGame(class AMyPlayerState* PlayerLeaving);
+
 	void Respawn(AController* Controller);
 
 	UPROPERTY(EditDefaultsOnly)
