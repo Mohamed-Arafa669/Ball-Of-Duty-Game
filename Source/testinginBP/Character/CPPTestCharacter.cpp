@@ -274,7 +274,10 @@ void ACPPTestCharacter::Dash()
 	{
 		if (bCanDash && CanJump() && IsAllowedToMove() && GetCharacterMovement()->IsMovingOnGround()) {
 
-
+			GetCharacterMovement()->FallingLateralFriction = 3;
+			const FVector ForwardVector = GetMovementComponent()->GetLastInputVector();
+			LaunchCharacter(ForwardVector * DashDistance, true, true);
+			
 
 			/*if (DashAnim)
 			{
@@ -282,9 +285,6 @@ void ACPPTestCharacter::Dash()
 
 			}*/
 			MulticastPlayNiagara(DashFX, true);
-
-			const FVector ForwardVector = GetMovementComponent()->GetLastInputVector();
-			LaunchCharacter(ForwardVector * DashDistance, true, true);
 
 			bCanDash = false;
 			bIsDashing = true;
@@ -326,7 +326,10 @@ void ACPPTestCharacter::DashButtonPressed_Implementation(FVector DashDir)
 
 		MulticastPlayNiagara(DashFX, true);
 		
+		GetCharacterMovement()->FallingLateralFriction = 3;
+			
 		LaunchCharacter(DashDir * DashDistance, true, true);
+		
 
 		bCanDash = false;
 		bIsDashing = true;
@@ -554,7 +557,8 @@ void ACPPTestCharacter::MultiKnocked_Implementation(FVector ImpulseDirection)
 	bKnocked = true;
 	this->CharacterMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 	this->CharacterMesh->SetAllBodiesSimulatePhysics(true);
-	this->CharacterMesh->AddImpulse(GetActorLocation() + (ImpulseDirection * HitImpulse * CharacterMesh->GetMass()));
+	this->CharacterMesh->AddImpulse(GetActorLocation() + ((ImpulseDirection + GetActorUpVector()) * HitImpulse * CharacterMesh->GetMass()));
+	this->CharacterMesh->SetEnableGravity(false);
 
 }
 
