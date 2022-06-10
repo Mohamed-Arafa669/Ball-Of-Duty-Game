@@ -145,6 +145,20 @@ void ACPPTestCharacter::BeginPlay()
 	bIsSpawnInvincible = true;
 	FTimerHandle InvincibleHandle;
 	GetWorld()->GetTimerManager().SetTimer(InvincibleHandle, this, &ThisClass::SetSpawnInvincibility, SpawnInvincibilityDuration);
+
+	if(InvincibleMaterialInstance)
+	{
+		OriginalMat1 = GetMesh()->GetMaterial(0);
+		OriginalMat2 = GetMesh()->GetMaterial(1);
+		OriginalMat3 = GetMesh()->GetMaterial(2);
+
+		DynamicInvincibleMatInst = UMaterialInstanceDynamic::Create(InvincibleMaterialInstance, this);
+		GetMesh()->SetMaterial(0, DynamicInvincibleMatInst);
+		GetMesh()->SetMaterial(1, DynamicInvincibleMatInst);
+		GetMesh()->SetMaterial(2, DynamicInvincibleMatInst);
+
+		
+	}
 	
 }
 
@@ -817,6 +831,11 @@ bool ACPPTestCharacter::IsBallEquipped()
 void ACPPTestCharacter::SetSpawnInvincibility()
 {
 	bIsSpawnInvincible = false;
+
+	GetMesh()->SetMaterial(0, OriginalMat1);
+	GetMesh()->SetMaterial(1, OriginalMat2);
+	GetMesh()->SetMaterial(2, OriginalMat3);
+
 }
 
 void ACPPTestCharacter::StopThrow()

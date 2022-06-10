@@ -296,4 +296,14 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	UNiagaraComponent* DashFX;
+
+	UPROPERTY(VisibleAnywhere, Category = Shaders)
+		UMaterialInstanceDynamic* DynamicInvincibleMatInst;
+
+	UPROPERTY(EditAnywhere, Category = Shaders)
+		UMaterialInstance* InvincibleMaterialInstance;
+
+	UMaterialInterface* OriginalMat1;
+	UMaterialInterface* OriginalMat2;
+	UMaterialInterface* OriginalMat3;
 };
