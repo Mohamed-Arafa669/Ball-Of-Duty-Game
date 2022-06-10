@@ -64,15 +64,13 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float ElimAnnouncementTime = 3.f;
-	UPROPERTY(EditAnywhere)
-	float RespawnAnnouncementTime = 5.f;
+	
 
 	UFUNCTION()
 	void ElimAnnouncementTimerFinished(UElimAnnouncements* MsgToRemove);
 
-	UFUNCTION()
-	void RespawnAnnouncementTimerFinished(UUI_RespawnWidget* MsgToRemove);
-
+	UPROPERTY()
+	TArray<UElimAnnouncements*> ElimMessages;
 
 public:
 	FORCEINLINE void SetHUDPackage(const FHUDPackage& package) { HUDPackage = package; }

@@ -5,7 +5,9 @@
 #include "GameFramework/PlayerController.h"
 #include "Announcement.h"
 #include "testinginBP/HUD/ElimAnnouncements.h"
-#include "testinginBP/HUD/UI/UI_RespawnWidget.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Components/HorizontalBox.h"
+#include "Components/CanvasPanelSlot.h"
 #include "CharacterOverlays.h"
 
 void AGameHUD::DrawHUD()
@@ -80,6 +82,26 @@ void AGameHUD::AddElimAnnouncement(FString Attacker, FString Victim)
 			ElimAnnouncementWidget->SetElimAnnouncemetText(Attacker, Victim);
 			ElimAnnouncementWidget->AddToViewport();
 
+			for (UElimAnnouncements* Msg : ElimMessages)
+			{
+				if (Msg && Msg->AnnouncementBox)
+				{
+					UCanvasPanelSlot* CanvasSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(Msg->AnnouncementBox);
+					if (CanvasSlot)
+					{
+						FVector2D position = CanvasSlot->GetPosition();
+						FVector2D NewPosition(CanvasSlot->GetPosition().X, 
+							position.Y - CanvasSlot->GetSize().Y
+							);
+						CanvasSlot->SetPosition(NewPosition);
+					}
+				}
+			}
+
+
+
+			ElimMessages.Add(ElimAnnouncementWidget);
+
 			FTimerHandle ElimMsgTimer;
 			FTimerDelegate ElimMsgDelegate;
 
@@ -102,15 +124,6 @@ void AGameHUD::ElimAnnouncementTimerFinished(UElimAnnouncements* MsgToRemove)
 	{
 		MsgToRemove->RemoveFromParent();
 	}
-}
-
-void AGameHUD::RespawnAnnouncementTimerFinished(UUI_RespawnWidget* MsgToRemove)
-{
-	if (MsgToRemove)
-	{
-		MsgToRemove->RemoveFromParent();
-	}
-
 }
 
 void AGameHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter)
