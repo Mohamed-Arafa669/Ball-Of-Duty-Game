@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CPPTestCharacter.h"
+#include "NiagaraComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "PowerCharacter.generated.h"
 
@@ -55,7 +56,9 @@ protected:
 	UPROPERTY(Replicated)
 	bool bSmash;
 
+	virtual void LockTarget() override;
 
+	void LockTargetAbility();
 	UPROPERTY(EditAnywhere, Category = "Ability")
 		float Ability_Cooldown_Duration = 2.f;
 	UPROPERTY(EditAnywhere, Category = "Ability")
@@ -69,5 +72,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* AbilityAnim;
+
+	UPROPERTY(EditAnywhere)
+		UNiagaraComponent* PowerAbilityFX;
+
+	void DisableEffect();
 
 };

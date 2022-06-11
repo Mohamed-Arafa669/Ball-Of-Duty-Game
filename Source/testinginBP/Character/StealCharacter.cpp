@@ -26,6 +26,17 @@ void AStealCharacter::BeginPlay()
 	bHook = true;
 }
 
+void AStealCharacter::LockTarget()
+{
+	
+}
+
+void AStealCharacter::LockTargetAbility()
+{
+	if (!bHook) {
+		LockTarget();
+	}
+}
 
 
 void AStealCharacter::Tick(float DeltaTime)
@@ -44,7 +55,7 @@ void AStealCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 void AStealCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	PlayerInputComponent->BindAction("Ability", IE_Pressed, this, &ACPPTestCharacter::LockTarget);
+	PlayerInputComponent->BindAction("Ability", IE_Pressed, this, &ThisClass::LockTargetAbility);
 	PlayerInputComponent->BindAction("Ability", IE_Released, this, &ThisClass::DoAbility);
 
 }
@@ -89,7 +100,6 @@ void AStealCharacter::TraceLine()
 
 void AStealCharacter::DoAbility()
 {
-	LockTarget();
 
 	if (HasAuthority())
 	{
@@ -194,7 +204,7 @@ void AStealCharacter::StealBall(ACPPTestCharacter* Target)
 	//SpawnHook->Destroy();
 
 	FTimerHandle ClearHandle;
-	GetWorld()->GetTimerManager().SetTimer(ClearHandle, this, &ACPPTestCharacter::ClearTarget, 0.2f);
+	GetWorld()->GetTimerManager().SetTimer(ClearHandle, this, &ACPPTestCharacter::ClearTarget, 1.0f);
 }
 
 void AStealCharacter::ThrowTwice()
@@ -211,7 +221,7 @@ void AStealCharacter::ThrowTwice()
 	ACPPBall* SpawnBall = GetWorld()->SpawnActor<ACPPBall>(BallClass, spawnLocation, spawnRotation);
 
 	FTimerHandle ClearHandle;
-	GetWorld()->GetTimerManager().SetTimer(ClearHandle, this, &ACPPTestCharacter::ClearTarget, 0.2f);
+	GetWorld()->GetTimerManager().SetTimer(ClearHandle, this, &ACPPTestCharacter::ClearTarget, 1.0f);
 }
 
 

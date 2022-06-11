@@ -54,6 +54,9 @@ ACPPTestCharacter::ACPPTestCharacter()
 	DashFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DashFX"));
 	DashFX->SetupAttachment(GetMesh());
 
+	/*AbilityFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("AbilityFX"));
+	AbilityFX->SetupAttachment(GetMesh());*/
+
 	/*overHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
 	overHeadWidget->SetupAttachment(RootComponent);*/
 
@@ -300,9 +303,9 @@ void ACPPTestCharacter::Dash()
 
 	if (HasAuthority())
 	{
-		if (bCanDash && CanJump() && IsAllowedToMove() && GetCharacterMovement()->IsMovingOnGround()) {
+		if (bCanDash && IsAllowedToMove()) {
 
-			GetCharacterMovement()->FallingLateralFriction = 3;
+			GetCharacterMovement()->FallingLateralFriction = 4;
 			if (GetMovementComponent()->GetLastInputVector() != FVector::ZeroVector)
 			{
 				const FVector ForwardVector = GetMovementComponent()->GetLastInputVector();
@@ -348,7 +351,7 @@ void ACPPTestCharacter::CanCatch()
 
 void ACPPTestCharacter::DashButtonPressed_Implementation(FVector DashDir)
 {
-	if (bCanDash && CanJump() && IsAllowedToMove() && GetCharacterMovement()->IsMovingOnGround()) {
+	if (bCanDash && IsAllowedToMove()) {
 
 		//if (DashAnim)
 		//{
@@ -358,7 +361,7 @@ void ACPPTestCharacter::DashButtonPressed_Implementation(FVector DashDir)
 
 		MulticastPlayNiagara(DashFX, true);
 		
-		GetCharacterMovement()->FallingLateralFriction = 3;
+		GetCharacterMovement()->FallingLateralFriction = 4;
 		if (DashDir != FVector::ZeroVector)
 		{
 			LaunchCharacter(DashDir * DashDistance, true, true);
@@ -613,10 +616,11 @@ void ACPPTestCharacter::MultiKnocked_Implementation(FVector ImpulseDirection,boo
 {
 	bLeftGame = bPlayerLeftGame;
 	bKnocked = true;
-	this->CharacterMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-	this->CharacterMesh->SetAllBodiesSimulatePhysics(true);
-	this->CharacterMesh->AddImpulse(GetActorLocation() + ((ImpulseDirection + GetActorUpVector()) * HitImpulse * CharacterMesh->GetMass()));
-	this->CharacterMesh->SetEnableGravity(false);
+	CharacterMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	CharacterMesh->SetAllBodiesSimulatePhysics(true);
+	CharacterMesh->SetEnableGravity(false);
+	CharacterMesh->SetAllMassScale(0.5);
+	CharacterMesh->AddImpulse(GetActorLocation() + ((ImpulseDirection + GetActorUpVector()) * HitImpulse * CharacterMesh->GetMass()));
 
 }
 
@@ -635,7 +639,11 @@ void ACPPTestCharacter::PollInit()
 
 void ACPPTestCharacter::ClearTarget()
 {
-
+	if(AbilityFX)
+	{
+		MulticastPlayNiagara(AbilityFX, false);
+		ServerPlayNiagara(AbilityFX, false);
+	}
 	bIsTargeting = false;
 	lockOnTargets->ClearTargetManual();
 }
@@ -740,6 +748,7 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 				if (BallHit->GetBallState() == EBallState::EBS_SuperThrow)
 				{
 					Knocked(ballHitDirection, false);
+					UGameplayStatics::ApplyDamage(this, 100.f, ballOwnerController, BallHit, NULL);
 					
 				}
 				else

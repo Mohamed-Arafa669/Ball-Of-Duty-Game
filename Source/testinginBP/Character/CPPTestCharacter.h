@@ -29,7 +29,7 @@ public:
 
 	void Knocked(FVector ImpulseDirection, bool bPlayerLeftGame);
 
-	void LockTarget();
+	virtual void LockTarget();
 	void ClearTarget();
 
 	void PlayThrowMontage();
@@ -321,6 +321,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	UNiagaraComponent* DashFX;
+
+	UPROPERTY(EditAnywhere)
+	UNiagaraComponent* AbilityFX;
 
 	UPROPERTY(VisibleAnywhere, Category = Shaders)
 		UMaterialInstanceDynamic* DynamicInvincibleMatInst;
