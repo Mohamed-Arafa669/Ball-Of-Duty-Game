@@ -208,7 +208,7 @@ void AStealCharacter::ThrowTwice()
 	spawnParameters.Instigator = GetInstigator();
 	spawnParameters.Owner = this;
 
-	ACPPBall* SpawnHook = GetWorld()->SpawnActor<ACPPBall>(BallClass, spawnLocation, spawnRotation);
+	ACPPBall* SpawnBall = GetWorld()->SpawnActor<ACPPBall>(BallClass, spawnLocation, spawnRotation);
 
 	FTimerHandle ClearHandle;
 	GetWorld()->GetTimerManager().SetTimer(ClearHandle, this, &ACPPTestCharacter::ClearTarget, 0.2f);
