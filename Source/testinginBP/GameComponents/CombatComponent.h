@@ -31,7 +31,6 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	void ThrowButtonPressed(bool bPressed);
 
 	
 
@@ -52,5 +51,6 @@ private:
 
 public:	
 
-		
+	void ThrowButtonPressed(bool bPressed);
+
 };

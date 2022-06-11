@@ -7,9 +7,12 @@
 #include "GameFramework/Actor.h"
 #include "LockOnTargetComponent.h"
 #include "testinginBP/Ball/CPPBall.h"
+#include "NiagaraComponent.h"
 #include "Components/PrimitiveComponent.h"
 #include "testinginBP/HUD/UI/UI_RespawnWidget.h"
 #include "CPPTestCharacter.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftGame);
 
 UCLASS()
 class TESTINGINBP_API ACPPTestCharacter : public ACharacter
@@ -24,8 +27,10 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void Jump() override;;
 
-	void Knocked();
+	void Knocked(FVector ImpulseDirection, bool bPlayerLeftGame);
 
+	void LockTarget();
+	void ClearTarget();
 
 	void PlayThrowMontage();
 	UFUNCTION(BlueprintCallable, Category = "BallThrow")
@@ -63,9 +68,16 @@ public:
 	UPROPERTY()
 	class AMyPlayerState* MyPlayerState;
 
+	UFUNCTION()
+		void ResetHealthHUD(float timer);
+
+	UFUNCTION()
+		void ResetHealthTest();
+
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void Falling() override;
 	void MoveForward(float value);
 	void MoveRight(float value);
 	void Turn(float value);
@@ -76,20 +88,25 @@ protected:
 	void CanDash();
 	void CanCatch();
 	void ThrowButtonReleased();
-	void LockTarget();
 	void StunCoolDown();
 	void OnHealthUpdate();
 	void UpdateHUDHealth();
 	void Elim();
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
-	void MultiKnocked();
-	bool MultiKnocked_Validate();
-	void MultiKnocked_Implementation();
+	void MultiKnocked(FVector ImpulseDirection ,bool bPlayerLeftGame);
+	auto MultiKnocked_Validate(FVector ImpulseDirection,bool bPlayerLeftGame) -> bool;
+	void MultiKnocked_Implementation(FVector ImpulseDirection,bool bPlayerLeftGame);
 	// Poll for any relivant classes and inits the HUD
 	void PollInit();
 
 	UPROPERTY(Replicated)
 	bool bKnocked;
+
+	UPROPERTY(EditAnywhere)
+	float DashCoolDownDuration = 0.7f;
+
+	UPROPERTY(Replicated)
+	bool bIsTargeting;
 
 //>>>>>>> origin/GoharyMain
 	USkeletalMeshComponent* CharacterMesh;
@@ -122,7 +139,7 @@ private:
 
 	void CallDestroy();
 
-	void ResetHealthHUD();
+	
 
 	UFUNCTION()
 	void OnRep_CurrentHealth();
@@ -163,12 +180,31 @@ public:
 	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Animation)
 		void MulticastPlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
 
+	UFUNCTION(Server, Reliable, WithValidation, Category = Effects)
+		void ServerPlayNiagara(UNiagaraComponent* fx, bool state);
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Effects)
+		void MulticastPlayNiagara(UNiagaraComponent* fx, bool state);
+
 	FTimerHandle ElimTimer;
 
 	UPROPERTY(EditDefaultsOnly)
 		float ElimDelay = 3.f;
 	void ElimTimerFinished();
+
+	bool bLeftGame = false;
+
+
+	
+
 public:
+
+	UFUNCTION(Server, Reliable)
+		void ServerLeaveGame();
+
+	FOnLeftGame OnLeftGame;
+
+
 	void Stunned();
 
 	 void SetOverlappingBall(ACPPBall* cppBall);
@@ -271,11 +307,28 @@ public:
 	UPROPERTY()
 	UUI_RespawnWidget* RespawingWidget;
 
-	
-	void RemoveWidget();
+	UFUNCTION()
+	void RemoveWidget(UUI_RespawnWidget* MsgToRemove);
 
 	UPROPERTY(EditAnywhere)
 		float DashAnimDuration = 0.3;
 	void SetDashingAnimOff();
 	void SpawnActors();
+
+public:
+
+		FORCEINLINE UCombatComponent* GetCombat() const { return combat; }
+
+	UPROPERTY(EditAnywhere)
+	UNiagaraComponent* DashFX;
+
+	UPROPERTY(VisibleAnywhere, Category = Shaders)
+		UMaterialInstanceDynamic* DynamicInvincibleMatInst;
+
+	UPROPERTY(EditAnywhere, Category = Shaders)
+		UMaterialInstance* InvincibleMaterialInstance;
+
+	UMaterialInterface* OriginalMat1;
+	UMaterialInterface* OriginalMat2;
+	UMaterialInterface* OriginalMat3;
 };

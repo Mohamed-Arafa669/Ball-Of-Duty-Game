@@ -4,6 +4,10 @@
 #include "GameHUD.h"
 #include "GameFramework/PlayerController.h"
 #include "Announcement.h"
+#include "testinginBP/HUD/ElimAnnouncements.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Components/HorizontalBox.h"
+#include "Components/CanvasPanelSlot.h"
 #include "CharacterOverlays.h"
 
 void AGameHUD::DrawHUD()
@@ -45,7 +49,6 @@ void AGameHUD::DrawHUD()
 void AGameHUD::BeginPlay()
 {
 	Super::BeginPlay();
-	//AddCharacterOverlay();
 }
 
 void AGameHUD::AddCharacterOverlay()
@@ -68,6 +71,61 @@ void AGameHUD::AddAnnouncement()
 	}
 }
 
+void AGameHUD::AddElimAnnouncement(FString Attacker, FString Victim)
+{
+	OwningPlayer = OwningPlayer == nullptr ? GetOwningPlayerController() : OwningPlayer;
+	if (OwningPlayer && ElimAnnouncementClass)
+	{
+		UElimAnnouncements* ElimAnnouncementWidget = CreateWidget<UElimAnnouncements>(OwningPlayer, ElimAnnouncementClass);
+		if (ElimAnnouncementWidget)
+		{
+			ElimAnnouncementWidget->SetElimAnnouncemetText(Attacker, Victim);
+			ElimAnnouncementWidget->AddToViewport();
+
+			for (UElimAnnouncements* Msg : ElimMessages)
+			{
+				if (Msg && Msg->AnnouncementBox)
+				{
+					UCanvasPanelSlot* CanvasSlot = UWidgetLayoutLibrary::SlotAsCanvasSlot(Msg->AnnouncementBox);
+					if (CanvasSlot)
+					{
+						FVector2D position = CanvasSlot->GetPosition();
+						FVector2D NewPosition(CanvasSlot->GetPosition().X, 
+							position.Y - CanvasSlot->GetSize().Y
+							);
+						CanvasSlot->SetPosition(NewPosition);
+					}
+				}
+			}
+
+
+
+			ElimMessages.Add(ElimAnnouncementWidget);
+
+			FTimerHandle ElimMsgTimer;
+			FTimerDelegate ElimMsgDelegate;
+
+			ElimMsgDelegate.BindUFunction(this, FName("ElimAnnouncementTimerFinished"), ElimAnnouncementWidget);
+			GetWorldTimerManager().SetTimer(
+				ElimMsgTimer,
+				ElimMsgDelegate,
+				ElimAnnouncementTime,
+				false
+			);
+
+
+		}
+	}
+}
+
+void AGameHUD::ElimAnnouncementTimerFinished(UElimAnnouncements* MsgToRemove)
+{
+	if (MsgToRemove)
+	{
+		MsgToRemove->RemoveFromParent();
+	}
+}
+
 void AGameHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter)
 {
 	const float	 textureWidth = Texture->GetSizeX();
@@ -87,3 +145,4 @@ void AGameHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter)
 		FLinearColor::Red
 	);
 }
+

@@ -44,14 +44,33 @@ public:
 
 	void AddAnnouncement();
 
+	void AddElimAnnouncement(FString Attacker, FString Victim);
+
 protected:
 	virtual void BeginPlay() override;
 
 
 private:
+	
+	UPROPERTY()
+		class APlayerController* OwningPlayer;
+
 	FHUDPackage HUDPackage;
 
 	void DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter);
+
+	UPROPERTY(EditAnywhere, Category = "ElimAnnouncements")
+	TSubclassOf<class UElimAnnouncements> ElimAnnouncementClass;
+
+	UPROPERTY(EditAnywhere)
+	float ElimAnnouncementTime = 3.f;
+	
+
+	UFUNCTION()
+	void ElimAnnouncementTimerFinished(UElimAnnouncements* MsgToRemove);
+
+	UPROPERTY()
+	TArray<UElimAnnouncements*> ElimMessages;
 
 public:
 	FORCEINLINE void SetHUDPackage(const FHUDPackage& package) { HUDPackage = package; }

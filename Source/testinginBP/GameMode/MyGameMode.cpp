@@ -4,7 +4,6 @@
 #include "MyGameMode.h"
 
 #include "EngineUtils.h"
-#include "Net/UnrealNetwork.h"
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/PlayerStart.h"
 #include "GameFramework/GameMode.h"
@@ -14,7 +13,8 @@
 #include "testinginBP/GameComponents/MyPlayerState.h"
 #include "testinginBP/PlayerController/CPPPlayerController.h"
 #include "TimerManager.h"
-
+#include "Kismet/GameplayStatics.h"
+#include "testinginBP/GameState/MyGameState.h"
 namespace MatchState
 {
 	const FName Cooldown = FName("Cooldown");
@@ -51,7 +51,6 @@ void AMyGameMode::Tick(float DeltaTime)
 		if (CountdownTime <= 0.f)
 		{
 			StartMatch();
-			
 		}
 	}
 	else if (MatchState == MatchState::InProgress)
@@ -60,6 +59,15 @@ void AMyGameMode::Tick(float DeltaTime)
 		if (CountdownTime <= 0.f)
 		{
 			SetMatchState(MatchState::Cooldown);
+		}
+	}
+	else if (MatchState == MatchState::Cooldown)
+	{
+		CountdownTime = CooldownTime + WarmupTime + MatchTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
+		if (CountdownTime <= 0.f)
+		{
+			//RestartGame();
+			UGameplayStatics::OpenLevel(GetWorld(), FName("GameStartupMap1"));
 		}
 	}
 
@@ -95,23 +103,18 @@ void AMyGameMode::OnMatchStateSet()
 }
 
 
-
-void AMyGameMode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AMyGameMode, CurrentPawnToAssign);
-}
-
 void AMyGameMode::PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, class ACPPPlayerController* VictimController, class APlayerController* AttackerController)
 {
 	if (AttackerController == nullptr || AttackerController->PlayerState == nullptr) return;
 	if (VictimController == nullptr || VictimController->PlayerState == nullptr) return;
 	AMyPlayerState* AttackerPlayerState = AttackerController ? Cast<AMyPlayerState>(AttackerController->PlayerState) : nullptr;
 	AMyPlayerState* VictimPlayerState = VictimController ? Cast<AMyPlayerState>(VictimController->PlayerState) : nullptr;
+	AMyGameState* MGameState = GetGameState<AMyGameState>();
 
-	if (AttackerPlayerState && AttackerPlayerState != VictimPlayerState)
+	if (AttackerPlayerState && AttackerPlayerState != VictimPlayerState && MGameState)
 	{
 		AttackerPlayerState->AddToScore(1.0f);
+		MGameState->UpdateTopScore(AttackerPlayerState);
 	}
 	if (VictimPlayerState)
 	{
@@ -120,45 +123,65 @@ void AMyGameMode::PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, cl
 
 	if (ElimmedCharacter)
 	{
-		ElimmedCharacter->Knocked();
+		ElimmedCharacter->Knocked(FVector::ZeroVector,false);
+	}
+
+	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+	{
+		ACPPPlayerController* PlayerController = Cast<ACPPPlayerController>(*It);
+		if (PlayerController && AttackerPlayerState && VictimPlayerState)
+		{
+			PlayerController->BroadcastElim(AttackerPlayerState, VictimPlayerState);
+		}
+	}
+} 
+
+
+void AMyGameMode::PlayerLeftGame(AMyPlayerState* PlayerLeaving)
+{
+	if (PlayerLeaving == nullptr) return;
+
+	AMyGameState* MGameState = GetGameState<AMyGameState>();
+	if (MGameState && MGameState->TopScoringPlayers.Contains(PlayerLeaving))
+	{
+		MGameState->TopScoringPlayers.Remove(PlayerLeaving);
+	}
+	ACPPTestCharacter* CharacterLeaving = Cast<ACPPTestCharacter>(PlayerLeaving->GetPawn());
+	if (CharacterLeaving)
+	{
+		CharacterLeaving->Knocked(FVector::ZeroVector,true);
 	}
 }
 
-
 UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
 {
-	//if (CountdownTime <=0.f)
-	{
-
 	if (CurrentPawnToAssign)
 	{
-		
+
 		if (FirstPawn != nullptr && SecondPawn != nullptr)
 		{
 			if (CurrentPawnToAssign == FirstPawn)
 			{
-				CurrentPawnToAssign = SecondPawn;
+				CurrentPawnToAssign = FirstPawn;
 			}
-
 			else
 			{
-				CurrentPawnToAssign = FirstPawn;
+				CurrentPawnToAssign = SecondPawn;
 
 			}
-
-		}
+		}	
 	}
 	else
 	{
 		if (FirstPawn != nullptr && SecondPawn != nullptr)
 		{
-			CurrentPawnToAssign = (true) ? FirstPawn : SecondPawn;
+			CurrentPawnToAssign = CurrentPawnToAssign == nullptr ? FirstPawn : SecondPawn;
 		}
 	}
-	}
-	return CurrentPawnToAssign;
 
+	return CurrentPawnToAssign;
 }
+
 
 class ASpawnPoint* AMyGameMode::GetSpawnPoint()
 {
@@ -212,6 +235,7 @@ void AMyGameMode::Respawn(AController* Controller)
 			if (ACPPTestCharacter* MyChar = Cast<ACPPTestCharacter>(Controller->GetCharacter()))
 			{
 				MyChar->ClientRespawnCountDown(5);
+				MyChar->ResetHealthHUD(5);
 			}
 		}
 	}

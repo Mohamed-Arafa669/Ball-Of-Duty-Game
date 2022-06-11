@@ -43,8 +43,6 @@ protected:
 	UFUNCTION(Server, Reliable)
 		void Server_DoAbility();
 
-
-
 	UFUNCTION(Server, Reliable)
 		void HandleFire();
 

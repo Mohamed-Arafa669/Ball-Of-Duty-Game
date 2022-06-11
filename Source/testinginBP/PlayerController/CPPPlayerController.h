@@ -28,6 +28,7 @@ public:
 	void OnMatchStateSet(FName State);
 	void HandleMatchHasStarted();
 	void HandleCooldown();
+	void BroadcastElim(APlayerState* Attacker, APlayerState* Victim);
 
 	/// <summary>
 	/// Time Sync Between Client and Server
@@ -59,6 +60,8 @@ public:
 
 	float WarmupTime = 0.f;
 
+	float CooldownTime = 0.f;
+
 	uint32 CountdownInt = 0;
 
 	UPROPERTY(ReplicatedUsing = OnRep_MatchState)
@@ -67,8 +70,25 @@ public:
 	UFUNCTION()
 	void OnRep_MatchState();
 
+
 	UPROPERTY()
 		class UCharacterOverlays* CharacterOverlay;
+
+	UPROPERTY()
+		class AMyGameMode* GameMode;
+
+	UPROPERTY()
+		class ACPPTestCharacter* MyCharacter;
+
+	UPROPERTY()
+		class AMyPlayerState* MyPlayerState;
+
+	UPROPERTY()
+		class AMyGameState* MyGameState;
+
+	UPROPERTY()
+		TArray<AMyPlayerState*> TopPlayers;
+
 
 	bool bInitializeCharacterOverlay = false;
 
@@ -80,10 +100,31 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	void PollInit();
-	
+	virtual void SetupInputComponent() override;
+	void ShowReturnToMainMenu();
+
 	UFUNCTION(Server, Reliable)
 		void ServerCheckMatchState();
 
 	UFUNCTION(Client, Reliable)
-		void ClientJoinMidgame(FName StateOfMatch, float Warmup, float Match, float StartingTime);
+		void ClientJoinMidgame(FName StateOfMatch, float Warmup, float Match, float Cooldown, float StartingTime);
+
+	UFUNCTION(Client, Reliable)
+	void ClientElimAnnouncement(APlayerState* Attacker, APlayerState* Victim);
+
+	void OnPossess(APawn* InPawn) override;
+
+private:
+	
+	///
+	/// Return To Main Menu
+	/// 
+
+	UPROPERTY(EditAnywhere, Category = HUD)
+		TSubclassOf<class UUserWidget> ReturnToMainMenuWidget;
+
+	UPROPERTY()
+	class UInGameMenu* ReturnToMainMenu;
+
+	bool bIsInMenu = false;
 };

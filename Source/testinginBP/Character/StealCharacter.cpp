@@ -44,7 +44,9 @@ void AStealCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 void AStealCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	PlayerInputComponent->BindAction("Ability", IE_Pressed, this, &ThisClass::DoAbility);
+	PlayerInputComponent->BindAction("Ability", IE_Pressed, this, &ACPPTestCharacter::LockTarget);
+	PlayerInputComponent->BindAction("Ability", IE_Released, this, &ThisClass::DoAbility);
+
 }
 
 
@@ -87,9 +89,12 @@ void AStealCharacter::TraceLine()
 
 void AStealCharacter::DoAbility()
 {
+	LockTarget();
+
 	if (HasAuthority())
 	{
 		if (bHook) {
+
 
 			if (SpecialAbilityAnimation)
 			{
@@ -118,8 +123,10 @@ void AStealCharacter::DoAbility()
 			GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::AbilityCooldown, CoolDownTime);
 		}
 	}
-	else
+	else {
 		Server_DoAbility();
+	}
+
 }
 
 
@@ -155,6 +162,7 @@ void AStealCharacter::Server_DoAbility_Implementation()
 		FTimerHandle handle;
 		GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::AbilityCooldown, CoolDownTime);
 	}
+	
 }
 
 void AStealCharacter::HandleFire_Implementation()
@@ -184,6 +192,9 @@ void AStealCharacter::StealBall(ACPPTestCharacter* Target)
 	Target->combat->equippedBall = nullptr;
 	Target->bEquipped = false;
 	//SpawnHook->Destroy();
+
+	FTimerHandle ClearHandle;
+	GetWorld()->GetTimerManager().SetTimer(ClearHandle, this, &ACPPTestCharacter::ClearTarget, 0.2f);
 }
 
 void AStealCharacter::ThrowTwice()
@@ -197,6 +208,10 @@ void AStealCharacter::ThrowTwice()
 	spawnParameters.Instigator = GetInstigator();
 	spawnParameters.Owner = this;
 
-	ACPPBall* SpawnBall = GetWorld()->SpawnActor<ACPPBall>(BallClass, spawnLocation, spawnRotation);
+	ACPPBall* SpawnHook = GetWorld()->SpawnActor<ACPPBall>(BallClass, spawnLocation, spawnRotation);
+
+	FTimerHandle ClearHandle;
+	GetWorld()->GetTimerManager().SetTimer(ClearHandle, this, &ACPPTestCharacter::ClearTarget, 0.2f);
 }
+
 
