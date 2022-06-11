@@ -269,7 +269,7 @@ void ACPPTestCharacter::Turn(float value)
 	}
 #pragma endregion
 
-	AddControllerYawInput(value * 20 * GetWorld()->GetDeltaSeconds());
+	AddControllerYawInput(value * SensetivityX * GetWorld()->GetDeltaSeconds());
 }
 
 void ACPPTestCharacter::LookUp(float value)
@@ -288,7 +288,7 @@ void ACPPTestCharacter::LookUp(float value)
 	}
 #pragma endregion
 
-	AddControllerPitchInput(value * 20 * GetWorld()->GetDeltaSeconds());
+	AddControllerPitchInput(value * SensetivityY * GetWorld()->GetDeltaSeconds());
 }
 
 // Lock on Target 
