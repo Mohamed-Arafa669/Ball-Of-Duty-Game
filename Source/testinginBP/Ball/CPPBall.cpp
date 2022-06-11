@@ -34,7 +34,11 @@ ACPPBall::ACPPBall()
 
 	AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
+	TrailFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailFX"));
+	TrailFX->SetupAttachment(RootComponent);
 
+	SuperBallFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SuperBallFX"));
+	SuperBallFX->SetupAttachment(RootComponent);
 
 	if (!ProjectileMovementComponent)
 	{
@@ -84,9 +88,6 @@ void ACPPBall::BeginPlay()
 void ACPPBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-
-	
 
 	if (bMove)
 	{
@@ -148,13 +149,22 @@ void ACPPBall::OnRep_BallState()
 	{
 	case EBallState::EBS_Equipped:
 		ShowPickupWidget(false);
+		MulticastPlayNiagara_Implementation(TrailFX, false);
+		MulticastPlayNiagara_Implementation(SuperBallFX, false);
 		break;
 
 	case EBallState::EBS_Dropped:
 		ShowPickupWidget(true);
+		MulticastPlayNiagara_Implementation(TrailFX, true);
 		//AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
+	case EBallState::EBS_SuperThrow:
+		MulticastPlayNiagara_Implementation(TrailFX, true);
+		ServerPlayNiagara(SuperBallFX, true);
+		MulticastPlayNiagara_Implementation(SuperBallFX, true);
 	default:
+		MulticastPlayNiagara_Implementation(TrailFX, false);
+		MulticastPlayNiagara_Implementation(SuperBallFX, false);
 		break;
 	}
 }
@@ -166,14 +176,25 @@ void ACPPBall::SetBallState(EBallState state)
 	{
 	case EBallState::EBS_Equipped:
 		ShowPickupWidget(false);
+		MulticastPlayNiagara_Implementation(TrailFX, false);
+		MulticastPlayNiagara_Implementation(SuperBallFX, false);
 		//AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		break;
 
 	case EBallState::EBS_Dropped:
 		ShowPickupWidget(true);
+		MulticastPlayNiagara_Implementation(TrailFX, true);
+		//AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		break;
+	case EBallState::EBS_SuperThrow:
+		MulticastPlayNiagara_Implementation(TrailFX, true);
+		ServerPlayNiagara(SuperBallFX, true);
+		MulticastPlayNiagara_Implementation(SuperBallFX, true);
 		//AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	default:
+		MulticastPlayNiagara_Implementation(TrailFX, false);
+		MulticastPlayNiagara_Implementation(SuperBallFX, false);
 		break;
 	}
 	
@@ -204,8 +225,35 @@ void ACPPBall::MoveHookedBall(class AStealCharacter* TargetPlayer)
 	}
 }
 
+void ACPPBall::ServerPlayNiagara_Implementation(UNiagaraComponent* fx, bool state)
+{
+	MulticastPlayNiagara(fx, state);
+}
+
+bool ACPPBall::ServerPlayNiagara_Validate(UNiagaraComponent* fx, bool state)
+{
+	return true;
+}
+
+void ACPPBall::MulticastPlayNiagara_Implementation(UNiagaraComponent* fx, bool state)
+{
+	if (!state)
+	{
+		fx->Deactivate();
+	}
+	else
+	{
+		fx->Activate(state);
+	}
+}
+
+bool ACPPBall::MulticastPlayNiagara_Validate(UNiagaraComponent* fx, bool state)
+{
+	return true;
+}
+
 void ACPPBall::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
-	FVector NormalImpulse, const FHitResult& Hit)
+                     FVector NormalImpulse, const FHitResult& Hit)
 {
 	if(ACPPTestCharacter* Player = Cast<ACPPTestCharacter>(OtherActor))
 	{

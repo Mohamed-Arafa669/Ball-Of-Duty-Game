@@ -89,7 +89,7 @@ void AHook::OnProjectileImpact(UPrimitiveComponent* HitComponent, AActor* OtherA
 		
 	}
 
-	Destroy();
+	//Destroy();
 }
 
 // Called every frame

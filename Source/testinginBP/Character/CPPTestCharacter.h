@@ -29,7 +29,7 @@ public:
 
 	void Knocked(FVector ImpulseDirection, bool bPlayerLeftGame);
 
-	void LockTarget();
+	virtual void LockTarget();
 	void ClearTarget();
 
 	void PlayThrowMontage();
@@ -322,6 +322,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	UNiagaraComponent* DashFX;
 
+	UPROPERTY(EditAnywhere)
+	UNiagaraComponent* AbilityFX;
+
 	UPROPERTY(VisibleAnywhere, Category = Shaders)
 		UMaterialInstanceDynamic* DynamicInvincibleMatInst;
 
@@ -331,4 +334,11 @@ public:
 	UMaterialInterface* OriginalMat1;
 	UMaterialInterface* OriginalMat2;
 	UMaterialInterface* OriginalMat3;
+
+	UPROPERTY(EditAnywhere, Category = "Aiming")
+		float SensetivityX = 40;
+
+	UPROPERTY(EditAnywhere, Category = "Aiming")
+		float SensetivityY = 40.f;
+
 };

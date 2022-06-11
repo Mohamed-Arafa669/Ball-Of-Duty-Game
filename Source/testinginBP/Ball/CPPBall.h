@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "NiagaraComponent.h"
 #include "CPPBall.generated.h"
 
 UENUM(BlueprintType)
@@ -202,7 +203,17 @@ protected:
 	UPROPERTY(visibleAnywhere)
 		class UWorld* world;
 
+	UPROPERTY(EditAnywhere)
+		UNiagaraComponent* TrailFX;
 
+	UPROPERTY(EditAnywhere)
+		UNiagaraComponent* SuperBallFX;
+
+	UFUNCTION(Server, Reliable, WithValidation, Category = Effects)
+		void ServerPlayNiagara(UNiagaraComponent* fx, bool state);
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Effects)
+		void MulticastPlayNiagara(UNiagaraComponent* fx, bool state);
 
 	UFUNCTION()
 		void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,

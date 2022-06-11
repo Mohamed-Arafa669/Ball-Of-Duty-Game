@@ -12,7 +12,8 @@ APowerCharacter::APowerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-
+	PowerAbilityFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("PowerAbilityFX"));
+	PowerAbilityFX->SetupAttachment(GetMesh());
 }
 
 void APowerCharacter::Tick(float DeltaTime)
@@ -26,7 +27,7 @@ void APowerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction("Ability", IE_Pressed, this, &ACPPTestCharacter::LockTarget);
+	PlayerInputComponent->BindAction("Ability", IE_Pressed, this, &ThisClass::LockTargetAbility);
 	PlayerInputComponent->BindAction("Ability", IE_Released, this, &ThisClass::DoAbility);
 
 }
@@ -90,13 +91,18 @@ void APowerCharacter::DoSweep()
 		FVector Start = GetActorLocation() + GetActorForwardVector() * StartDistance;
 		FVector End = Start + (GetControlRotation().Vector() * EndDistance);
 
-		
-		
-
 		GetWorld()->SweepMultiByChannel(OutHits, Start, End, FQuat::Identity, ECollisionChannel::ECC_Pawn,
 			FCollisionShape::MakeSphere(RangeRadius));
 
 		LoopHitActors();
+
+		if (PowerAbilityFX) {
+			MulticastPlayNiagara(PowerAbilityFX, true);
+			ServerPlayNiagara(PowerAbilityFX, true);
+
+			FTimerHandle AbilityTimer;
+			GetWorld()->GetTimerManager().SetTimer(AbilityTimer, this, &APowerCharacter::DisableEffect, 0.5f);
+		}
 	}
 }
 
@@ -120,6 +126,32 @@ void APowerCharacter::AbilityDelayTimer()
 	FTimerHandle AbilityDelay;
 	GetWorld()->GetTimerManager().SetTimer(AbilityDelay, this, &ThisClass::AbilityDelay, AbilityDelayTime);
 
+}
+
+
+void APowerCharacter::LockTarget()
+{
+	Super::LockTarget();
+	
+}
+
+void APowerCharacter::LockTargetAbility()
+{
+	if (!bSmash) {
+
+		LockTarget();
+
+		if (IsBallEquipped()) {
+			combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
+		}
+
+	}
+}
+
+void APowerCharacter::DisableEffect()
+{
+	MulticastPlayNiagara(PowerAbilityFX, false);
+	ServerPlayNiagara(PowerAbilityFX, false);
 }
 
 void APowerCharacter::DoAbility()
