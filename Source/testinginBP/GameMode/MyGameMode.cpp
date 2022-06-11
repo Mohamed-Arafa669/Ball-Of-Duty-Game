@@ -162,11 +162,11 @@ UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController
 		{
 			if (CurrentPawnToAssign == FirstPawn)
 			{
-				CurrentPawnToAssign = FirstPawn;
+				CurrentPawnToAssign = SecondPawn;
 			}
 			else
 			{
-				CurrentPawnToAssign = SecondPawn;
+				CurrentPawnToAssign = FirstPawn;
 
 			}
 		}	
@@ -175,7 +175,7 @@ UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController
 	{
 		if (FirstPawn != nullptr && SecondPawn != nullptr)
 		{
-			CurrentPawnToAssign = CurrentPawnToAssign == nullptr ? FirstPawn : SecondPawn;
+			CurrentPawnToAssign = (true) ? FirstPawn : SecondPawn;
 		}
 	}
 
