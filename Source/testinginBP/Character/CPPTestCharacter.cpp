@@ -32,6 +32,7 @@
 #include "testinginBP/GameComponents/MyPlayerState.h"
 #include "testinginBP/GameMode/MyGameMode.h"
 
+
 #include "TimerManager.h"
 
 ACPPTestCharacter::ACPPTestCharacter()
@@ -62,6 +63,9 @@ ACPPTestCharacter::ACPPTestCharacter()
 
 	targetComponent = CreateDefaultSubobject<UTargetingHelperComponent>(TEXT("targetComponent"));
 	targetComponent->SetIsReplicated(true);
+
+	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
+	NiagaraComponent->SetupAttachment(RootComponent);
 
 	combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	combat->SetIsReplicated(true);
@@ -136,6 +140,9 @@ void ACPPTestCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	UpdateHUDHealth();
+
+	NiagaraComponent->Deactivate();
+
 	if (HasAuthority()) {
 		GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
 		CPPPlayerController = Cast<ACPPPlayerController>(Controller);
@@ -732,6 +739,8 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 			BallHit->GetBallState() == EBallState::EBS_SuperThrow) && BallHit->GetOwner() != this)
 		{
 			if (!bIsSpawnInvincible) {
+
+				NiagaraComponent->Activate(true);
 
 				FDamageEvent GotHitEvent;
 				AController* ballOwnerController = BallHit->GetInstigatorController();

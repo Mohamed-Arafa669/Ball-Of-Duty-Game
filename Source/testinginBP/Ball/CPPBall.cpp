@@ -99,6 +99,15 @@ void ACPPBall::Tick(float DeltaTime)
 				Location += Direction * Speed * DeltaTime;
 				SetActorLocation(Location);
 				CurrentDistance = (Location - StartLocation).Size();
+
+				StartLocation = GetActorLocation();
+				Direction = Target->GetActorLocation() - StartLocation;
+				TotalDistance = Direction.Size();
+
+				UE_LOG(LogTemp, Warning, TEXT("Distance = %f"), TotalDistance);
+
+				Direction = Direction.GetSafeNormal();
+
 				UE_LOG(LogTemp, Warning, TEXT("cURRENT DIS %f"), CurrentDistance);
 			}
 			else
@@ -106,6 +115,25 @@ void ACPPBall::Tick(float DeltaTime)
 		}
 	}
 
+}
+void ACPPBall::MoveHookedBall(class AStealCharacter* TargetPlayer)
+{
+	Target = TargetPlayer;
+	if (Target != nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Bla bla bla"));
+		StartLocation = GetActorLocation();
+		Direction = Target->GetActorLocation() - StartLocation;
+		TotalDistance = Direction.Size();
+
+		UE_LOG(LogTemp, Warning, TEXT("Distance = %f"), TotalDistance);
+
+		Direction = Direction.GetSafeNormal();
+		CurrentDistance = 0.0f;
+
+		bMove = true;
+
+	}
 }
 
 void ACPPBall::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -181,25 +209,7 @@ void ACPPBall::OnReleased()
 	UE_LOG(LogTemp, Warning, TEXT("???"));
 }
 
-void ACPPBall::MoveHookedBall(class AStealCharacter* TargetPlayer)
-{
-	Target = TargetPlayer;
-	if (Target != nullptr)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Bla bla bla"));
-		StartLocation = GetActorLocation();
-		Direction = Target->GetActorLocation() - StartLocation;
-		TotalDistance = Direction.Size();
 
-		UE_LOG(LogTemp, Warning, TEXT("Distance = %f"), TotalDistance);
-
-		Direction = Direction.GetSafeNormal();
-		CurrentDistance = 0.0f;
-
-		bMove = true;
-
-	}
-}
 
 void ACPPBall::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	FVector NormalImpulse, const FHitResult& Hit)
