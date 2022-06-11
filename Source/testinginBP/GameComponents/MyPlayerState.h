@@ -43,13 +43,16 @@ private:
 
 	UPROPERTY(ReplicatedUsing = OnRep_Defeats)
 	int32 Defeats;
-//
-//	UPROPERTY(VisibleAnywhere)
-//		class UCombatComponent* combat;
-//	UPROPERTY(Replicated)
-//	ETeam Team = ETeam::ET_NoTeam;
-//
-//public:
-//	FORCEINLINE ETeam GetTeam() const { return Team; }
-//	FORCEINLINE void SetTeam(ETeam TeamToSet) { Team = TeamToSet; }
+	class UCombatComponent* combat;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Team)
+	ETeam Team = ETeam::ET_NoTeam;
+
+	UFUNCTION()
+	void OnRep_Team();
+
+public:
+	
+	FORCEINLINE ETeam GetTeam() const { return Team; }
+	 void SetTeam(ETeam TeamToSet); 
 };

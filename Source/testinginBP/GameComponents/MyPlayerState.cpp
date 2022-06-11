@@ -12,6 +12,8 @@ void AMyPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AMyPlayerState, Defeats);
+	DOREPLIFETIME(AMyPlayerState, Team);
+
 
 }
 void AMyPlayerState::AddToScore(float ScoreAmount)
@@ -72,3 +74,12 @@ void AMyPlayerState::OnRep_Defeats()
 		}
 	}
 }
+void AMyPlayerState::OnRep_Team()
+{
+
+}
+
+void AMyPlayerState::SetTeam(ETeam TeamToSet)
+{
+}
+
