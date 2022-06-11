@@ -29,6 +29,8 @@ public:
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* SpecialAbilityAnimation;
 
+	AHook* SpawnHook;
+
 protected:
 	virtual void BeginPlay() override;
 

@@ -85,9 +85,6 @@ void ACPPBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-
-	
-
 	if (bMove)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Moving"));

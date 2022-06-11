@@ -303,10 +303,14 @@ void ACPPTestCharacter::Dash()
 		if (bCanDash && CanJump() && IsAllowedToMove() && GetCharacterMovement()->IsMovingOnGround()) {
 
 			GetCharacterMovement()->FallingLateralFriction = 3;
-			const FVector ForwardVector = GetMovementComponent()->GetLastInputVector();
-			LaunchCharacter(ForwardVector * DashDistance, true, true);
-			
+			if (GetMovementComponent()->GetLastInputVector() != FVector::ZeroVector)
+			{
+				const FVector ForwardVector = GetMovementComponent()->GetLastInputVector();
+				LaunchCharacter(ForwardVector * DashDistance, true, true);
 
+			}
+			else
+				LaunchCharacter(GetActorForwardVector() * DashDistance, true, true);
 			/*if (DashAnim)
 			{
 				MulticastPlayAnimMontage(DashAnim, 1, NAME_None);
@@ -355,8 +359,13 @@ void ACPPTestCharacter::DashButtonPressed_Implementation(FVector DashDir)
 		MulticastPlayNiagara(DashFX, true);
 		
 		GetCharacterMovement()->FallingLateralFriction = 3;
-			
-		LaunchCharacter(DashDir * DashDistance, true, true);
+		if (DashDir != FVector::ZeroVector)
+		{
+			LaunchCharacter(DashDir * DashDistance, true, true);
+
+		}
+		else
+			LaunchCharacter(GetActorForwardVector() * DashDistance, true, true);
 		
 
 		bCanDash = false;
