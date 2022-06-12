@@ -149,20 +149,26 @@ void ACPPBall::OnRep_BallState()
 	{
 	case EBallState::EBS_Equipped:
 		ShowPickupWidget(false);
+		ServerPlayNiagara(TrailFX, false);
+		ServerPlayNiagara(SuperBallFX, false);
 		MulticastPlayNiagara_Implementation(TrailFX, false);
 		MulticastPlayNiagara_Implementation(SuperBallFX, false);
 		break;
 
 	case EBallState::EBS_Dropped:
 		ShowPickupWidget(true);
+		ServerPlayNiagara(TrailFX, true);
 		MulticastPlayNiagara_Implementation(TrailFX, true);
 		//AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	case EBallState::EBS_SuperThrow:
 		MulticastPlayNiagara_Implementation(TrailFX, true);
 		ServerPlayNiagara(SuperBallFX, true);
+		ServerPlayNiagara(TrailFX, true);
 		MulticastPlayNiagara_Implementation(SuperBallFX, true);
 	default:
+		ServerPlayNiagara(TrailFX, false);
+		ServerPlayNiagara(SuperBallFX, false);
 		MulticastPlayNiagara_Implementation(TrailFX, false);
 		MulticastPlayNiagara_Implementation(SuperBallFX, false);
 		break;
@@ -176,6 +182,8 @@ void ACPPBall::SetBallState(EBallState state)
 	{
 	case EBallState::EBS_Equipped:
 		ShowPickupWidget(false);
+		ServerPlayNiagara(TrailFX, false);
+		ServerPlayNiagara(SuperBallFX, false);
 		MulticastPlayNiagara_Implementation(TrailFX, false);
 		MulticastPlayNiagara_Implementation(SuperBallFX, false);
 		//AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -183,16 +191,20 @@ void ACPPBall::SetBallState(EBallState state)
 
 	case EBallState::EBS_Dropped:
 		ShowPickupWidget(true);
+		ServerPlayNiagara(TrailFX, true);
 		MulticastPlayNiagara_Implementation(TrailFX, true);
 		//AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	case EBallState::EBS_SuperThrow:
 		MulticastPlayNiagara_Implementation(TrailFX, true);
 		ServerPlayNiagara(SuperBallFX, true);
+		ServerPlayNiagara(TrailFX, true);
 		MulticastPlayNiagara_Implementation(SuperBallFX, true);
 		//AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	default:
+		ServerPlayNiagara(TrailFX, false);
+		ServerPlayNiagara(SuperBallFX, false);
 		MulticastPlayNiagara_Implementation(TrailFX, false);
 		MulticastPlayNiagara_Implementation(SuperBallFX, false);
 		break;

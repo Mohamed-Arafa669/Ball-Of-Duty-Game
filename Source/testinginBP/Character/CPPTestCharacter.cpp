@@ -44,9 +44,7 @@ ACPPTestCharacter::ACPPTestCharacter()
 	cameraBoom->SetupAttachment(GetMesh());
 	cameraBoom->TargetArmLength = 500.0f;
 
-	cameraBoom->SetRelativeRotation(FRotator(0, 90, 0));
-	cameraBoom->SetRelativeLocation(FVector(0.f, 0.f, 200.f));
-	cameraBoom->bUsePawnControlRotation = true;
+	
 
 	followCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Follow Camera"));
 	followCamera->SetupAttachment(cameraBoom, USpringArmComponent::SocketName);

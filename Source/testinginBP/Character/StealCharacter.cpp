@@ -18,6 +18,9 @@ AStealCharacter::AStealCharacter()
 
 	CoolDownTime = 1.0f;
 
+	cameraBoom->SetRelativeRotation(FRotator(0, 90, 0));
+	cameraBoom->SetRelativeLocation(FVector(0.f, 0.f, 300.f));
+	cameraBoom->bUsePawnControlRotation = true;
 }
 
 void AStealCharacter::BeginPlay()
@@ -26,10 +29,6 @@ void AStealCharacter::BeginPlay()
 	bHook = true;
 }
 
-void AStealCharacter::LockTarget()
-{
-	
-}
 
 void AStealCharacter::LockTargetAbility()
 {

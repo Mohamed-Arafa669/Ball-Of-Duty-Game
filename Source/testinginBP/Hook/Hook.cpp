@@ -64,7 +64,8 @@ AHook::AHook()
 void AHook::BeginPlay()
 {
 	Super::BeginPlay();
-	NiagaraComponent->Activate(true);
+	ServerPlayNiagara(NiagaraComponent, true);
+	MulticastPlayNiagara(NiagaraComponent, true);
 }
 
 void AHook::Destroyed()
@@ -73,7 +74,8 @@ void AHook::Destroyed()
 	UGameplayStatics::SpawnEmitterAtLocation(this, ExplosionEffect, spawnLocation, FRotator::ZeroRotator, true, EPSCPoolMethod::AutoRelease);
 	//Effect->ActivateSystem(true);
 	//UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, Effect, spawnLocation);
-	NiagaraComponent->Deactivate();
+	//NiagaraComponent->Deactivate();
+	ServerPlayNiagara(NiagaraComponent, false);
 }
 
 void AHook::OnProjectileImpact(UPrimitiveComponent* HitComponent, AActor* OtherActor, 
@@ -97,5 +99,32 @@ void AHook::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AHook::MulticastPlayNiagara_Implementation(UNiagaraComponent* fx, bool state)
+{
+	if (!state)
+	{
+		fx->Deactivate();
+	}
+	else
+	{
+		fx->Activate(state);
+	}
+}
+
+bool AHook::MulticastPlayNiagara_Validate(UNiagaraComponent* fx, bool state)
+{
+	return true;
+}
+
+void AHook::ServerPlayNiagara_Implementation(UNiagaraComponent* fx, bool state)
+{
+	MulticastPlayNiagara(fx, state);
+}
+
+bool AHook::ServerPlayNiagara_Validate(UNiagaraComponent* fx, bool state)
+{
+	return true;
 }
 

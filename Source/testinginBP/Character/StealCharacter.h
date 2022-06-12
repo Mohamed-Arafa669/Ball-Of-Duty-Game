@@ -33,7 +33,6 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void LockTarget() override;
 
 	void LockTargetAbility();
 	void DoAbility();
