@@ -39,6 +39,8 @@ ACPPTestCharacter::ACPPTestCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	//TODO Stop Throw Before respawn
+
 	CharacterMesh = GetMesh();
 
 	cameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
