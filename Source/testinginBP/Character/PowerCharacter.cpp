@@ -2,6 +2,7 @@
 
 #include "PowerCharacter.h"
 #include "Components/SceneComponent.h"
+#include "testinginBP/HUD/GameHUD.h"
 #include "Net/UnrealNetwork.h"
 #include "CPPTestCharacter.h"
 #include "DrawDebugHelpers.h"
@@ -46,6 +47,9 @@ void APowerCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	bSmash = false;
+
+	CreateHUD();
+
 }
 
 void APowerCharacter::AbilityCooldown()
@@ -197,5 +201,16 @@ void APowerCharacter::Server_DoAbility_Implementation()
 
 	AbilityDelayTimer();
 
+}
+
+void APowerCharacter::CreateHUD()
+{
+	GameHUD = GameHUD == nullptr ? Cast<AGameHUD>(GetWorld()->GetFirstPlayerController()->GetHUD()) : GameHUD;
+	if (GameHUD)
+	{
+		//GameHUD->AddCrimsonProfiler();
+		GameHUD->AddMelodyProfiler();
+
+	}
 }
 

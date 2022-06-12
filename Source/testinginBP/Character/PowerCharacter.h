@@ -28,6 +28,12 @@ public:
 
 	FORCEINLINE bool IsSuperBall() const { return bSuperBall; }
 
+	/*UPROPERTY()
+		AGameHUD* GameHUD;*/
+
+	UFUNCTION()
+		void CreateHUD();
+
 protected:
 	virtual void BeginPlay() override;
 

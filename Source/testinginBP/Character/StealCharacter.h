@@ -31,6 +31,12 @@ public:
 
 	AHook* SpawnHook;
 
+	/*UPROPERTY()
+		AGameHUD* GameHUD;*/
+
+	UFUNCTION()
+		void CreateHUD();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void LockTarget() override;
