@@ -15,6 +15,10 @@ APowerCharacter::APowerCharacter()
 
 	PowerAbilityFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("PowerAbilityFX"));
 	PowerAbilityFX->SetupAttachment(GetMesh());
+
+	cameraBoom->SetRelativeRotation(FRotator(0, 90, 0));
+	cameraBoom->SetRelativeLocation(FVector(0.f, 0.f, 200.f));
+	cameraBoom->bUsePawnControlRotation = true;
 }
 
 void APowerCharacter::Tick(float DeltaTime)
