@@ -32,11 +32,14 @@
 #include "testinginBP/GameComponents/MyPlayerState.h"
 #include "testinginBP/GameMode/MyGameMode.h"
 
+
 #include "TimerManager.h"
 
 ACPPTestCharacter::ACPPTestCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	//TODO Stop Throw Before respawn
 
 	CharacterMesh = GetMesh();
 
@@ -44,9 +47,7 @@ ACPPTestCharacter::ACPPTestCharacter()
 	cameraBoom->SetupAttachment(GetMesh());
 	cameraBoom->TargetArmLength = 500.0f;
 
-	cameraBoom->SetRelativeRotation(FRotator(0, 90, 0));
-	cameraBoom->SetRelativeLocation(FVector(0.f, 0.f, 200.f));
-	cameraBoom->bUsePawnControlRotation = true;
+	
 
 	followCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Follow Camera"));
 	followCamera->SetupAttachment(cameraBoom, USpringArmComponent::SocketName);
@@ -65,6 +66,9 @@ ACPPTestCharacter::ACPPTestCharacter()
 
 	targetComponent = CreateDefaultSubobject<UTargetingHelperComponent>(TEXT("targetComponent"));
 	targetComponent->SetIsReplicated(true);
+
+	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
+	NiagaraComponent->SetupAttachment(RootComponent);
 
 	combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	combat->SetIsReplicated(true);
@@ -139,6 +143,9 @@ void ACPPTestCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	UpdateHUDHealth();
+
+	NiagaraComponent->Deactivate();
+
 	if (HasAuthority()) {
 		GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
 		CPPPlayerController = Cast<ACPPPlayerController>(Controller);
@@ -740,6 +747,8 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 			BallHit->GetBallState() == EBallState::EBS_SuperThrow) && BallHit->GetOwner() != this)
 		{
 			if (!bIsSpawnInvincible) {
+
+				NiagaraComponent->Activate(true);
 
 				FDamageEvent GotHitEvent;
 				AController* ballOwnerController = BallHit->GetInstigatorController();

@@ -28,8 +28,8 @@ public:
 		class UProjectileMovementComponent* ProjectileMovementComponent;
 
 	// Particle used when the projectile impacts against another object and explodes.
-	UPROPERTY(EditAnywhere, Category = "Effects")
-		class UParticleSystem* ExplosionEffect;
+	//UPROPERTY(EditAnywhere, Category = "Effects")
+	//	class UNiagaraSystem* ExplosionEffect;
 
 	UPROPERTY(EditAnywhere, Category = "Effects")
 	class UNiagaraComponent* NiagaraComponent;
@@ -49,4 +49,12 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void DestroyHook();
+
+
+	UFUNCTION(Server, Reliable, WithValidation, Category = Effects)
+		void ServerPlayNiagara(UNiagaraComponent* fx, bool state);
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Effects)
+		void MulticastPlayNiagara(UNiagaraComponent* fx, bool state);
 };

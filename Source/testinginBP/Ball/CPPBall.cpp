@@ -103,6 +103,15 @@ void ACPPBall::Tick(float DeltaTime)
 				Location += Direction * Speed * DeltaTime;
 				SetActorLocation(Location);
 				CurrentDistance = (Location - StartLocation).Size();
+
+				StartLocation = GetActorLocation();
+				Direction = Target->GetActorLocation() - StartLocation;
+				TotalDistance = Direction.Size();
+
+				UE_LOG(LogTemp, Warning, TEXT("Distance = %f"), TotalDistance);
+
+				Direction = Direction.GetSafeNormal();
+
 				UE_LOG(LogTemp, Warning, TEXT("cURRENT DIS %f"), CurrentDistance);
 			}
 			else
@@ -110,6 +119,25 @@ void ACPPBall::Tick(float DeltaTime)
 		}
 	}
 
+}
+void ACPPBall::MoveHookedBall(class AStealCharacter* TargetPlayer)
+{
+	Target = TargetPlayer;
+	if (Target != nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Bla bla bla"));
+		StartLocation = GetActorLocation();
+		Direction = Target->GetActorLocation() - StartLocation;
+		TotalDistance = Direction.Size();
+
+		UE_LOG(LogTemp, Warning, TEXT("Distance = %f"), TotalDistance);
+
+		Direction = Direction.GetSafeNormal();
+		CurrentDistance = 0.0f;
+
+		bMove = true;
+
+	}
 }
 
 void ACPPBall::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -149,20 +177,26 @@ void ACPPBall::OnRep_BallState()
 	{
 	case EBallState::EBS_Equipped:
 		ShowPickupWidget(false);
+		ServerPlayNiagara(TrailFX, false);
+		ServerPlayNiagara(SuperBallFX, false);
 		MulticastPlayNiagara_Implementation(TrailFX, false);
 		MulticastPlayNiagara_Implementation(SuperBallFX, false);
 		break;
 
 	case EBallState::EBS_Dropped:
 		ShowPickupWidget(true);
+		ServerPlayNiagara(TrailFX, true);
 		MulticastPlayNiagara_Implementation(TrailFX, true);
 		//AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	case EBallState::EBS_SuperThrow:
 		MulticastPlayNiagara_Implementation(TrailFX, true);
 		ServerPlayNiagara(SuperBallFX, true);
+		ServerPlayNiagara(TrailFX, true);
 		MulticastPlayNiagara_Implementation(SuperBallFX, true);
 	default:
+		ServerPlayNiagara(TrailFX, false);
+		ServerPlayNiagara(SuperBallFX, false);
 		MulticastPlayNiagara_Implementation(TrailFX, false);
 		MulticastPlayNiagara_Implementation(SuperBallFX, false);
 		break;
@@ -176,6 +210,8 @@ void ACPPBall::SetBallState(EBallState state)
 	{
 	case EBallState::EBS_Equipped:
 		ShowPickupWidget(false);
+		ServerPlayNiagara(TrailFX, false);
+		ServerPlayNiagara(SuperBallFX, false);
 		MulticastPlayNiagara_Implementation(TrailFX, false);
 		MulticastPlayNiagara_Implementation(SuperBallFX, false);
 		//AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -183,16 +219,20 @@ void ACPPBall::SetBallState(EBallState state)
 
 	case EBallState::EBS_Dropped:
 		ShowPickupWidget(true);
+		ServerPlayNiagara(TrailFX, true);
 		MulticastPlayNiagara_Implementation(TrailFX, true);
 		//AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	case EBallState::EBS_SuperThrow:
 		MulticastPlayNiagara_Implementation(TrailFX, true);
 		ServerPlayNiagara(SuperBallFX, true);
+		ServerPlayNiagara(TrailFX, true);
 		MulticastPlayNiagara_Implementation(SuperBallFX, true);
 		//AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		break;
 	default:
+		ServerPlayNiagara(TrailFX, false);
+		ServerPlayNiagara(SuperBallFX, false);
 		MulticastPlayNiagara_Implementation(TrailFX, false);
 		MulticastPlayNiagara_Implementation(SuperBallFX, false);
 		break;
@@ -205,25 +245,7 @@ void ACPPBall::OnReleased()
 	UE_LOG(LogTemp, Warning, TEXT("???"));
 }
 
-void ACPPBall::MoveHookedBall(class AStealCharacter* TargetPlayer)
-{
-	Target = TargetPlayer;
-	if (Target != nullptr)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Bla bla bla"));
-		StartLocation = GetActorLocation();
-		Direction = Target->GetActorLocation() - StartLocation;
-		TotalDistance = Direction.Size();
 
-		UE_LOG(LogTemp, Warning, TEXT("Distance = %f"), TotalDistance);
-
-		Direction = Direction.GetSafeNormal();
-		CurrentDistance = 0.0f;
-
-		bMove = true;
-
-	}
-}
 
 void ACPPBall::ServerPlayNiagara_Implementation(UNiagaraComponent* fx, bool state)
 {

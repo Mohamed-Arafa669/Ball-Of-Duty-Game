@@ -40,7 +40,7 @@ AHook::AHook()
 	NiagaraComponent->SetupAttachment(RootComponent);
 
 	//Definition for the Projectile Particle System.
-	//ExplosionEffect = CreateDefaultSubobject<UParticleSystem>(TEXT("ExplosionEffect"));
+	//ExplosionEffect = CreateDefaultSubobject<UNiagaraSystem>(TEXT("ExplosionEffect"));
 
 	//Effect = CreateDefaultSubobject<UNiagaraSystem>(TEXT("NiagaraSystem"));
 	//Effect->ActivateSystem(false);
@@ -64,16 +64,18 @@ AHook::AHook()
 void AHook::BeginPlay()
 {
 	Super::BeginPlay();
-	NiagaraComponent->Activate(true);
+	ServerPlayNiagara(NiagaraComponent, true);
+	MulticastPlayNiagara(NiagaraComponent, true);
 }
 
 void AHook::Destroyed()
 {
-	FVector spawnLocation = GetActorLocation();
-	UGameplayStatics::SpawnEmitterAtLocation(this, ExplosionEffect, spawnLocation, FRotator::ZeroRotator, true, EPSCPoolMethod::AutoRelease);
+	//FVector spawnLocation = GetActorLocation();
+	//UGameplayStatics::SpawnEmitterAtLocation(this, ExplosionEffect, spawnLocation, FRotator::ZeroRotator, true, EPSCPoolMethod::AutoRelease);
 	//Effect->ActivateSystem(true);
 	//UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, Effect, spawnLocation);
-	NiagaraComponent->Deactivate();
+	//NiagaraComponent->Deactivate();
+	ServerPlayNiagara(NiagaraComponent, false);
 }
 
 void AHook::OnProjectileImpact(UPrimitiveComponent* HitComponent, AActor* OtherActor, 
@@ -88,7 +90,8 @@ void AHook::OnProjectileImpact(UPrimitiveComponent* HitComponent, AActor* OtherA
 		StaticMesh->AddForce(GetActorLocation() - GetActorForwardVector() * 40000.0f);*/
 		
 	}
-
+	FTimerHandle ClearHandle;
+	GetWorld()->GetTimerManager().SetTimer(ClearHandle, this, &AHook::DestroyHook, 0.5f);
 	//Destroy();
 }
 
@@ -97,5 +100,36 @@ void AHook::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AHook::DestroyHook()
+{
+	Destroy();
+}
+void AHook::MulticastPlayNiagara_Implementation(UNiagaraComponent* fx, bool state)
+{
+	if (!state)
+	{
+		fx->Deactivate();
+	}
+	else
+	{
+		fx->Activate(state);
+	}
+}
+
+bool AHook::MulticastPlayNiagara_Validate(UNiagaraComponent* fx, bool state)
+{
+	return true;
+}
+
+void AHook::ServerPlayNiagara_Implementation(UNiagaraComponent* fx, bool state)
+{
+	MulticastPlayNiagara(fx, state);
+}
+
+bool AHook::ServerPlayNiagara_Validate(UNiagaraComponent* fx, bool state)
+{
+	return true;
 }
 
