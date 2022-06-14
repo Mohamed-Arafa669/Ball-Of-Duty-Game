@@ -326,6 +326,9 @@ public:
 	UNiagaraComponent* DashFX;
 
 	UPROPERTY(EditAnywhere)
+		UNiagaraComponent* LockFX;
+
+	UPROPERTY(EditAnywhere)
 	UNiagaraComponent* AbilityFX;
 
 	UPROPERTY(VisibleAnywhere, Category = Shaders)

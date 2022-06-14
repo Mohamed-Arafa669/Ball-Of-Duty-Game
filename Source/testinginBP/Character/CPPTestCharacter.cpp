@@ -55,6 +55,9 @@ ACPPTestCharacter::ACPPTestCharacter()
 	DashFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DashFX"));
 	DashFX->SetupAttachment(GetMesh());
 
+	LockFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LockFX"));
+	LockFX->SetupAttachment(GetMesh());
+
 	/*AbilityFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("AbilityFX"));
 	AbilityFX->SetupAttachment(GetMesh());*/
 
@@ -303,6 +306,8 @@ void ACPPTestCharacter::LockTarget()
 {
 	bIsTargeting = true;
 	lockOnTargets->EnableTargeting();
+
+
 }
 
 void ACPPTestCharacter::Dash()
@@ -452,18 +457,42 @@ void ACPPTestCharacter::ClientRespawnCountDown_Implementation(float seconds)
 #pragma region ThrowMechanics
 void ACPPTestCharacter::ThrowButtonPressed()
 {
-	if(IsBallEquipped())
+	if (HasAuthority())
 	{
-		
-		LockTarget();
+		if (IsBallEquipped())
+		{
+
+			LockTarget();
+
+			if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Target %s"), *TargetPlayer->GetFName().ToString());
+				TargetPlayer->MulticastPlayNiagara(TargetPlayer->LockFX, true);
+				TargetPlayer->ServerPlayNiagara(TargetPlayer->LockFX, true);
+			}
+			
+		}
 	}
+	else
+		ServerThrowButtonPressed();
 }
 
 
 void ACPPTestCharacter::ServerThrowButtonPressed_Implementation()
+{
+	if (IsBallEquipped())
 	{
-		
+		LockTarget();
+
+		if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
+		{
+			UE_LOG(LogTemp, Warning, TEXT("TargetServer %s"), *TargetPlayer->GetFName().ToString());
+
+			TargetPlayer->MulticastPlayNiagara(TargetPlayer->LockFX, true);
+			TargetPlayer->ServerPlayNiagara(TargetPlayer->LockFX, true);
+		}
 	}
+}
 
 void ACPPTestCharacter::ThrowButtonReleased()
 {
