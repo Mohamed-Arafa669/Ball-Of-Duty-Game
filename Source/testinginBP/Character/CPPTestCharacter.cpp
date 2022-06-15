@@ -14,23 +14,16 @@
 #include "testinginBP\Character\CPPAnimInstance.h"
 #include "Kismet//KismetMathLibrary.h"
 #include "LockOnTargetComponent.h"
-#include "Camera/PlayerCameraManager.h"
-#include "LockOnSubobjects/RotationModes/RotationModeBase.h"
 #include "LockOnSubobjects/TargetHandlers/TargetHandlerBase.h"
 #include "TargetingHelperComponent.h"
-#include "../../LockOnTarget/Source/LockOnTarget/Public/LockOnTargetComponent.h"
-#include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
-#include "testinginBP/GameMode/MyCPPGameModeBase.h"
 #include "Engine/Engine.h"
 #include "GameFramework/Character.h"
-#include "GameFramework/GameModeBase.h"
-#include "testinginBP/PlayerController/CPPPlayerController.h"
-#include "PowerCharacter.h"
 #include "testinginBP/PlayerController/CPPPlayerController.h"
 #include "testinginBP/GameComponents/MyPlayerState.h"
 #include "testinginBP/GameMode/MyGameMode.h"
+
 
 #include "TimerManager.h"
 
@@ -138,7 +131,7 @@ void ACPPTestCharacter::BeginPlay()
 	Super::BeginPlay();
 	UpdateHUDHealth();
 	if (HasAuthority()) {
-		GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
+		CharacterMesh->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
 		CPPPlayerController = Cast<ACPPPlayerController>(Controller);
 
 	}
@@ -180,6 +173,7 @@ void ACPPTestCharacter::Tick(float DeltaTime)
 	if (bIsTargeting && lockOnTargets->bCanCaptureTarget)
 	{
 		lockOnTargets->FindTarget();
+		
 	}
 
 }
@@ -727,49 +721,49 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 	if (ACPPBall* BallHit = Cast<ACPPBall>(OtherActor))
 	{
 
-		if (bCatching && combat && !IsBallEquipped() || bSteal)
+		//if (bCatching && combat && !IsBallEquipped() || bSteal)
+		//{
+		//	combat->EquipBall(BallHit);
+		//	bCanThrow = true;
+		//	bSteal = false;
+		//}
+
+		//else if ((BallHit->GetBallState() == EBallState::EBS_Dropped ||
+		//	BallHit->GetBallState() == EBallState::EBS_SuperThrow) && BallHit->GetOwner() != this)
+		//{
+		//	if (!bIsSpawnInvincible) {
+
+		//		FDamageEvent GotHitEvent;
+		//		AController* ballOwnerController = BallHit->GetInstigatorController();
+		//		ballHitDirection = ballOwnerController->GetCharacter()->GetActorForwardVector();
+		//		
+		//		if (BallHit->GetBallState() == EBallState::EBS_SuperThrow)
+		//		{
+		//			Knocked(ballHitDirection, false);
+		//			UGameplayStatics::ApplyDamage(this, 100.f, ballOwnerController, BallHit, NULL);
+		//			
+		//		}
+		//		else
+		//		{
+		//			UGameplayStatics::ApplyDamage(this, 50.f, ballOwnerController, BallHit, NULL);
+		//		}
+		//		
+		//		if (CurrentHealth > 0 && GetHitAnim) {
+		//			MulticastPlayAnimMontage(GetHitAnim, 1, NAME_None);
+		//		}
+		//	}
+		//	//this->TakeDamage(50.f, GotHitEvent, BallHit->GetInstigatorController(), BallHit);
+		//	BallHit->SetBallState(EBallState::EBS_Initial);
+		//	//TODO : Make A reset function for owner and instigator
+		//	BallHit->SetOwner(nullptr);
+		//	BallHit->SetInstigator(nullptr);
+
+
+		//}
+		/*if (BallHit->GetBallState() == EBallState::EBS_Initial && combat && !IsBallEquipped())
 		{
 			combat->EquipBall(BallHit);
-			bCanThrow = true;
-			bSteal = false;
-		}
-
-		else if ((BallHit->GetBallState() == EBallState::EBS_Dropped ||
-			BallHit->GetBallState() == EBallState::EBS_SuperThrow) && BallHit->GetOwner() != this)
-		{
-			if (!bIsSpawnInvincible) {
-
-				FDamageEvent GotHitEvent;
-				AController* ballOwnerController = BallHit->GetInstigatorController();
-				ballHitDirection = ballOwnerController->GetCharacter()->GetActorForwardVector();
-				
-				if (BallHit->GetBallState() == EBallState::EBS_SuperThrow)
-				{
-					Knocked(ballHitDirection, false);
-					UGameplayStatics::ApplyDamage(this, 100.f, ballOwnerController, BallHit, NULL);
-					
-				}
-				else
-				{
-					UGameplayStatics::ApplyDamage(this, 50.f, ballOwnerController, BallHit, NULL);
-				}
-				
-				if (CurrentHealth > 0 && GetHitAnim) {
-					MulticastPlayAnimMontage(GetHitAnim, 1, NAME_None);
-				}
-			}
-			//this->TakeDamage(50.f, GotHitEvent, BallHit->GetInstigatorController(), BallHit);
-			BallHit->SetBallState(EBallState::EBS_Initial);
-			//TODO : Make A reset function for owner and instigator
-			BallHit->SetOwner(nullptr);
-			BallHit->SetInstigator(nullptr);
-
-
-		}
-		else if (BallHit->GetBallState() == EBallState::EBS_Initial && combat && !IsBallEquipped())
-		{
-			combat->EquipBall(BallHit);
-		}
+		}*/
 	}
 }
 
@@ -790,20 +784,33 @@ void ACPPTestCharacter::MyThrow()
 		}
 		bThrown = true;
 		//combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
-		combat->equippedBall->GetAreaSphere()->SetSimulatePhysics(true);
+		//combat->equippedBall->GetAreaSphere()->SetSimulatePhysics(true);
 		
 
 		if (lockOnTargets->GetTarget())
 		{
+			
 		//combat->equippedBall->GetBallMesh()->AddForce((((lockOnTargets->GetTarget()->GetTargetLocation()) - (GetActorLocation())) + GetActorUpVector()) * throwPower * 25);
-		combat->equippedBall->GetAreaSphere()->AddForce((((lockOnTargets->GetTarget()->GetTargetLocation()) - (GetActorLocation())) + GetActorUpVector()) * throwPower * 25);
-
+		//combat->equippedBall->GetAreaSphere()->AddForce((((lockOnTargets->GetTarget()->GetTargetLocation()) - (GetActorLocation())) + GetActorUpVector()) * throwPower * 25);
+			//combat->equippedBall->ProjectileMovementComponent->AddForce((lockOnTargets->GetTarget()->GetTargetLocation() - GetActorLocation()) + GetActorForwardVector() * throwPower * 25);
+			//combat->equippedBall->ProjectileMovementComponent->bIsHomingProjectile = true;
+			//combat->equippedBall->ProjectileMovementComponent->HomingTargetComponent();
+			//combat->equippedBall->ProjectileMovementComponent->Velocity += TargetDir * 200 * GetWorld()->GetDeltaSeconds();
+			
+			
+			combat->equippedBall->ProjectileMovementComponent->bIsHomingProjectile = true;
+		/*	FVector TargetDir = (lockOnTargets->GetTarget()->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+			TargetDir += lockOnTargets->GetTarget()->GetVelocity() * TargetDir.Size() / 200;
+			combat->equippedBall->ProjectileMovementComponent->Velocity += TargetDir * 200 * GetWorld()->GetTimeSeconds();
+			combat->equippedBall->ProjectileMovementComponent->Velocity = combat->equippedBall->ProjectileMovementComponent->Velocity.GetSafeNormal() * 200;*/
+			combat->equippedBall->ProjectileMovementComponent->HomingTargetComponent = lockOnTargets->GetTarget()->GetRootComponent();
 		}
 		else
 		{
 		//combat->equippedBall->GetBallMesh()->AddForce((GetActorForwardVector() + GetActorUpVector()) * throwPower * 2500);
-		combat->equippedBall->GetAreaSphere()->AddForce((GetActorForwardVector() + GetActorUpVector()) * throwPower * 2500);
-
+		//combat->equippedBall->GetAreaSphere()->AddForce((GetActorForwardVector() + GetActorUpVector()) * throwPower * 2500);
+			//combat->equippedBall->ProjectileMovementComponent->Activate(true);
+			combat->equippedBall->ProjectileMovementComponent->Velocity = GetActorForwardVector() * throwPower;
 		}
 		bEquipped = false;
 		combat->equippedBall->AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);

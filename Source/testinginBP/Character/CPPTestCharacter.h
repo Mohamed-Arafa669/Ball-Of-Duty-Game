@@ -27,6 +27,16 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void Jump() override;;
 
+	UPROPERTY(Replicated)
+		bool bKnocked;
+
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth, EditDefaultsOnly, Category = "Health")
+		float MaxHealth = 100.f;
+
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth, VisibleAnywhere, Category = "Health")
+		float CurrentHealth;
+
+
 	void Knocked(FVector ImpulseDirection, bool bPlayerLeftGame);
 
 	virtual void LockTarget();
@@ -99,8 +109,7 @@ protected:
 	// Poll for any relivant classes and inits the HUD
 	void PollInit();
 
-	UPROPERTY(Replicated)
-	bool bKnocked;
+	
 
 	UPROPERTY(EditAnywhere)
 	float DashCoolDownDuration = 0.7f;
@@ -112,11 +121,7 @@ protected:
 	USkeletalMeshComponent* CharacterMesh;
 
 
-	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth, EditDefaultsOnly, Category = "Health")
-		float MaxHealth = 100.f;
 
-	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth , VisibleAnywhere , Category = "Health")
-		float CurrentHealth;
 
 private:
 
@@ -130,8 +135,7 @@ private:
 		class UAnimMontage* DashAnim;
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* CatchAnim;
-	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
-		class UAnimMontage* GetHitAnim;
+	
 
 	UPROPERTY(ReplicatedUsing = OnRep_OverlappingBall) //Replication
 		class ACPPBall* overlappingBall;
@@ -173,6 +177,9 @@ private:
 			bool bFromSweep, const FHitResult& SweepResult);
 
 public:
+
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* GetHitAnim;
 
 	UFUNCTION(Server, Reliable, WithValidation, Category = Animation)
 		void ServerPlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);

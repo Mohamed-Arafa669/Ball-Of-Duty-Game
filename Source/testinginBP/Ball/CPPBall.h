@@ -14,6 +14,7 @@ enum class EBallState : uint8
 	EBS_Initial	UMETA(DisplayName = "Initial State"),
 	EBS_Equipped	UMETA(DisplayName = "Eqipped"),
 	EBS_SuperThrow	UMETA(DisplayName = "Super Throw"),
+	EBS_SimPhy	UMETA(DisplayName = "Sim Physics"),
 	EBS_Dropped	UMETA(DisplayName = "Dropped"),
 	EBS_MAX	UMETA(DisplayName = "DefaultMax")
 };

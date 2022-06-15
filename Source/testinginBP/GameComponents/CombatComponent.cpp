@@ -86,6 +86,8 @@ void UCombatComponent::EquipBall(class ACPPBall* ballToEquip)
 	equippedBall->SetInstigator(character);
 
 	equippedBall->AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Overlap);
+	//character->GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
+
 	
 
 	
@@ -97,7 +99,7 @@ void UCombatComponent::UnEquipBall(class ACPPBall* BalltoUnequip)
 	if (BalltoUnequip) {
 		BalltoUnequip->GetAreaSphere()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 		BalltoUnequip->SetBallState(EBallState::EBS_Initial);
-		BalltoUnequip->GetAreaSphere()->SetSimulatePhysics(true);
+		//BalltoUnequip->GetAreaSphere()->SetSimulatePhysics(true);
 		BalltoUnequip = nullptr;
 	}
 	
