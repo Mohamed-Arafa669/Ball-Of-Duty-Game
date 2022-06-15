@@ -90,5 +90,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Respawning")
 	float RespawnTime = 3.f;
 
+	UPROPERTY(EditAnywhere, Category = "CharacterSelection")
+	TSubclassOf<class UUserWidget> CharacterSelectionClass;
+
+	UPROPERTY()
+		class UCharacterSelection* CharacterSelection;
+
+
 	FORCEINLINE float GetCountdownTime() const { return CountdownTime; }
 };

@@ -364,6 +364,7 @@ void ACPPPlayerController::HandleMatchHasStarted()
 		if (GameHUD->Announcement)
 		{
 			GameHUD->Announcement->SetVisibility(ESlateVisibility::Hidden);
+			GameHUD->CharacterSelection->CloseWidget();
 		}
 	}
 }
