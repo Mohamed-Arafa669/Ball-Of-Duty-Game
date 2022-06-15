@@ -23,6 +23,9 @@ protected:
 	UFUNCTION()
 		virtual void PowerCharacterBTNPressed();
 
+	UFUNCTION()
+		virtual void ConfirmButtonSelected();
+
 private:
 
 	UPROPERTY(meta = (BindWidget))
@@ -31,14 +34,20 @@ private:
 	UPROPERTY(meta = (BindWidget))
 		class UButton* BTN_PowerCharacter;
 
+	UPROPERTY(meta = (BindWidget))
+		class UButton* BTN_ConfirmCharacterSelect;
+
 	UPROPERTY()
 		uint8 ButtonIndex;
+
 
 public:
 
 	void Setup();
 	void CloseWidget();
 	void CallCharacterSelect();
+
+	bool bConfirmed = true;
 
 
 	

@@ -21,6 +21,9 @@ bool UCharacterSelection::Initialize()
 
 	BTN_PowerCharacter->OnClicked.AddDynamic(this, &UCharacterSelection::PowerCharacterBTNPressed);
 
+	if (!ensure(BTN_ConfirmCharacterSelect != nullptr)) return false;
+
+	BTN_ConfirmCharacterSelect->OnClicked.AddDynamic(this, &UCharacterSelection::ConfirmButtonSelected);
 
 	return true;
 }
@@ -28,19 +31,43 @@ bool UCharacterSelection::Initialize()
 void UCharacterSelection::StealCharacterBTNPressed()
 {
 	ButtonIndex = 1;
-	CallCharacterSelect();
-	CloseWidget();
+
+	if (bConfirmed)
+	{
+		CallCharacterSelect();
+		bConfirmed = false;
+		//BTN_ConfirmCharacterSelect->SetIsEnabled(false);
+		//CloseWidget();
+	}
+	
 }
 
 void UCharacterSelection::PowerCharacterBTNPressed()
 {
 	ButtonIndex = 2;
-	CallCharacterSelect();
-	CloseWidget();
+
+	if (bConfirmed)
+	{
+		CallCharacterSelect();
+		bConfirmed = false;
+	//	BTN_ConfirmCharacterSelect->SetIsEnabled(false);
+	}
+	//CloseWidget();
 
 }
 
 
+
+void UCharacterSelection::ConfirmButtonSelected()
+{
+	 if (bConfirmed == false)
+	 {
+		 BTN_ConfirmCharacterSelect->SetIsEnabled(false);
+		 BTN_PowerCharacter->SetIsEnabled(false);
+		 BTN_StealCharacter->SetIsEnabled(false);
+
+	 }
+}
 
 void UCharacterSelection::Setup()
 {
