@@ -88,7 +88,10 @@ void UCombatComponent::EquipBall(class ACPPBall* ballToEquip)
 	equippedBall->AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Overlap);
 	//character->GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
 
-	
+	equippedBall->AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	equippedBall->AreaSphere->SetSimulatePhysics(false);
+	equippedBall->ProjectileMovementComponent->bIsHomingProjectile = false;
+	equippedBall->ProjectileMovementComponent->Deactivate();
 
 	
 }

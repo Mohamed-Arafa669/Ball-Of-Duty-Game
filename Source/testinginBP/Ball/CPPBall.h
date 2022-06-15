@@ -219,4 +219,13 @@ protected:
 	UFUNCTION()
 		void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 			UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION(Server, Reliable, WithValidation, Category = BallHandling)
+		void ServerBallStateHandle(EBallState bs);
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = BallHandling)
+		void MulticastBallStateHandle(EBallState bs);
+
+	UFUNCTION(Client, Reliable)
+		void ClientBallStateHandle(EBallState bs);
 };

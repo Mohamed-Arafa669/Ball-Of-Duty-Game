@@ -450,24 +450,11 @@ void ACPPTestCharacter::ClientRespawnCountDown_Implementation(float seconds)
 #pragma region ThrowMechanics
 void ACPPTestCharacter::ThrowButtonPressed()
 {
-	if (HasAuthority())
+	if (IsBallEquipped())
 	{
-		if (IsBallEquipped())
-		{
-
-			LockTarget();
-
-			if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Target %s"), *TargetPlayer->GetFName().ToString());
-				TargetPlayer->MulticastPlayNiagara(TargetPlayer->LockFX, true);
-				TargetPlayer->ServerPlayNiagara(TargetPlayer->LockFX, true);
-			}
-			
-		}
+		LockTarget();
 	}
-	else
-		ServerThrowButtonPressed();
+
 }
 
 
@@ -826,27 +813,14 @@ void ACPPTestCharacter::MyThrow()
 
 		if (lockOnTargets->GetTarget())
 		{
-			
-		//combat->equippedBall->GetBallMesh()->AddForce((((lockOnTargets->GetTarget()->GetTargetLocation()) - (GetActorLocation())) + GetActorUpVector()) * throwPower * 25);
-		//combat->equippedBall->GetAreaSphere()->AddForce((((lockOnTargets->GetTarget()->GetTargetLocation()) - (GetActorLocation())) + GetActorUpVector()) * throwPower * 25);
-			//combat->equippedBall->ProjectileMovementComponent->AddForce((lockOnTargets->GetTarget()->GetTargetLocation() - GetActorLocation()) + GetActorForwardVector() * throwPower * 25);
-			//combat->equippedBall->ProjectileMovementComponent->bIsHomingProjectile = true;
-			//combat->equippedBall->ProjectileMovementComponent->HomingTargetComponent();
-			//combat->equippedBall->ProjectileMovementComponent->Velocity += TargetDir * 200 * GetWorld()->GetDeltaSeconds();
-			
-			
+
 			combat->equippedBall->ProjectileMovementComponent->bIsHomingProjectile = true;
-		/*	FVector TargetDir = (lockOnTargets->GetTarget()->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-			TargetDir += lockOnTargets->GetTarget()->GetVelocity() * TargetDir.Size() / 200;
-			combat->equippedBall->ProjectileMovementComponent->Velocity += TargetDir * 200 * GetWorld()->GetTimeSeconds();
-			combat->equippedBall->ProjectileMovementComponent->Velocity = combat->equippedBall->ProjectileMovementComponent->Velocity.GetSafeNormal() * 200;*/
+
 			combat->equippedBall->ProjectileMovementComponent->HomingTargetComponent = lockOnTargets->GetTarget()->GetRootComponent();
 		}
 		else
 		{
-		//combat->equippedBall->GetBallMesh()->AddForce((GetActorForwardVector() + GetActorUpVector()) * throwPower * 2500);
-		//combat->equippedBall->GetAreaSphere()->AddForce((GetActorForwardVector() + GetActorUpVector()) * throwPower * 2500);
-			//combat->equippedBall->ProjectileMovementComponent->Activate(true);
+		
 			combat->equippedBall->ProjectileMovementComponent->Velocity = GetActorForwardVector() * throwPower;
 		}
 		bEquipped = false;
