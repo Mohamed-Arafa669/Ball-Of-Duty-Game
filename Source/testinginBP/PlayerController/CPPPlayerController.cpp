@@ -11,6 +11,7 @@
 #include "testinginBP/GameMode/MyGameMode.h"
 #include "testinginBP/HUD/Announcement.h"
 #include "testinginBP/Character/CPPTestCharacter.h"
+#include "testinginBP/HUD/CharacterSelection.h"
 #include "testinginBP/GameComponents/CombatComponent.h"
 #include "testinginBP/GameState/MyGameState.h"
 #include "testinginBP/GameComponents/MyPlayerState.h"
@@ -21,6 +22,9 @@ void ACPPPlayerController::BeginPlay()
 	Super::BeginPlay();
 
 	GameHUD = Cast<AGameHUD>(GetHUD());
+
+	//GameHUD->AddCharacterSelect();
+	//CreateCharacterSelectMenu();
 
 	ServerCheckMatchState();
 
@@ -429,6 +433,13 @@ void ACPPPlayerController::BroadcastElim(APlayerState* Attacker, APlayerState* V
 	ClientElimAnnouncement(Attacker, Victim);
 }
 
+void ACPPPlayerController::ServerSelectedCharacter_Implementation(uint8 index)
+{
+	CharacterSelectIndex = index;
+
+	ServerRestartPlayer();
+}
+
 void ACPPPlayerController::ClientElimAnnouncement_Implementation(APlayerState* Attacker, APlayerState* Victim)
 {
 	APlayerState* Self = GetPlayerState<APlayerState>();
@@ -461,4 +472,20 @@ void ACPPPlayerController::ClientElimAnnouncement_Implementation(APlayerState* A
 		}
 
 	}
+}
+
+void ACPPPlayerController::CreateCharacterSelectMenu()
+{
+	if (!ensure(CharacterSelectionClass != nullptr))
+	{
+		return;
+	}
+	CharacterSelection = CreateWidget<UCharacterSelection>(this, CharacterSelectionClass);
+
+	if (!ensure(CharacterSelection != nullptr))
+	{
+		return;
+	}
+
+	CharacterSelection->Setup();
 }

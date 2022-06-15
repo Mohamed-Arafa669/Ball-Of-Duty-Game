@@ -68,7 +68,7 @@ protected:
 
 	TSubclassOf<class ACharacter> CurrentPawnToAssign;
 
-	virtual UClass* GetDefaultPawnClassForController_Implementation(AController* InController) override;
+	 virtual UClass* GetDefaultPawnClassForController_Implementation(AController* InController) override;
 
 	virtual void OnMatchStateSet() override;
 

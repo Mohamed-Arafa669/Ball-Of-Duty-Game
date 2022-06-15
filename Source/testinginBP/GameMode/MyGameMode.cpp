@@ -155,6 +155,21 @@ void AMyGameMode::PlayerLeftGame(AMyPlayerState* PlayerLeaving)
 
 UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
 {
+	if (InController)
+	{
+		ACPPPlayerController* Controller = Cast<ACPPPlayerController>(InController);
+
+		if (Controller->CharacterSelectIndex == 1)
+		{
+			return FirstPawn;
+		}
+		else if (Controller->CharacterSelectIndex == 2)
+		{
+			return SecondPawn;
+		}
+	}
+
+
 	if (CurrentPawnToAssign)
 	{
 
