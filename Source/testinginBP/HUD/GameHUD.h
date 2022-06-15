@@ -46,6 +46,28 @@ public:
 
 	void AddElimAnnouncement(FString Attacker, FString Victim);
 
+/// <summary>
+/// HUD ?
+/// </summary>
+/// 
+
+	UPROPERTY()
+		class UCrimsonProfiler* CrimsonProfiler;
+
+	UPROPERTY(EditAnywhere, Category = "Announcements")
+		TSubclassOf<class UUserWidget> CrimsonProfilerClass;
+
+	void AddCrimsonProfiler();
+
+
+	UPROPERTY()
+		class UMelodyProfiler* MelodyOverlay;
+
+	UPROPERTY(EditAnywhere, Category = "Announcements")
+		TSubclassOf<class UUserWidget> MelodyProfilerClass;
+
+	void AddMelodyProfiler();
+
 protected:
 	virtual void BeginPlay() override;
 

@@ -4,6 +4,7 @@
 #include "StealCharacter.h"
 #include "DrawDebugHelpers.h"
 #include "testinginBP/GameComponents/CombatComponent.h"
+#include "testinginBP/HUD/GameHUD.h"
 #include "testinginBP/Hook/Hook.h"
 #include "Net/UnrealNetwork.h" //Replication
 
@@ -27,6 +28,7 @@ void AStealCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	bHook = true;
+	CreateHUD();
 }
 
 
@@ -50,6 +52,7 @@ void AStealCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME(AStealCharacter, bHook);
 
 }
+
 
 void AStealCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
@@ -224,3 +227,14 @@ void AStealCharacter::ThrowTwice()
 }
 
 
+void AStealCharacter::CreateHUD()
+{
+	GameHUD = GameHUD == nullptr ? Cast<AGameHUD>(GetWorld()->GetFirstPlayerController()->GetHUD()) : GameHUD;
+	if (GameHUD)
+	{
+		//GameHUD->AddMelodyProfiler();
+		GameHUD->AddCrimsonProfiler();
+
+	}
+
+}

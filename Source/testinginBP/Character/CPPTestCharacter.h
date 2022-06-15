@@ -230,6 +230,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Respawn")
 		float SpawnInvincibilityDuration = 2.f;
 
+	UPROPERTY(EditAnywhere, Category = "Effects")
+		UNiagaraComponent* NiagaraComponent;
+
 
 	 bool bCanDash;
 

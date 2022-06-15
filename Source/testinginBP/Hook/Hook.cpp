@@ -40,7 +40,7 @@ AHook::AHook()
 	NiagaraComponent->SetupAttachment(RootComponent);
 
 	//Definition for the Projectile Particle System.
-	//ExplosionEffect = CreateDefaultSubobject<UParticleSystem>(TEXT("ExplosionEffect"));
+	//ExplosionEffect = CreateDefaultSubobject<UNiagaraSystem>(TEXT("ExplosionEffect"));
 
 	//Effect = CreateDefaultSubobject<UNiagaraSystem>(TEXT("NiagaraSystem"));
 	//Effect->ActivateSystem(false);
@@ -70,8 +70,8 @@ void AHook::BeginPlay()
 
 void AHook::Destroyed()
 {
-	FVector spawnLocation = GetActorLocation();
-	UGameplayStatics::SpawnEmitterAtLocation(this, ExplosionEffect, spawnLocation, FRotator::ZeroRotator, true, EPSCPoolMethod::AutoRelease);
+	//FVector spawnLocation = GetActorLocation();
+	//UGameplayStatics::SpawnEmitterAtLocation(this, ExplosionEffect, spawnLocation, FRotator::ZeroRotator, true, EPSCPoolMethod::AutoRelease);
 	//Effect->ActivateSystem(true);
 	//UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, Effect, spawnLocation);
 	//NiagaraComponent->Deactivate();
@@ -90,7 +90,8 @@ void AHook::OnProjectileImpact(UPrimitiveComponent* HitComponent, AActor* OtherA
 		StaticMesh->AddForce(GetActorLocation() - GetActorForwardVector() * 40000.0f);*/
 		
 	}
-
+	FTimerHandle ClearHandle;
+	GetWorld()->GetTimerManager().SetTimer(ClearHandle, this, &AHook::DestroyHook, 0.5f);
 	//Destroy();
 }
 
@@ -101,6 +102,10 @@ void AHook::Tick(float DeltaTime)
 
 }
 
+void AHook::DestroyHook()
+{
+	Destroy();
+}
 void AHook::MulticastPlayNiagara_Implementation(UNiagaraComponent* fx, bool state)
 {
 	if (!state)

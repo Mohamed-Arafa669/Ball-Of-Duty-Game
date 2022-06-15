@@ -31,6 +31,8 @@ ACPPTestCharacter::ACPPTestCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	//TODO Stop Throw Before respawn
+
 	CharacterMesh = GetMesh();
 
 	cameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
@@ -56,6 +58,9 @@ ACPPTestCharacter::ACPPTestCharacter()
 
 	targetComponent = CreateDefaultSubobject<UTargetingHelperComponent>(TEXT("targetComponent"));
 	targetComponent->SetIsReplicated(true);
+
+	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
+	NiagaraComponent->SetupAttachment(RootComponent);
 
 	combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	combat->SetIsReplicated(true);
@@ -130,6 +135,9 @@ void ACPPTestCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	UpdateHUDHealth();
+
+	NiagaraComponent->Deactivate();
+
 	if (HasAuthority()) {
 		CharacterMesh->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
 		CPPPlayerController = Cast<ACPPPlayerController>(Controller);

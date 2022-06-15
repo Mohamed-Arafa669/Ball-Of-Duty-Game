@@ -5,6 +5,8 @@
 #include "GameFramework/PlayerController.h"
 #include "Announcement.h"
 #include "testinginBP/HUD/ElimAnnouncements.h"
+#include "testinginBP/HUD/CrimsonProfiler.h"
+#include "testinginBP/HUD/MelodyProfiler.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/HorizontalBox.h"
 #include "Components/CanvasPanelSlot.h"
@@ -144,5 +146,31 @@ void AGameHUD::DrawCrosshair(UTexture2D* Texture, FVector2D ViewportCenter)
 		0.0f,0.0f,1.0f,1.0f,
 		FLinearColor::Red
 	);
+}
+
+void AGameHUD::AddCrimsonProfiler()
+{
+	OwningPlayer = OwningPlayer == nullptr ? GetOwningPlayerController() : OwningPlayer;
+	if (OwningPlayer && CrimsonProfilerClass)
+	{
+		UCrimsonProfiler* CrimsonProfilerWidget = CreateWidget<UCrimsonProfiler>(OwningPlayer, CrimsonProfilerClass);
+		if (CrimsonProfilerWidget)
+		{
+			CrimsonProfilerWidget->AddToViewport();
+		}
+	}
+}
+
+void AGameHUD::AddMelodyProfiler()
+{
+	OwningPlayer = OwningPlayer == nullptr ? GetOwningPlayerController() : OwningPlayer;
+	if (OwningPlayer && MelodyProfilerClass) //MelodyProfilerClass
+	{
+		UMelodyProfiler* MelodyProfilerWidget = CreateWidget<UMelodyProfiler>(OwningPlayer, MelodyProfilerClass);
+		if (MelodyProfilerWidget)
+		{
+			MelodyProfilerWidget->AddToViewport();
+		}
+	}
 }
 
