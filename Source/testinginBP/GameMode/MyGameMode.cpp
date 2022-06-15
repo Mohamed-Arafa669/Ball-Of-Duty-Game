@@ -155,9 +155,10 @@ void AMyGameMode::PlayerLeftGame(AMyPlayerState* PlayerLeaving)
 
 UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
 {
-	if (InController)
+	ACPPPlayerController* Controller = Cast<ACPPPlayerController>(InController);
+
+	if (CurrentPawnToAssign)
 	{
-		ACPPPlayerController* Controller = Cast<ACPPPlayerController>(InController);
 
 		if (Controller->CharacterSelectIndex == 1)
 		{
@@ -169,8 +170,35 @@ UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController
 		}
 	}
 
-
 	if (CurrentPawnToAssign)
+	{
+
+		if (FirstPawn != nullptr && SecondPawn != nullptr)
+		{
+			if (CurrentPawnToAssign == FirstPawn && Controller->CharacterSelectIndex == 2)
+			{
+				CurrentPawnToAssign = SecondPawn;
+			}
+			else
+			{
+				CurrentPawnToAssign = FirstPawn;
+
+			}
+		}
+	}
+	else
+	{
+		if (FirstPawn != nullptr && SecondPawn != nullptr)
+		{
+			CurrentPawnToAssign = (Controller->CharacterSelectIndex == 1) ? FirstPawn : SecondPawn;
+		}
+	}
+
+	return CurrentPawnToAssign;
+
+	//return SecondPawn;
+
+	/*if (CurrentPawnToAssign)
 	{
 
 		if (FirstPawn != nullptr && SecondPawn != nullptr)
@@ -184,7 +212,7 @@ UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController
 				CurrentPawnToAssign = FirstPawn;
 
 			}
-		}	
+		}
 	}
 	else
 	{
@@ -194,7 +222,7 @@ UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController
 		}
 	}
 
-	return CurrentPawnToAssign;
+	return CurrentPawnToAssign;*/
 }
 
 

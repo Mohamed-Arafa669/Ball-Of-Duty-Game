@@ -40,13 +40,13 @@ public:
 
 	uint8 CharacterSelectIndex = -1;
 
-	UPROPERTY(EditAnywhere, Category = "CharacterSelection")
+	/*UPROPERTY(EditAnywhere, Category = "CharacterSelection")
 		TSubclassOf<class UUserWidget> CharacterSelectionClass;
 
 	UPROPERTY()
-		class UCharacterSelection* CharacterSelection;
+		class UCharacterSelection* CharacterSelection;*/
 
-	void CreateCharacterSelectMenu();
+	//void CreateCharacterSelectMenu();
 	/// <summary>
 	/// Time Sync Between Client and Server
 	/// </summary>
