@@ -746,9 +746,10 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 		else if ((BallHit->GetBallState() == EBallState::EBS_Dropped ||
 			BallHit->GetBallState() == EBallState::EBS_SuperThrow) && BallHit->GetOwner() != this)
 		{
-			if (!bIsSpawnInvincible) {
+			if (!bIsSpawnInvincible && !bKnocked) {
 
-				NiagaraComponent->Activate(true);
+				ServerPlayNiagara(NiagaraComponent, true);
+				MulticastPlayNiagara(NiagaraComponent, true);
 
 				FDamageEvent GotHitEvent;
 				AController* ballOwnerController = BallHit->GetInstigatorController();

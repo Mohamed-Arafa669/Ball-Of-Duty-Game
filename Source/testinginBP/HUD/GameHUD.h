@@ -45,6 +45,19 @@ public:
 	void AddAnnouncement();
 
 	void AddElimAnnouncement(FString Attacker, FString Victim);
+	
+	//////////////////////////////////////////////////////////////////////////
+	///	
+	/// Character Selection	
+	/// //////////////////////////////////////////////////////////////////////////
+	/// 
+	/*UPROPERTY(EditAnywhere, Category = "CharacterSelection")
+		TSubclassOf<class UUserWidget> CharacterSelectionClass;
+
+	UPROPERTY()
+		class UCharacterSelection* CharacterSelection;
+
+	void AddCharacterSelect();*/
 
 /// <summary>
 /// HUD ?
