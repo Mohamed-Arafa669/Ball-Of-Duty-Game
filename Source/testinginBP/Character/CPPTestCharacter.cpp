@@ -31,6 +31,7 @@
 #include "testinginBP/PlayerController/CPPPlayerController.h"
 #include "testinginBP/GameComponents/MyPlayerState.h"
 #include "testinginBP/GameMode/MyGameMode.h"
+#include "Components/SceneCaptureComponent2D.h"
 
 
 #include "TimerManager.h"
@@ -47,7 +48,15 @@ ACPPTestCharacter::ACPPTestCharacter()
 	cameraBoom->SetupAttachment(GetMesh());
 	cameraBoom->TargetArmLength = 500.0f;
 
-	
+	MiniMapBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("MiniMapBoom"));
+	MiniMapBoom->SetupAttachment(RootComponent);
+	MiniMapBoom->TargetArmLength = 700.0f;
+
+	MiniMapCam = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("MiniMap"));
+	MiniMapCam->SetupAttachment(MiniMapBoom, USpringArmComponent::SocketName);
+
+	MiniMapCam->SetIsReplicated(true);
+
 
 	followCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Follow Camera"));
 	followCamera->SetupAttachment(cameraBoom, USpringArmComponent::SocketName);
@@ -55,8 +64,8 @@ ACPPTestCharacter::ACPPTestCharacter()
 	DashFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DashFX"));
 	DashFX->SetupAttachment(GetMesh());
 
-	LockFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LockFX"));
-	LockFX->SetupAttachment(GetMesh());
+	//LockFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LockFX"));
+	//LockFX->SetupAttachment(GetMesh());
 
 	/*AbilityFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("AbilityFX"));
 	AbilityFX->SetupAttachment(GetMesh());*/
@@ -457,41 +466,41 @@ void ACPPTestCharacter::ClientRespawnCountDown_Implementation(float seconds)
 #pragma region ThrowMechanics
 void ACPPTestCharacter::ThrowButtonPressed()
 {
-	if (HasAuthority())
-	{
+	//if (HasAuthority())
+	//{
 		if (IsBallEquipped())
 		{
 
 			LockTarget();
 
-			if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Target %s"), *TargetPlayer->GetFName().ToString());
-				TargetPlayer->MulticastPlayNiagara(TargetPlayer->LockFX, true);
-				TargetPlayer->ServerPlayNiagara(TargetPlayer->LockFX, true);
-			}
+			//if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
+			//{
+			//	UE_LOG(LogTemp, Warning, TEXT("Target %s"), *TargetPlayer->GetFName().ToString());
+			//	TargetPlayer->MulticastPlayNiagara(TargetPlayer->LockFX, true);
+			//	TargetPlayer->ServerPlayNiagara(TargetPlayer->LockFX, true);
+			//}
 			
 		}
-	}
-	else
-		ServerThrowButtonPressed();
+	//}
+	//else
+	//	ServerThrowButtonPressed();
 }
 
 
 void ACPPTestCharacter::ServerThrowButtonPressed_Implementation()
 {
-	if (IsBallEquipped())
-	{
-		LockTarget();
+	//if (IsBallEquipped())
+	//{
+	//	LockTarget();
 
-		if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
-		{
-			UE_LOG(LogTemp, Warning, TEXT("TargetServer %s"), *TargetPlayer->GetFName().ToString());
+	//	if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
+	//	{
+	//		UE_LOG(LogTemp, Warning, TEXT("TargetServer %s"), *TargetPlayer->GetFName().ToString());
 
-			TargetPlayer->MulticastPlayNiagara(TargetPlayer->LockFX, true);
-			TargetPlayer->ServerPlayNiagara(TargetPlayer->LockFX, true);
-		}
-	}
+	//		TargetPlayer->MulticastPlayNiagara(TargetPlayer->LockFX, true);
+	//		TargetPlayer->ServerPlayNiagara(TargetPlayer->LockFX, true);
+	//	}
+	//}
 }
 
 void ACPPTestCharacter::ThrowButtonReleased()
@@ -778,6 +787,8 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 			if (!bIsSpawnInvincible) {
 
 				NiagaraComponent->Activate(true);
+
+				GetWorld()->GetFirstPlayerController()->ClientStartCameraShake(CamShake);
 
 				FDamageEvent GotHitEvent;
 				AController* ballOwnerController = BallHit->GetInstigatorController();
