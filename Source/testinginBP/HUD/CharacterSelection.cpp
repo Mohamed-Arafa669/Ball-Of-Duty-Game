@@ -3,9 +3,36 @@
 
 #include "CharacterSelection.h"
 #include "Components/Button.h"
+#include "Components/Image.h"
 #include "testinginBP/PlayerController/CPPPlayerController.h"
 #include "testinginBP/CharacterSelectInterface.h"
 #include "Kismet/GameplayStatics.h"
+
+
+void UCharacterSelection::NativeConstruct()
+{
+	Melody->SetVisibility(ESlateVisibility::Hidden);
+	Crimson->SetVisibility(ESlateVisibility::Hidden);
+	CrimsonBanner->SetVisibility(ESlateVisibility::Hidden);
+	BTN_CrimsonMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	MelodyBanner->SetVisibility(ESlateVisibility::Hidden);
+	BTN_MelodyMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	Tint->SetVisibility(ESlateVisibility::Hidden);
+	MelodyMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	CrimsonMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	BTN_MelodyMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	BTN_CrimsonMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	BTN_MelodyExit->SetVisibility(ESlateVisibility::Hidden);
+	BTN_CrimsonExit->SetVisibility(ESlateVisibility::Hidden);
+
+	BTN_CageCharacter->SetIsEnabled(false);
+	BTN_ShieldCharacter->SetIsEnabled(false);
+	BTN_CloneCharacter->SetIsEnabled(false);
+	BTN_TimeCharacter->SetIsEnabled(false);
+
+
+}
+
 
 bool UCharacterSelection::Initialize()
 {
@@ -25,48 +52,78 @@ bool UCharacterSelection::Initialize()
 
 	BTN_ConfirmCharacterSelect->OnClicked.AddDynamic(this, &UCharacterSelection::ConfirmButtonSelected);
 
+	if (!ensure(BTN_MelodyMoreInfo != nullptr)) return false;
+
+	BTN_MelodyMoreInfo->OnClicked.AddDynamic(this, &UCharacterSelection::MelodyMoreInfoBTNPressed);
+
+	if (!ensure(BTN_CrimsonMoreInfo != nullptr)) return false;
+
+	BTN_CrimsonMoreInfo->OnClicked.AddDynamic(this, &UCharacterSelection::CrimsonMoreInfoBTNPressed);
+
+	if (!ensure(BTN_MelodyExit != nullptr)) return false;
+
+	BTN_MelodyExit->OnClicked.AddDynamic(this, &UCharacterSelection::MelodyInfoExitBTNPressed);
+
+	if (!ensure(BTN_CrimsonExit != nullptr)) return false;
+
+	BTN_CrimsonExit->OnClicked.AddDynamic(this, &UCharacterSelection::CrimsonInfoExitBTNPressed);
+
 	return true;
 }
 
 void UCharacterSelection::StealCharacterBTNPressed()
 {
-	ButtonIndex = 1;
+	Melody->SetVisibility(ESlateVisibility::Visible);
+	MelodyBanner->SetVisibility(ESlateVisibility::Visible);
+	BTN_MelodyMoreInfo->SetVisibility(ESlateVisibility::Visible);
 
-	if (bConfirmed)
-	{
-		CallCharacterSelect();
-		bConfirmed = false;
-		//BTN_ConfirmCharacterSelect->SetIsEnabled(false);
-		//CloseWidget();
-	}
-	
+	Crimson->SetVisibility(ESlateVisibility::Hidden);
+	CrimsonBanner->SetVisibility(ESlateVisibility::Hidden);
+	BTN_CrimsonMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+
+	bMelodySelected = true;
+	bCrimsonSelected = false;
 }
 
 void UCharacterSelection::PowerCharacterBTNPressed()
 {
-	ButtonIndex = 2;
+	Melody->SetVisibility(ESlateVisibility::Hidden);
+	MelodyBanner->SetVisibility(ESlateVisibility::Hidden);
+	BTN_MelodyMoreInfo->SetVisibility(ESlateVisibility::Hidden);
 
-	if (bConfirmed)
-	{
-		CallCharacterSelect();
-		bConfirmed = false;
-	//	BTN_ConfirmCharacterSelect->SetIsEnabled(false);
-	}
-	//CloseWidget();
 
+	Crimson->SetVisibility(ESlateVisibility::Visible);
+	CrimsonBanner->SetVisibility(ESlateVisibility::Visible);
+	BTN_CrimsonMoreInfo->SetVisibility(ESlateVisibility::Visible);
+
+	bMelodySelected = false;
+	bCrimsonSelected = true;
 }
-
 
 
 void UCharacterSelection::ConfirmButtonSelected()
 {
-	 if (bConfirmed == false)
-	 {
-		 BTN_ConfirmCharacterSelect->SetIsEnabled(false);
-		 BTN_PowerCharacter->SetIsEnabled(false);
-		 BTN_StealCharacter->SetIsEnabled(false);
+	bConfirmed = true;
 
-	 }
+	
+		 if (bConfirmed && bMelodySelected)
+		 {
+			 BTN_ConfirmCharacterSelect->SetIsEnabled(false);
+			 BTN_PowerCharacter->SetIsEnabled(false);
+			 BTN_StealCharacter->SetIsEnabled(false);
+			 ButtonIndex = 1;
+			 CallCharacterSelect();
+		 }
+		 else if (bConfirmed && bCrimsonSelected)
+		 {
+			 BTN_ConfirmCharacterSelect->SetIsEnabled(false);
+			 BTN_PowerCharacter->SetIsEnabled(false);
+			 BTN_StealCharacter->SetIsEnabled(false);
+			 ButtonIndex = 2;
+			 CallCharacterSelect();
+		 }
+
+	
 }
 
 void UCharacterSelection::Setup()
@@ -120,4 +177,54 @@ void UCharacterSelection::CallCharacterSelect()
 	ACPPPlayerController* PlayerController = Cast<ACPPPlayerController>(GetWorld()->GetFirstPlayerController());
 
 	PlayerController->ServerSelectedCharacter(ButtonIndex);
+}
+
+void UCharacterSelection::MelodyMoreInfoBTNPressed()
+{
+	Tint->SetVisibility(ESlateVisibility::Visible);
+
+	MelodyMoreInfo->SetVisibility(ESlateVisibility::Visible);
+	CrimsonMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+
+	BTN_MelodyMoreInfo->SetVisibility(ESlateVisibility::Visible);
+	BTN_CrimsonMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+
+	BTN_MelodyExit->SetVisibility(ESlateVisibility::Visible);
+	BTN_CrimsonExit->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void UCharacterSelection::CrimsonMoreInfoBTNPressed()
+{
+	Tint->SetVisibility(ESlateVisibility::Visible);
+
+	MelodyMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	CrimsonMoreInfo->SetVisibility(ESlateVisibility::Visible);
+
+	BTN_MelodyMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	BTN_CrimsonMoreInfo->SetVisibility(ESlateVisibility::Visible);
+
+	BTN_MelodyExit->SetVisibility(ESlateVisibility::Hidden);
+	BTN_CrimsonExit->SetVisibility(ESlateVisibility::Visible);
+}
+
+void UCharacterSelection::MelodyInfoExitBTNPressed()
+{
+	Tint->SetVisibility(ESlateVisibility::Hidden);
+	MelodyMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	CrimsonMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	BTN_MelodyMoreInfo->SetVisibility(ESlateVisibility::Visible);
+	BTN_CrimsonMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	BTN_MelodyExit->SetVisibility(ESlateVisibility::Hidden);
+	BTN_CrimsonExit->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void UCharacterSelection::CrimsonInfoExitBTNPressed()
+{
+	Tint->SetVisibility(ESlateVisibility::Hidden);
+	MelodyMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	CrimsonMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	BTN_MelodyMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	BTN_CrimsonMoreInfo->SetVisibility(ESlateVisibility::Visible);
+	BTN_MelodyExit->SetVisibility(ESlateVisibility::Hidden);
+	BTN_CrimsonExit->SetVisibility(ESlateVisibility::Hidden);
 }
