@@ -154,23 +154,25 @@ void AStealCharacter::Server_DoAbility_Implementation()
 			ServerPlayAnimMontage(SpecialAbilityAnimation);
 		}
 		HandleFire();
-		TraceLine();
-		if (ACPPTestCharacter* Target = Cast<ACPPTestCharacter>(Hit.GetActor()))
-		{
-			UE_LOG(LogTemp, Warning, TEXT("hHhHAIHDOWA"));
-			CoolDownTime = 10.0f;
+		//TraceLine();
+		if (lockOnTargets->GetTarget()) {
+			if (ACPPTestCharacter* Target = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget()))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("hHhHAIHDOWA"));
+				CoolDownTime = 10.0f;
 
-			if (Target->IsBallEquipped() && !IsBallEquipped())
-			{
-				StealBall(Target);
-			}
-			else if (IsBallEquipped())
-			{
-				ThrowTwice();
+				if (Target->IsBallEquipped() && !IsBallEquipped())
+				{
+					StealBall(Target);
+				}
+				else if (IsBallEquipped())
+				{
+					ThrowTwice();
+				}
 			}
 		}
-		else
-			CoolDownTime = 1.0f;
+		/*else
+			CoolDownTime = 1.0f;*/
 		FTimerHandle handle;
 		GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::AbilityCooldown, CoolDownTime);
 	}

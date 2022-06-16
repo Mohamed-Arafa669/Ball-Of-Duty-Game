@@ -184,6 +184,7 @@ void ACPPTestCharacter::Tick(float DeltaTime)
 	if (bIsTargeting && lockOnTargets->bCanCaptureTarget)
 	{
 		lockOnTargets->FindTarget();
+
 		
 	}
 
@@ -654,15 +655,10 @@ void ACPPTestCharacter::PollInit()
 
 void ACPPTestCharacter::ClearTarget()
 {
-	if(AbilityFX)
-	{
-		MulticastPlayNiagara(AbilityFX, false);
-		ServerPlayNiagara(AbilityFX, false);
-	}
 
 	if (bIsTargeting) {
 		bIsTargeting = false;
-		lockOnTargets->ClearTargetManual();
+		lockOnTargets->ClearTargetManual(false);
 
 		FString msg = TEXT("meen?");
 		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Emerald, msg);
@@ -801,7 +797,7 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 
 void ACPPTestCharacter::MyThrow()
 {
-	if (combat && IsBallEquipped() && IsAllowedToMove())
+	if (combat && IsBallEquipped() && IsAllowedToMove() && bCanThrow)
 	{
 		
 		//UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;

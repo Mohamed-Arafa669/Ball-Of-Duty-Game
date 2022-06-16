@@ -100,7 +100,8 @@ void APowerCharacter::DoSweep()
 		if (PowerAbilityFX) {
 			MulticastPlayNiagara(PowerAbilityFX, true);
 			ServerPlayNiagara(PowerAbilityFX, true);
-
+			FString msg = TEXT("lol");
+			GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Blue, msg);
 			FTimerHandle AbilityTimer;
 			GetWorld()->GetTimerManager().SetTimer(AbilityTimer, this, &APowerCharacter::DisableEffect, 0.7f);
 		}
@@ -112,7 +113,7 @@ void APowerCharacter::SuperUpBall()
 	
 	combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
 	MyThrow();
-	
+	ClearTarget();
 }
 
 void APowerCharacter::AbilityDelay()
@@ -138,6 +139,7 @@ void APowerCharacter::AbilityDelayTimer()
 
 void APowerCharacter::LockTarget()
 {
+	
 	Super::LockTarget();
 	
 }
@@ -146,9 +148,10 @@ void APowerCharacter::LockTargetAbility()
 {
 	if (!bSmash) {
 
-		//LockTarget();
+		//
 
 		if (IsBallEquipped()) {
+			
 			combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
 		}
 
