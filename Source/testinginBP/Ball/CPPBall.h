@@ -157,6 +157,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MoveHooked")
 		class AStealCharacter* Target;
 
+	UPROPERTY(EditAnywhere)
+		UNiagaraComponent* SuperTrailFX;
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MoveHooked")
 		float Speed = 1000.0f;
@@ -209,6 +211,7 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 		UNiagaraComponent* SuperBallFX;
+	
 
 	UFUNCTION(Server, Reliable, WithValidation, Category = Effects)
 		void ServerPlayNiagara(UNiagaraComponent* fx, bool state);
@@ -226,6 +229,4 @@ protected:
 	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = BallHandling)
 		void MulticastBallStateHandle(EBallState bs);
 
-	UFUNCTION(Client, Reliable)
-		void ClientBallStateHandle(EBallState bs);
 };

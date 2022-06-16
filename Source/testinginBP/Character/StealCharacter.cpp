@@ -34,7 +34,7 @@ void AStealCharacter::BeginPlay()
 
 void AStealCharacter::LockTargetAbility()
 {
-	if (!bHook) {
+	if (bHook) {
 		LockTarget();
 	}
 }
@@ -197,16 +197,21 @@ void AStealCharacter::StealBall(ACPPTestCharacter* Target)
 	//TODO General Unequip Function
 	bSteal = true;
 	SpawnHook->AttachToActor(Target->combat->equippedBall, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-	Target->combat->equippedBall->GetAreaSphere()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-	Target->combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
-	Target->combat->equippedBall->MoveHookedBall(this);
-	combat->equippedBall = Target->combat->equippedBall;
-	Target->combat->equippedBall = nullptr;
-	Target->bEquipped = false;
-	//SpawnHook->Destroy();
+	//Target->combat->equippedBall->GetAreaSphere()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	//Target->combat->equippedBall->SetBallState(EBallState::EBS_Initial);
+	//Target->combat->equippedBall->MoveHookedBall(this);
+	//combat->equippedBall = Target->combat->equippedBall;
+	//Target->combat->equippedBall = nullptr;
+	//Target->bEquipped = false;
 
-	FTimerHandle ClearHandle;
-	GetWorld()->GetTimerManager().SetTimer(ClearHandle, this, &ACPPTestCharacter::ClearTarget, 1.0f);
+	//combat->equippedBall->SetBallState(EBallState::EBS_Initial);
+
+	ACPPBall* StolenBall = Target->combat->equippedBall;
+	Target->combat->UnEquipBall(StolenBall);
+	StolenBall->MoveHookedBall(this);
+	SpawnHook->Destroy();
+	
+	ClearTarget();
 }
 
 void AStealCharacter::ThrowTwice()
@@ -222,8 +227,8 @@ void AStealCharacter::ThrowTwice()
 
 	ACPPBall* SpawnBall = GetWorld()->SpawnActor<ACPPBall>(BallClass, spawnLocation, spawnRotation);
 
-	FTimerHandle ClearHandle;
-	GetWorld()->GetTimerManager().SetTimer(ClearHandle, this, &ACPPTestCharacter::ClearTarget, 1.0f);
+	//FTimerHandle ClearHandle;
+	//GetWorld()->GetTimerManager().SetTimer(ClearHandle, this, &ACPPTestCharacter::ClearTarget, 1.0f);
 }
 
 
@@ -232,8 +237,8 @@ void AStealCharacter::CreateHUD()
 	GameHUD = GameHUD == nullptr ? Cast<AGameHUD>(GetWorld()->GetFirstPlayerController()->GetHUD()) : GameHUD;
 	if (GameHUD)
 	{
-		//GameHUD->AddMelodyProfiler();
-		GameHUD->AddCrimsonProfiler();
+		GameHUD->AddMelodyProfiler();
+		//GameHUD->AddCrimsonProfiler();
 
 	}
 

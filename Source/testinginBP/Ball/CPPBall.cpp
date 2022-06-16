@@ -37,6 +37,9 @@ ACPPBall::ACPPBall()
 	TrailFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailFX"));
 	TrailFX->SetupAttachment(RootComponent);
 
+	SuperTrailFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SuperTrailFX"));
+	SuperTrailFX->SetupAttachment(RootComponent);
+
 	SuperBallFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("SuperBallFX"));
 	SuperBallFX->SetupAttachment(RootComponent);
 
@@ -85,7 +88,7 @@ void ACPPBall::BeginPlay()
 		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &ACPPBall::OnSphereOverlap);
 		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &ACPPBall::OnSphereEndOverlap);
 
-		DisableComponentsSimulatePhysics();
+		//DisableComponentsSimulatePhysics();
 
 	}
 	//SetBallState(EBallState::EBS_Initial);
@@ -131,7 +134,7 @@ void ACPPBall::MoveHookedBall(class AStealCharacter* TargetPlayer)
 	Target = TargetPlayer;
 	if (Target != nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Bla bla bla"));
+		/*UE_LOG(LogTemp, Warning, TEXT("Bla bla bla"));
 		StartLocation = GetActorLocation();
 		Direction = Target->GetActorLocation() - StartLocation;
 		TotalDistance = Direction.Size();
@@ -141,7 +144,11 @@ void ACPPBall::MoveHookedBall(class AStealCharacter* TargetPlayer)
 		Direction = Direction.GetSafeNormal();
 		CurrentDistance = 0.0f;
 
-		bMove = true;
+		bMove = true;*/
+
+		
+		ProjectileMovementComponent->bIsHomingProjectile = true;
+		ProjectileMovementComponent->HomingTargetComponent = Target->GetRootComponent();
 
 	}
 }
@@ -182,53 +189,38 @@ void ACPPBall::OnRep_BallState()
 	switch (ballState)
 	{
 	case EBallState::EBS_Equipped:
-		ShowPickupWidget(false);
-		ServerPlayNiagara(TrailFX, false);
-		ServerPlayNiagara(SuperBallFX, false);
-		MulticastPlayNiagara_Implementation(TrailFX, false);
-		MulticastPlayNiagara_Implementation(SuperBallFX, false);
+		
 		ServerBallStateHandle(EBallState::EBS_Equipped);
 		MulticastBallStateHandle(EBallState::EBS_Equipped);
-		ClientBallStateHandle(EBallState::EBS_Equipped);
+		
 		break;
 
 	case EBallState::EBS_Dropped:
-		ShowPickupWidget(true);
-		ServerPlayNiagara(TrailFX, true);
-		MulticastPlayNiagara_Implementation(TrailFX, true);
+		
 		ServerBallStateHandle(EBallState::EBS_Dropped);
 		MulticastBallStateHandle(EBallState::EBS_Dropped);
-		ClientBallStateHandle(EBallState::EBS_Dropped);
+		
 
 		break;
 	case EBallState::EBS_SuperThrow:
-		MulticastPlayNiagara_Implementation(TrailFX, true);
-		ServerPlayNiagara(SuperBallFX, true);
-		ServerPlayNiagara(TrailFX, true);
-		MulticastPlayNiagara_Implementation(SuperBallFX, true);
+		
 		ServerBallStateHandle(EBallState::EBS_SuperThrow);
 		MulticastBallStateHandle(EBallState::EBS_SuperThrow);
-		ClientBallStateHandle(EBallState::EBS_SuperThrow);
+	
 
 
 	case EBallState::EBS_SimPhy:
-		MulticastPlayNiagara_Implementation(TrailFX, true);
-		ServerPlayNiagara(SuperBallFX, false);
-		ServerPlayNiagara(TrailFX, true);
-		MulticastPlayNiagara_Implementation(SuperBallFX, false);
+	
 		ServerBallStateHandle(EBallState::EBS_SimPhy);
 		MulticastBallStateHandle(EBallState::EBS_SimPhy);
-		ClientBallStateHandle(EBallState::EBS_SimPhy);
+
 
 
 	default:
-		ServerPlayNiagara(TrailFX, false);
-		ServerPlayNiagara(SuperBallFX, false);
-		MulticastPlayNiagara_Implementation(TrailFX, false);
-		MulticastPlayNiagara_Implementation(SuperBallFX, false);
+		
 		ServerBallStateHandle(EBallState::EBS_Initial);
 		MulticastBallStateHandle(EBallState::EBS_Initial);
-		ClientBallStateHandle(EBallState::EBS_Initial);
+		
 		break;
 	}
 }
@@ -239,53 +231,29 @@ void ACPPBall::SetBallState(EBallState state)
 	switch (ballState)
 	{
 	case EBallState::EBS_Equipped:
-		ShowPickupWidget(false);
-		ServerPlayNiagara(TrailFX, false);
-		ServerPlayNiagara(SuperBallFX, false);
-		MulticastPlayNiagara_Implementation(TrailFX, false);
-		MulticastPlayNiagara_Implementation(SuperBallFX, false);
+		
 		ServerBallStateHandle(EBallState::EBS_Equipped);
 		MulticastBallStateHandle(EBallState::EBS_Equipped);
-		ClientBallStateHandle(EBallState::EBS_Equipped);
-
-		//AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		//AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		break;
 
 	case EBallState::EBS_Dropped:
-		ShowPickupWidget(true);
-		ServerPlayNiagara(TrailFX, true);
-		MulticastPlayNiagara_Implementation(TrailFX, true);
+		
 		ServerBallStateHandle(EBallState::EBS_Dropped);
 		MulticastBallStateHandle(EBallState::EBS_Dropped);
-		ClientBallStateHandle(EBallState::EBS_Dropped);
 		break;
 	case EBallState::EBS_SuperThrow:
-		MulticastPlayNiagara_Implementation(TrailFX, true);
-		ServerPlayNiagara(SuperBallFX, true);
-		ServerPlayNiagara(TrailFX, true);
-		MulticastPlayNiagara_Implementation(SuperBallFX, true);
 		ServerBallStateHandle(EBallState::EBS_SuperThrow);
-		ClientBallStateHandle(EBallState::EBS_SuperThrow);
 		MulticastBallStateHandle(EBallState::EBS_SuperThrow);
 		break;
 	case EBallState::EBS_SimPhy:
-		MulticastPlayNiagara_Implementation(TrailFX, true);
-		ServerPlayNiagara(SuperBallFX, false);
-		ServerPlayNiagara(TrailFX, true);
-		MulticastPlayNiagara_Implementation(SuperBallFX, false);
+		
 		ServerBallStateHandle(EBallState::EBS_SimPhy);
-		ClientBallStateHandle(EBallState::EBS_SimPhy);
 		MulticastBallStateHandle(EBallState::EBS_SimPhy);
 
 		break;
 	default:
-		ServerPlayNiagara(TrailFX, false);
-		ServerPlayNiagara(SuperBallFX, false);
-		MulticastPlayNiagara_Implementation(TrailFX, false);
-		MulticastPlayNiagara_Implementation(SuperBallFX, false);
+		
 		ServerBallStateHandle(EBallState::EBS_Initial);
-		ClientBallStateHandle(EBallState::EBS_Initial);
 		MulticastBallStateHandle(EBallState::EBS_Initial);
 
 		break;
@@ -333,54 +301,60 @@ void ACPPBall::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiv
 
 	/*FString msg1 = OtherActor->GetName();
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Emerald, *msg1);*/
-
-	if (ACPPTestCharacter* Player = Cast<ACPPTestCharacter>(OtherActor))
-	{
-		AController* ballOwnerController = this->GetInstigatorController();
-
-		if (Player->bCatching && Player->combat && !Player->IsBallEquipped() || Player->bSteal)
+	
+		if (ACPPTestCharacter* Player = Cast<ACPPTestCharacter>(OtherActor))
 		{
-			Player->combat->EquipBall(this);
-			Player->bCanThrow = true;
-			Player->bSteal = false;
-		}
+			AController* ballOwnerController = this->GetInstigatorController();
 
-		else if ((GetBallState() == EBallState::EBS_Dropped ||
-			GetBallState() == EBallState::EBS_SuperThrow) && !Player->bIsSpawnInvincible &&
-			Player->GetController() != ballOwnerController && !Player->bKnocked) 
-		{
-
-			FDamageEvent GotHitEvent;
-
-			Player->ballHitDirection = ballOwnerController->GetCharacter()->GetActorForwardVector();
-			Player->MulticastPlayNiagara(Player->NiagaraComponent, true);
-			Player->ServerPlayNiagara(Player->NiagaraComponent, true);
-			if (GetBallState() == EBallState::EBS_SuperThrow)
+			if (Player->bCatching && Player->combat && !Player->IsBallEquipped() || Player->bSteal)
 			{
-				Player->Knocked(Player->ballHitDirection, false);
-				UGameplayStatics::ApplyDamage(Player, 100.f, ballOwnerController, this, NULL);
-
+				Player->combat->EquipBall(this);
+				Player->bCanThrow = true;
+				Player->bSteal = false;
 			}
-			else
+
+			else if ((GetBallState() == EBallState::EBS_Dropped ||
+				GetBallState() == EBallState::EBS_SuperThrow) && !Player->bIsSpawnInvincible &&
+				Player->GetController() != ballOwnerController && !Player->bKnocked)
 			{
-				UGameplayStatics::ApplyDamage(Player, 50.f, ballOwnerController, this, NULL);
+
+				FDamageEvent GotHitEvent;
+
+				Player->ballHitDirection = ballOwnerController->GetCharacter()->GetActorForwardVector();
+				if (Player->HitEffect) {
+					Player->MulticastPlayNiagara(Player->HitEffect, true);
+					Player->ServerPlayNiagara(Player->HitEffect, true);
+				}
+				if (GetBallState() == EBallState::EBS_SuperThrow)
+				{
+					Player->Knocked(Player->ballHitDirection, false);
+					UGameplayStatics::ApplyDamage(Player, 100.f, ballOwnerController, this, NULL);
+
+				}
+				else
+				{
+					UGameplayStatics::ApplyDamage(Player, 50.f, ballOwnerController, this, NULL);
+				}
+
+				if (Player->CurrentHealth > 0 && Player->GetHitAnim) {
+					Player->MulticastPlayAnimMontage(Player->GetHitAnim, 1, NAME_None);
+				}
+
+				//this->TakeDamage(50.f, GotHitEvent, BallHit->GetInstigatorController(), BallHit);
+				//TODO : Make A reset function for owner and instigator
+				SetBallState(EBallState::EBS_Initial);
+				SetOwner(nullptr);
+				SetInstigator(nullptr);
+
+
+			}
+			else if (GetBallState() == EBallState::EBS_Initial && Player->combat && !Player->IsBallEquipped())
+			{
+				Player->combat->EquipBall(this);
 			}
 
-			if (Player->CurrentHealth > 0 && Player->GetHitAnim) {
-				Player->MulticastPlayAnimMontage(Player->GetHitAnim, 1, NAME_None);
-			}
-
-			//this->TakeDamage(50.f, GotHitEvent, BallHit->GetInstigatorController(), BallHit);
-			//TODO : Make A reset function for owner and instigator
-			SetBallState(EBallState::EBS_SimPhy);
-			SetOwner(nullptr);
-			SetInstigator(nullptr);
 		}
-		else if (GetBallState() == EBallState::EBS_Initial && Player->combat && !Player->IsBallEquipped())
-		{
-			Player->combat->EquipBall(this);
-		}
-	}
+		//Player->combat->equippedBall = nullptr;
 	else
 	{
 		SetBallState(EBallState::EBS_Initial);
@@ -388,55 +362,17 @@ void ACPPBall::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiv
 
 }
 
-void ACPPBall::ClientBallStateHandle_Implementation(EBallState bs)
-{
-	if (bs == EBallState::EBS_Equipped)
-	{
-
-		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
-		AreaSphere->SetSimulatePhysics(false);
-		ProjectileMovementComponent->bIsHomingProjectile = false;
-		ProjectileMovementComponent->Deactivate();
-
-
-	}
-	else if (bs == EBallState::EBS_Dropped)
-	{
-		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
-		AreaSphere->SetSimulatePhysics(false);
-		ProjectileMovementComponent->Activate(true);
-		ProjectileMovementComponent->bIsHomingProjectile = true;
-	}
-	else if (bs == EBallState::EBS_SuperThrow)
-	{
-		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
-		AreaSphere->SetSimulatePhysics(false);
-		ProjectileMovementComponent->Activate(true);
-		ProjectileMovementComponent->bIsHomingProjectile = true;
-	}
-	else if (bs == EBallState::EBS_SimPhy)
-	{
-		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
-		AreaSphere->SetSimulatePhysics(true);
-		ProjectileMovementComponent->bIsHomingProjectile = false;
-		ProjectileMovementComponent->Deactivate();
-	}
-	else if (bs == EBallState::EBS_Initial)
-	{
-		AreaSphere->SetSimulatePhysics(true);
-		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
-		ProjectileMovementComponent->bIsHomingProjectile = false;
-		ProjectileMovementComponent->Deactivate();
-	}
-}
 
 void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 {
 	if (bs == EBallState::EBS_Equipped)
 	{
-
-		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
-		AreaSphere->SetSimulatePhysics(false);
+		ServerPlayNiagara(TrailFX, false);
+		ServerPlayNiagara(SuperBallFX, false);
+		MulticastPlayNiagara_Implementation(TrailFX, false);
+		MulticastPlayNiagara_Implementation(SuperBallFX, false);
+		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+		//AreaSphere->SetSimulatePhysics(false);
 		ProjectileMovementComponent->bIsHomingProjectile = false;
 		ProjectileMovementComponent->Deactivate();
 
@@ -444,31 +380,47 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 	}
 	else if (bs == EBallState::EBS_Dropped)
 	{
+		ServerPlayNiagara(TrailFX, true);
+		MulticastPlayNiagara_Implementation(TrailFX, true);
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
-		AreaSphere->SetSimulatePhysics(false);
+		//AreaSphere->SetSimulatePhysics(false);
 		ProjectileMovementComponent->Activate(true);
 		ProjectileMovementComponent->bIsHomingProjectile = true;
 	}
 	else if (bs == EBallState::EBS_SuperThrow)
 	{
-		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
-		AreaSphere->SetSimulatePhysics(false);
-		ProjectileMovementComponent->Activate(true);
-		ProjectileMovementComponent->bIsHomingProjectile = true;
+		MulticastPlayNiagara_Implementation(TrailFX, false);
+		ServerPlayNiagara(TrailFX, false);
+		ServerPlayNiagara(SuperBallFX, true);
+		MulticastPlayNiagara_Implementation(SuperBallFX, true);
+		ServerPlayNiagara(SuperTrailFX, true);
+		MulticastPlayNiagara_Implementation(SuperTrailFX, true);
 	}
 	else if (bs == EBallState::EBS_SimPhy)
 	{
-		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
-		AreaSphere->SetSimulatePhysics(true);
-		ProjectileMovementComponent->bIsHomingProjectile = false;
-		ProjectileMovementComponent->Deactivate();
+		//MulticastPlayNiagara_Implementation(TrailFX, true);
+		//ServerPlayNiagara(SuperBallFX, false);
+		//ServerPlayNiagara(TrailFX, true);
+		//MulticastPlayNiagara_Implementation(SuperBallFX, false);
+		//ServerPlayNiagara(SuperTrailFX, false);
+		//MulticastPlayNiagara_Implementation(SuperTrailFX, false);
+		//AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+		////AreaSphere->SetSimulatePhysics(true);
+		//ProjectileMovementComponent->bIsHomingProjectile = false;
+		////ProjectileMovementComponent->Deactivate();
 	}
 	else if (bs == EBallState::EBS_Initial)
 	{
-		AreaSphere->SetSimulatePhysics(true);
+		ServerPlayNiagara(TrailFX, false);
+		ServerPlayNiagara(SuperBallFX, false);
+		MulticastPlayNiagara_Implementation(TrailFX, false);
+		MulticastPlayNiagara_Implementation(SuperBallFX, false);
+		ServerPlayNiagara(SuperTrailFX, false);
+		MulticastPlayNiagara_Implementation(SuperTrailFX, false);
+		//AreaSphere->SetSimulatePhysics(true);
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+		ProjectileMovementComponent->Activate(true);
 		ProjectileMovementComponent->bIsHomingProjectile = false;
-		ProjectileMovementComponent->Deactivate();
 	}
 }
 

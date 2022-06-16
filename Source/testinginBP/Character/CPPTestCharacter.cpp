@@ -50,6 +50,9 @@ ACPPTestCharacter::ACPPTestCharacter()
 	LockFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LockFX"));
 	LockFX->SetupAttachment(GetMesh());
 
+	StunFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("StunFX"));
+	StunFX->SetupAttachment(GetMesh());
+
 	/*AbilityFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("AbilityFX"));
 	AbilityFX->SetupAttachment(GetMesh());*/
 
@@ -62,8 +65,8 @@ ACPPTestCharacter::ACPPTestCharacter()
 	targetComponent = CreateDefaultSubobject<UTargetingHelperComponent>(TEXT("targetComponent"));
 	targetComponent->SetIsReplicated(true);
 
-	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
-	NiagaraComponent->SetupAttachment(RootComponent);
+	HitEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("HitEffect"));
+	HitEffect->SetupAttachment(GetMesh());
 
 	combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	combat->SetIsReplicated(true);
@@ -99,7 +102,6 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	//important to include #include "Net/UnrealNetwork.h" whenever we use the replication macro
 	DOREPLIFETIME_CONDITION(ACPPTestCharacter, overlappingBall, COND_OwnerOnly);//Replication
-
 	DOREPLIFETIME(ACPPTestCharacter, bEquipped);
 	DOREPLIFETIME(ACPPTestCharacter, bCatching);
 	DOREPLIFETIME(ACPPTestCharacter, bSteal);
@@ -109,7 +111,7 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ACPPTestCharacter, CurrentHealth);
 	DOREPLIFETIME(ACPPTestCharacter, MaxHealth);
 	DOREPLIFETIME(ACPPTestCharacter, ballHitDirection);
-	DOREPLIFETIME(ACPPTestCharacter, throwPower);
+	//DOREPLIFETIME(ACPPTestCharacter, throwPower);
 	DOREPLIFETIME(ACPPTestCharacter, bIsDashing);
 	DOREPLIFETIME(ACPPTestCharacter, bIsSpawnInvincible);
 	DOREPLIFETIME(ACPPTestCharacter, bIsTargeting);
@@ -138,8 +140,6 @@ void ACPPTestCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	UpdateHUDHealth();
-
-	NiagaraComponent->Deactivate();
 
 	if (HasAuthority()) {
 		CharacterMesh->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
@@ -268,11 +268,11 @@ void ACPPTestCharacter::Turn(float value)
 	}
 	else
 	{
-		lockOnTargets->SwitchTargetPitch(value);
+		AddControllerYawInput(value * SensetivityX * GetWorld()->GetDeltaSeconds());
 	}
 #pragma endregion
 
-	AddControllerYawInput(value * SensetivityX * GetWorld()->GetDeltaSeconds());
+	
 }
 
 void ACPPTestCharacter::LookUp(float value)
@@ -287,11 +287,11 @@ void ACPPTestCharacter::LookUp(float value)
 	}
 	else
 	{
-		AddControllerPitchInput(value);
+		AddControllerPitchInput(value * SensetivityY * GetWorld()->GetDeltaSeconds());
 	}
 #pragma endregion
 
-	AddControllerPitchInput(value * SensetivityY * GetWorld()->GetDeltaSeconds());
+	//AddControllerPitchInput(value * SensetivityY * GetWorld()->GetDeltaSeconds());
 }
 
 // Lock on Target 
@@ -453,6 +453,14 @@ void ACPPTestCharacter::ThrowButtonPressed()
 	if (IsBallEquipped())
 	{
 		LockTarget();
+
+		if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
+		{
+			if(TargetPlayer->bKnocked)
+			{
+				ClearTarget();
+			}
+		}
 	}
 
 }
@@ -460,18 +468,7 @@ void ACPPTestCharacter::ThrowButtonPressed()
 
 void ACPPTestCharacter::ServerThrowButtonPressed_Implementation()
 {
-	if (IsBallEquipped())
-	{
-		LockTarget();
 
-		if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
-		{
-			UE_LOG(LogTemp, Warning, TEXT("TargetServer %s"), *TargetPlayer->GetFName().ToString());
-
-			TargetPlayer->MulticastPlayNiagara(TargetPlayer->LockFX, true);
-			TargetPlayer->ServerPlayNiagara(TargetPlayer->LockFX, true);
-		}
-	}
 }
 
 void ACPPTestCharacter::ThrowButtonReleased()
@@ -520,13 +517,11 @@ void ACPPTestCharacter::ServerLeaveGame_Implementation()
 
 void ACPPTestCharacter::Stunned()
 {
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1,
-			5.f, FColor::Green, FString::Printf(TEXT("STUN")));
-	}
 	bStunned = true;
-
+	if (StunFX) {
+		MulticastPlayNiagara(StunFX, true);
+		ServerPlayNiagara(StunFX, true);
+	}
 	FTimerHandle StunHandle;
 	GetWorld()->GetTimerManager().SetTimer(StunHandle, this, &ThisClass::StunCoolDown, StunDuration);
 }
@@ -534,6 +529,10 @@ void ACPPTestCharacter::Stunned()
 void ACPPTestCharacter::StunCoolDown()
 {
 	bStunned = false;
+	if (StunFX) {
+		MulticastPlayNiagara(StunFX, false);
+		ServerPlayNiagara(StunFX, false);
+	}
 }
 
 void ACPPTestCharacter::OnHealthUpdate()
@@ -572,11 +571,11 @@ void ACPPTestCharacter::OnHealthUpdate()
 			{
 				combat->UnEquipBall(combat->equippedBall);
 			}
-			FString deathMessage = FString::Printf(TEXT("You have been killed."));
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, deathMessage);
-
+			/*FString deathMessage = FString::Printf(TEXT("You have been killed."));
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, deathMessage);*/
+			
 			Knocked(ballHitDirection,bLeftGame);
-		}
+		} 
 	}
 }
 
@@ -660,8 +659,14 @@ void ACPPTestCharacter::ClearTarget()
 		MulticastPlayNiagara(AbilityFX, false);
 		ServerPlayNiagara(AbilityFX, false);
 	}
-	bIsTargeting = false;
-	lockOnTargets->ClearTargetManual();
+
+	if (bIsTargeting) {
+		bIsTargeting = false;
+		lockOnTargets->ClearTargetManual();
+
+		FString msg = TEXT("meen?");
+		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Emerald, msg);
+	}
 }
 
 
@@ -788,6 +793,8 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 		{
 			combat->EquipBall(BallHit);
 		}*/
+
+		
 	}
 }
 
@@ -797,7 +804,7 @@ void ACPPTestCharacter::MyThrow()
 	if (combat && IsBallEquipped() && IsAllowedToMove())
 	{
 		
-		UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
+		//UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
 		//const FVector forwardVec = this->GetMesh()->GetForwardVector();
 		 //gded
 		//combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
@@ -805,6 +812,13 @@ void ACPPTestCharacter::MyThrow()
 		if (combat->equippedBall->GetBallState() != EBallState::EBS_SuperThrow) {
 			combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
 			combat->ThrowButtonPressed(false);
+		} else if (combat->equippedBall->GetBallState() == EBallState::EBS_SuperThrow)
+		{
+			combat->equippedBall->AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+			combat->equippedBall->AreaSphere->SetSimulatePhysics(false);
+			combat->equippedBall->ProjectileMovementComponent->Activate(true);
+			combat->equippedBall->ProjectileMovementComponent->bIsHomingProjectile = true;
+			
 		}
 		bThrown = true;
 		//combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
@@ -814,14 +828,16 @@ void ACPPTestCharacter::MyThrow()
 		if (lockOnTargets->GetTarget())
 		{
 
-			combat->equippedBall->ProjectileMovementComponent->bIsHomingProjectile = true;
+			//combat->equippedBall->ProjectileMovementComponent->bIsHomingProjectile = true;
 
 			combat->equippedBall->ProjectileMovementComponent->HomingTargetComponent = lockOnTargets->GetTarget()->GetRootComponent();
 		}
 		else
 		{
-		
-			combat->equippedBall->ProjectileMovementComponent->Velocity = GetActorForwardVector() * throwPower;
+			FVector CameraLocation;
+			FRotator CameraRotation;
+			GetActorEyesViewPoint(CameraLocation, CameraRotation);
+			combat->equippedBall->ProjectileMovementComponent->Velocity = CameraRotation.Vector() * throwPower;
 		}
 		bEquipped = false;
 		combat->equippedBall->AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
@@ -872,6 +888,8 @@ void ACPPTestCharacter::OnRep_CurrentHealth()
 	OnHealthUpdate();
 
 }
+
+
 
 void ACPPTestCharacter::OnRep_OverlappingBall(ACPPBall* lastBall)
 {

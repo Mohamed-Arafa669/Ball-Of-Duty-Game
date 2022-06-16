@@ -68,16 +68,10 @@ void APowerCharacter::LoopHitActors()
 		for (int i = 0; i < OutHits.Num(); i++)
 		{
 
-			DrawDebugSphere(GetWorld(), OutHits[i].GetActor()->GetActorLocation(), 100.f, 30, FColor::Red, false, 2.f);
+			//DrawDebugSphere(GetWorld(), OutHits[i].GetActor()->GetActorLocation(), 100.f, 30, FColor::Red, false, 2.f);
 
 			if (ACPPTestCharacter* Temp = Cast<ACPPTestCharacter>(OutHits[i].GetActor())) {
 
-
-				if (GEngine)
-				{
-					GEngine->AddOnScreenDebugMessage(-1,
-						5.f, FColor::Green, FString(Temp->GetName()));
-				}
 				if (Temp == this) continue;
 				Temp->Stunned();
 			}
@@ -94,7 +88,6 @@ void APowerCharacter::StartAbilityTimer()
 
 void APowerCharacter::DoSweep()
 {
-	if (!IsBallEquipped()) {
 
 		FVector Start = GetActorLocation() + GetActorForwardVector() * StartDistance;
 		FVector End = Start + (GetControlRotation().Vector() * EndDistance);
@@ -109,24 +102,30 @@ void APowerCharacter::DoSweep()
 			ServerPlayNiagara(PowerAbilityFX, true);
 
 			FTimerHandle AbilityTimer;
-			GetWorld()->GetTimerManager().SetTimer(AbilityTimer, this, &APowerCharacter::DisableEffect, 0.5f);
+			GetWorld()->GetTimerManager().SetTimer(AbilityTimer, this, &APowerCharacter::DisableEffect, 0.7f);
 		}
-	}
+	
 }
 
 void APowerCharacter::SuperUpBall()
 {
-	if (IsBallEquipped())
-	{
-		combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
-		MyThrow();
-	}
+	
+	combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
+	MyThrow();
+	
 }
 
 void APowerCharacter::AbilityDelay()
 {
-	DoSweep();
-	SuperUpBall();
+	if(!IsBallEquipped())
+	{
+		DoSweep();
+
+	} else if (IsBallEquipped())
+	{
+		
+		SuperUpBall();
+	}
 }
 
 void APowerCharacter::AbilityDelayTimer()
@@ -147,7 +146,7 @@ void APowerCharacter::LockTargetAbility()
 {
 	if (!bSmash) {
 
-		LockTarget();
+		//LockTarget();
 
 		if (IsBallEquipped()) {
 			combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
@@ -167,14 +166,10 @@ void APowerCharacter::DoAbility()
 
 	if (!bSmash) {
 
-		FTimerHandle ClearHandle;
-		GetWorld()->GetTimerManager().SetTimer(ClearHandle, this, &ACPPTestCharacter::ClearTarget, 1.1f);
 		
 		if (HasAuthority()) {
 
 			StartAbilityTimer();
-
-			
 
 			if (AbilityAnim)
 			{
@@ -212,8 +207,8 @@ void APowerCharacter::CreateHUD()
 	GameHUD = GameHUD == nullptr ? Cast<AGameHUD>(GetWorld()->GetFirstPlayerController()->GetHUD()) : GameHUD;
 	if (GameHUD)
 	{
-		//GameHUD->AddCrimsonProfiler();
-		GameHUD->AddMelodyProfiler();
+		GameHUD->AddCrimsonProfiler();
+		//GameHUD->AddMelodyProfiler();
 
 	}
 }

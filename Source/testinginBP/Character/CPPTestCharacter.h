@@ -148,6 +148,9 @@ private:
 	UFUNCTION()
 	void OnRep_CurrentHealth();
 
+	/*UFUNCTION()
+		void OnRep_IsTargeted();*/
+
 	UFUNCTION()
 	void OnRep_OverlappingBall(ACPPBall* lastBall); //Replication
 
@@ -231,7 +234,8 @@ public:
 		float SpawnInvincibilityDuration = 2.f;
 
 	UPROPERTY(EditAnywhere, Category = "Effects")
-		UNiagaraComponent* NiagaraComponent;
+		UNiagaraComponent* HitEffect;
+
 
 
 	 bool bCanDash;
@@ -296,7 +300,7 @@ public:
 
 	FVector testVect;
 
-	UPROPERTY(EditAnywhere, Replicated, Category = "Throw")
+	UPROPERTY(EditAnywhere, Category = "Throw")
 		float throwPower = 500.0f;
 	UPROPERTY(EditAnywhere)
 		float HitImpulse = 1000.f;
@@ -337,6 +341,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	UNiagaraComponent* AbilityFX;
+
+	UPROPERTY(EditAnywhere)
+		UNiagaraComponent* StunFX;
 
 	UPROPERTY(VisibleAnywhere, Category = Shaders)
 		UMaterialInstanceDynamic* DynamicInvincibleMatInst;
