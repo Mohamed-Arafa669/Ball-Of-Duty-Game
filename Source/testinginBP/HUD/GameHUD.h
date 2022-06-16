@@ -51,6 +51,15 @@ public:
 	/// Character Selection	
 	/// //////////////////////////////////////////////////////////////////////////
 	/// 
+	/// 
+	/// 
+	 UPROPERTY(EditAnywhere, Category = "CharacterSelection")
+	TSubclassOf<class UUserWidget> CharacterSelectionClass;
+
+	UPROPERTY()
+		class UCharacterSelection* CharacterSelection;
+
+	void AddCharacterSelect();
 	/*UPROPERTY(EditAnywhere, Category = "CharacterSelection")
 		TSubclassOf<class UUserWidget> CharacterSelectionClass;
 

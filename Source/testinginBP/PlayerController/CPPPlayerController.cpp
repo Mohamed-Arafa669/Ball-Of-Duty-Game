@@ -15,6 +15,7 @@
 #include "testinginBP/GameComponents/CombatComponent.h"
 #include "testinginBP/GameState/MyGameState.h"
 #include "testinginBP/GameComponents/MyPlayerState.h"
+#include "GameFramework/PlayerController.h"
 #include "testinginBP/HUD/InGameMenu.h"
 
 void ACPPPlayerController::BeginPlay()
@@ -125,6 +126,8 @@ void ACPPPlayerController::ClientJoinMidgame_Implementation(FName StateOfMatch, 
 	if (GameHUD && MatchState == MatchState::WaitingToStart)
 	{
 		GameHUD->AddAnnouncement();
+		GameHUD->AddCharacterSelect();
+
 	}
 }
 
@@ -361,6 +364,7 @@ void ACPPPlayerController::HandleMatchHasStarted()
 		if (GameHUD->Announcement)
 		{
 			GameHUD->Announcement->SetVisibility(ESlateVisibility::Hidden);
+			GameHUD->CharacterSelection->CloseWidget();
 		}
 	}
 }
@@ -474,18 +478,18 @@ void ACPPPlayerController::ClientElimAnnouncement_Implementation(APlayerState* A
 	}
 }
 
-void ACPPPlayerController::CreateCharacterSelectMenu()
-{
-	if (!ensure(CharacterSelectionClass != nullptr))
-	{
-		return;
-	}
-	CharacterSelection = CreateWidget<UCharacterSelection>(this, CharacterSelectionClass);
-
-	if (!ensure(CharacterSelection != nullptr))
-	{
-		return;
-	}
-
-	CharacterSelection->Setup();
-}
+//void ACPPPlayerController::CreateCharacterSelectMenu()
+//{
+//	if (!ensure(CharacterSelectionClass != nullptr))
+//	{
+//		return;
+//	}
+//	CharacterSelection = CreateWidget<UCharacterSelection>(this, CharacterSelectionClass);
+//
+//	if (!ensure(CharacterSelection != nullptr))
+//	{
+//		return;
+//	}
+//
+//	CharacterSelection->Setup();
+//}

@@ -121,6 +121,17 @@ void AGameHUD::AddElimAnnouncement(FString Attacker, FString Victim)
 	}
 }
 
+void AGameHUD::AddCharacterSelect()
+{
+	APlayerController* playerController = GetOwningPlayerController();
+	if (playerController && CharacterSelectionClass)
+	{
+		CharacterSelection = CreateWidget<UCharacterSelection>(playerController, CharacterSelectionClass);
+		CharacterSelection->Setup();
+	}
+
+}
+
 //void AGameHUD::AddCharacterSelect()
 //{
 //	if (!ensure(CharacterSelectionClass != nullptr))
