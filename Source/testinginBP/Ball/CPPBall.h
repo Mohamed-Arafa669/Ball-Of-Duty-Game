@@ -14,7 +14,7 @@ enum class EBallState : uint8
 	EBS_Initial	UMETA(DisplayName = "Initial State"),
 	EBS_Equipped	UMETA(DisplayName = "Eqipped"),
 	EBS_SuperThrow	UMETA(DisplayName = "Super Throw"),
-	EBS_SimPhy	UMETA(DisplayName = "Sim Physics"),
+	EBS_Stolen	UMETA(DisplayName = "Stolen"),
 	EBS_Dropped	UMETA(DisplayName = "Dropped"),
 	EBS_MAX	UMETA(DisplayName = "DefaultMax")
 };
@@ -152,6 +152,7 @@ public:
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE UStaticMeshComponent* GetBallMesh() const { return ballMesh; }
 
+	UFUNCTION(NetMulticast, Reliable)
 	void MoveHookedBall(class AStealCharacter* TargetPlayer);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MoveHooked")

@@ -103,9 +103,9 @@ void AStealCharacter::TraceLine()
 void AStealCharacter::DoAbility()
 {
 
-	if (HasAuthority())
+	if (bHook)
 	{
-		if (bHook) {
+		if (HasAuthority()) {
 
 
 			if (SpecialAbilityAnimation)
@@ -113,39 +113,40 @@ void AStealCharacter::DoAbility()
 				MulticastPlayAnimMontage(SpecialAbilityAnimation);
 			}
 			bHook = false; //hook cool down (bCanHook)
-			HandleFire();
-			TraceLine();
-			if (ACPPTestCharacter* Target = Cast<ACPPTestCharacter>(Hit.GetActor()))
+			//HandleFire();
+			//TraceLine();
+			if (ACPPTestCharacter* Target = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget()))
 			{
-				UE_LOG(LogTemp, Warning, TEXT("hHhHAIHDOWA"));
-				CoolDownTime = 10.0f;
+				GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Blue, Target->GetName());
+
+				CoolDownTime = 1.0f;
 				if (Target->IsBallEquipped() && !IsBallEquipped())
 				{
-					StealBall(Target);
+					//StealBall(Target);
+					HandleFire();
 				}
 				else if (IsBallEquipped())
 				{
 					ThrowTwice();
 				}
 			}
-			else
-				CoolDownTime = 1.0f;
+			/*else
+				CoolDownTime = 1.0f;*/
 
 			FTimerHandle handle;
 			GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::AbilityCooldown, CoolDownTime);
 		}
-	}
-	else {
+		else {
 		Server_DoAbility();
-	}
+		}
 
+	}
 }
 
 
 
 void AStealCharacter::Server_DoAbility_Implementation()
 {
-	if (bHook) {
 		bHook = false;
 
 		if (SpecialAbilityAnimation)
@@ -153,17 +154,20 @@ void AStealCharacter::Server_DoAbility_Implementation()
 			PlayAnimMontage(SpecialAbilityAnimation);
 			ServerPlayAnimMontage(SpecialAbilityAnimation);
 		}
-		HandleFire();
+		
 		//TraceLine();
 		if (lockOnTargets->GetTarget()) {
 			if (ACPPTestCharacter* Target = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget()))
 			{
+				GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Blue, Target->GetName());
+				
 				UE_LOG(LogTemp, Warning, TEXT("hHhHAIHDOWA"));
-				CoolDownTime = 10.0f;
+				CoolDownTime = 1.0f;
 
 				if (Target->IsBallEquipped() && !IsBallEquipped())
 				{
-					StealBall(Target);
+					//StealBall(Target);
+					HandleFire();
 				}
 				else if (IsBallEquipped())
 				{
@@ -175,21 +179,41 @@ void AStealCharacter::Server_DoAbility_Implementation()
 			CoolDownTime = 1.0f;*/
 		FTimerHandle handle;
 		GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::AbilityCooldown, CoolDownTime);
-	}
 	
 }
 
 void AStealCharacter::HandleFire_Implementation()
 {
-	//FVector spawnLocation = GetActorLocation() + (GetControlRotation().Vector() * 500.0f) + (GetActorUpVector() * 100.0f);
-	FVector spawnLocation = GetActorLocation() + GetActorForwardVector() * 100.0f;
-	FRotator spawnRotation = GetControlRotation();
+	////FVector spawnLocation = GetActorLocation() + (GetControlRotation().Vector() * 500.0f) + (GetActorUpVector() * 100.0f);
+	//FVector spawnLocation = GetActorLocation() + GetActorForwardVector() * 100.0f;
+	//FRotator spawnRotation = GetControlRotation();
 
-	FActorSpawnParameters spawnParameters;
-	spawnParameters.Instigator = GetInstigator();
-	spawnParameters.Owner = this;
+	//FActorSpawnParameters spawnParameters;
+	//spawnParameters.Instigator = GetInstigator();
+	//spawnParameters.Owner = this;
 
-	SpawnHook = GetWorld()->SpawnActor<AHook>(ProjectileClass, spawnLocation, spawnRotation);	
+	//SpawnHook = GetWorld()->SpawnActor<AHook>(ProjectileClass, spawnLocation, spawnRotation);
+
+		//TODO General Unequip Function
+	bSteal = true;
+	//SpawnHook->AttachToActor(Target->combat->equippedBall, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	//Target->combat->equippedBall->SetBallState(EBallState::EBS_Initial);
+	//Target->combat->equippedBall->MoveHookedBall(this);
+	//combat->equippedBall = Target->combat->equippedBall;
+
+	/*Target->combat->equippedBall->GetAreaSphere()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	Target->combat->equippedBall = nullptr;
+	Target->bEquipped = false;*/
+	ACPPTestCharacter* Target = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget());
+	ACPPBall* StolenBall = Target->combat->equippedBall;
+	Target->combat->UnEquipBall(StolenBall);
+
+	
+	StolenBall->SetBallState(EBallState::EBS_Stolen);
+	StolenBall->ProjectileMovementComponent->HomingTargetComponent = GetRootComponent();
+	
+
+	ClearTarget();
 }
 
 
@@ -198,20 +222,21 @@ void AStealCharacter::StealBall(ACPPTestCharacter* Target)
 
 	//TODO General Unequip Function
 	bSteal = true;
-	SpawnHook->AttachToActor(Target->combat->equippedBall, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-	//Target->combat->equippedBall->GetAreaSphere()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	//SpawnHook->AttachToActor(Target->combat->equippedBall, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 	//Target->combat->equippedBall->SetBallState(EBallState::EBS_Initial);
 	//Target->combat->equippedBall->MoveHookedBall(this);
 	//combat->equippedBall = Target->combat->equippedBall;
-	//Target->combat->equippedBall = nullptr;
-	//Target->bEquipped = false;
 
-	//combat->equippedBall->SetBallState(EBallState::EBS_Initial);
+	/*Target->combat->equippedBall->GetAreaSphere()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	Target->combat->equippedBall = nullptr;
+	Target->bEquipped = false;*/
 
 	ACPPBall* StolenBall = Target->combat->equippedBall;
 	Target->combat->UnEquipBall(StolenBall);
+	StolenBall->SetOwner(GetOwner());
+	StolenBall->SetBallState(EBallState::EBS_Stolen);
 	StolenBall->MoveHookedBall(this);
-	SpawnHook->Destroy();
+	//SpawnHook->Destroy();
 	
 	ClearTarget();
 }

@@ -129,29 +129,34 @@ void ACPPBall::Tick(float DeltaTime)
 	}*/
 
 }
-void ACPPBall::MoveHookedBall(class AStealCharacter* TargetPlayer)
-{
-	Target = TargetPlayer;
-	if (Target != nullptr)
-	{
-		/*UE_LOG(LogTemp, Warning, TEXT("Bla bla bla"));
-		StartLocation = GetActorLocation();
-		Direction = Target->GetActorLocation() - StartLocation;
-		TotalDistance = Direction.Size();
-
-		UE_LOG(LogTemp, Warning, TEXT("Distance = %f"), TotalDistance);
-
-		Direction = Direction.GetSafeNormal();
-		CurrentDistance = 0.0f;
-
-		bMove = true;*/
-
-		
-		ProjectileMovementComponent->bIsHomingProjectile = true;
-		ProjectileMovementComponent->HomingTargetComponent = Target->GetRootComponent();
-
-	}
-}
+//void ACPPBall::MoveHookedBall(class AStealCharacter* TargetPlayer)
+//{
+//	Target = TargetPlayer;
+//	if (Target != nullptr)
+//	{
+//		/*UE_LOG(LogTemp, Warning, TEXT("Bla bla bla"));
+//		StartLocation = GetActorLocation();
+//		Direction = Target->GetActorLocation() - StartLocation;
+//		TotalDistance = Direction.Size();
+//
+//		UE_LOG(LogTemp, Warning, TEXT("Distance = %f"), TotalDistance);
+//
+//		Direction = Direction.GetSafeNormal();
+//		CurrentDistance = 0.0f;
+//
+//		bMove = true;*/
+//
+//		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, TEXT("lol"));
+//
+//		
+//		
+//
+//	}
+//	SetBallState(EBallState::EBS_Stolen);
+//	ProjectileMovementComponent->bIsHomingProjectile = true;
+//	ProjectileMovementComponent->HomingTargetComponent = TargetPlayer->GetRootComponent();
+//	GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, TargetPlayer->GetName());
+//}
 
 void ACPPBall::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -181,6 +186,7 @@ void ACPPBall::OnSphereEndOverlap(UPrimitiveComponent* overlappedComponent, AAct
 	if (testCharacter && pickUpWidget)
 	{
 		testCharacter->SetOverlappingBall(nullptr);
+		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
 	}
 }
 
@@ -209,10 +215,10 @@ void ACPPBall::OnRep_BallState()
 	
 
 
-	case EBallState::EBS_SimPhy:
+	case EBallState::EBS_Stolen:
 	
-		ServerBallStateHandle(EBallState::EBS_SimPhy);
-		MulticastBallStateHandle(EBallState::EBS_SimPhy);
+		ServerBallStateHandle(EBallState::EBS_Stolen);
+		MulticastBallStateHandle(EBallState::EBS_Stolen);
 
 
 
@@ -245,10 +251,10 @@ void ACPPBall::SetBallState(EBallState state)
 		ServerBallStateHandle(EBallState::EBS_SuperThrow);
 		MulticastBallStateHandle(EBallState::EBS_SuperThrow);
 		break;
-	case EBallState::EBS_SimPhy:
+	case EBallState::EBS_Stolen:
 		
-		ServerBallStateHandle(EBallState::EBS_SimPhy);
-		MulticastBallStateHandle(EBallState::EBS_SimPhy);
+		ServerBallStateHandle(EBallState::EBS_Stolen);
+		MulticastBallStateHandle(EBallState::EBS_Stolen);
 
 		break;
 	default:
@@ -266,6 +272,63 @@ void ACPPBall::OnReleased()
 	UE_LOG(LogTemp, Warning, TEXT("???"));
 }
 
+void ACPPBall::MoveHookedBall_Implementation(AStealCharacter* TargetPlayer)
+{
+	Target = TargetPlayer;
+	if (Target != nullptr)
+	{
+		/*UE_LOG(LogTemp, Warning, TEXT("Bla bla bla"));
+		StartLocation = GetActorLocation();
+		Direction = Target->GetActorLocation() - StartLocation;
+		TotalDistance = Direction.Size();
+
+		UE_LOG(LogTemp, Warning, TEXT("Distance = %f"), TotalDistance);
+
+		Direction = Direction.GetSafeNormal();
+		CurrentDistance = 0.0f;
+
+		bMove = true;*/
+
+		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, TEXT("lol"));
+
+
+
+
+	}
+	SetBallState(EBallState::EBS_Stolen);
+	ProjectileMovementComponent->bIsHomingProjectile = true;
+	ProjectileMovementComponent->HomingTargetComponent = TargetPlayer->GetRootComponent();
+	GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, TargetPlayer->GetName());
+}
+
+//void ACPPBall::MoveHookedBall_Implementation(AStealCharacter* TargetPlayer)
+//{
+//	Target = TargetPlayer;
+//	if (Target != nullptr)
+//	{
+//		/*UE_LOG(LogTemp, Warning, TEXT("Bla bla bla"));
+//		StartLocation = GetActorLocation();
+//		Direction = Target->GetActorLocation() - StartLocation;
+//		TotalDistance = Direction.Size();
+//
+//		UE_LOG(LogTemp, Warning, TEXT("Distance = %f"), TotalDistance);
+//
+//		Direction = Direction.GetSafeNormal();
+//		CurrentDistance = 0.0f;
+//
+//		bMove = true;*/
+//
+//		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, TEXT("lol"));
+//
+//
+//
+//
+//	}
+//	SetBallState(EBallState::EBS_Stolen);
+//	ProjectileMovementComponent->bIsHomingProjectile = true;
+//	ProjectileMovementComponent->HomingTargetComponent = TargetPlayer->GetRootComponent();
+//	GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Red, TargetPlayer->GetName());
+//}
 
 
 void ACPPBall::ServerPlayNiagara_Implementation(UNiagaraComponent* fx, bool state)
@@ -351,6 +414,14 @@ void ACPPBall::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiv
 			else if (GetBallState() == EBallState::EBS_Initial && Player->combat && !Player->IsBallEquipped())
 			{
 				Player->combat->EquipBall(this);
+
+			} else if (GetBallState() == EBallState::EBS_Stolen && Cast<AStealCharacter>(Player))
+			{
+				if (Player->bSteal) Player->combat->EquipBall(this);
+
+			} else if(GetBallState() == EBallState::EBS_Stolen && Player->GetController() != ballOwnerController)
+			{
+				AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 			}
 
 		}
@@ -373,6 +444,7 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 		MulticastPlayNiagara_Implementation(SuperBallFX, false);
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 		//AreaSphere->SetSimulatePhysics(false);
+		ProjectileMovementComponent->HomingTargetComponent = nullptr;
 		ProjectileMovementComponent->bIsHomingProjectile = false;
 		ProjectileMovementComponent->Deactivate();
 
@@ -396,18 +468,20 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 		ServerPlayNiagara(SuperTrailFX, true);
 		MulticastPlayNiagara_Implementation(SuperTrailFX, true);
 	}
-	else if (bs == EBallState::EBS_SimPhy)
+	else if (bs == EBallState::EBS_Stolen)
 	{
 		//MulticastPlayNiagara_Implementation(TrailFX, true);
 		//ServerPlayNiagara(SuperBallFX, false);
 		//ServerPlayNiagara(TrailFX, true);
 		//MulticastPlayNiagara_Implementation(SuperBallFX, false);
-		//ServerPlayNiagara(SuperTrailFX, false);
-		//MulticastPlayNiagara_Implementation(SuperTrailFX, false);
-		//AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+		/*ServerPlayNiagara(SuperTrailFX, true);
+		MulticastPlayNiagara_Implementation(SuperTrailFX, true);*/
+		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
 		////AreaSphere->SetSimulatePhysics(true);
-		//ProjectileMovementComponent->bIsHomingProjectile = false;
-		////ProjectileMovementComponent->Deactivate();
+		ProjectileMovementComponent->Activate(true);
+		ProjectileMovementComponent->bIsHomingProjectile = true;
+		ProjectileMovementComponent->HomingTargetComponent = nullptr;
 	}
 	else if (bs == EBallState::EBS_Initial)
 	{
@@ -419,6 +493,7 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 		MulticastPlayNiagara_Implementation(SuperTrailFX, false);
 		//AreaSphere->SetSimulatePhysics(true);
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+		//AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
 		ProjectileMovementComponent->Activate(true);
 		ProjectileMovementComponent->bIsHomingProjectile = false;
 	}

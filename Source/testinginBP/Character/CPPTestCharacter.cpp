@@ -830,6 +830,7 @@ void ACPPTestCharacter::MyThrow()
 		}
 		else
 		{
+			ClearTarget();
 			FVector CameraLocation;
 			FRotator CameraRotation;
 			GetActorEyesViewPoint(CameraLocation, CameraRotation);
