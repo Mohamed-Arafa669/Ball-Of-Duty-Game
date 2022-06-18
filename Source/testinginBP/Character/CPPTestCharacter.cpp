@@ -602,6 +602,11 @@ void ACPPTestCharacter::Knocked(FVector ImpulseDirection,bool bPlayerLeftGame)
 	{
 		MultiKnocked(ImpulseDirection, bPlayerLeftGame);
 
+		if (IsBallEquipped())
+		{
+			combat->UnEquipBall(combat->equippedBall);
+		}
+
 		FTimerHandle KnockedTimerDestroy;
 
 		GetWorld()->GetTimerManager().SetTimer(KnockedTimerDestroy, this, &ACPPTestCharacter::CallDestroy, 6.0f, false);
@@ -630,12 +635,16 @@ bool ACPPTestCharacter::MultiKnocked_Validate(FVector ImpulseDirection,bool bPla
 
 void ACPPTestCharacter::MultiKnocked_Implementation(FVector ImpulseDirection,bool bPlayerLeftGame)
 {
+
+	
 	bLeftGame = bPlayerLeftGame;
 	bKnocked = true;
+	
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CharacterMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 	CharacterMesh->SetAllBodiesSimulatePhysics(true);
 	CharacterMesh->SetEnableGravity(false);
-	CharacterMesh->SetAllMassScale(0.5);
+	CharacterMesh->SetAllMassScale(0.1);
 	CharacterMesh->AddImpulse(GetActorLocation() + ((ImpulseDirection + GetActorUpVector()) * HitImpulse * CharacterMesh->GetMass()));
 
 }
@@ -815,7 +824,7 @@ void ACPPTestCharacter::MyThrow()
 			combat->equippedBall->ProjectileMovementComponent->Activate(true);
 			combat->equippedBall->ProjectileMovementComponent->bIsHomingProjectile = true;
 			
-		}
+		} 
 		bThrown = true;
 		//combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
 		//combat->equippedBall->GetAreaSphere()->SetSimulatePhysics(true);
@@ -964,8 +973,8 @@ void ACPPTestCharacter::RemoveWidget(UUI_RespawnWidget* MsgToRemove)
 {
 	if (MsgToRemove)
 	{
-		FString lol = FString::Printf(TEXT("LOL mn el widget"));
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Emerald, lol);
+		/*FString lol = FString::Printf(TEXT("LOL mn el widget"));
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Emerald, lol);*/
 
 		MsgToRemove->RemoveFromParent();
 	}

@@ -160,6 +160,13 @@ public:
 
 	UPROPERTY(EditAnywhere)
 		UNiagaraComponent* SuperTrailFX;
+
+	UPROPERTY(EditAnywhere)
+		UNiagaraComponent* TrailFX;
+	UPROPERTY(EditAnywhere)
+		UNiagaraComponent* BungeeGumFX;
+
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MoveHooked")
 		float Speed = 1000.0f;
@@ -207,11 +214,11 @@ protected:
 	UPROPERTY(visibleAnywhere)
 		class UWorld* world;
 
-	UPROPERTY(EditAnywhere)
-		UNiagaraComponent* TrailFX;
 
 	UPROPERTY(EditAnywhere)
 		UNiagaraComponent* SuperBallFX;
+
+	
 	
 
 	UFUNCTION(Server, Reliable, WithValidation, Category = Effects)
@@ -219,6 +226,7 @@ protected:
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Effects)
 		void MulticastPlayNiagara(UNiagaraComponent* fx, bool state);
+	
 
 	UFUNCTION()
 		void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,

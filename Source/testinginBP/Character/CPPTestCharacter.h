@@ -266,7 +266,7 @@ public:
 
 
 	 UFUNCTION()
-		 void MyThrow();
+		 virtual void MyThrow();
 
 	 void StopThrow();
 
