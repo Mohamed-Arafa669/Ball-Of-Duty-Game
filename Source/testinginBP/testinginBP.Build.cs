@@ -8,7 +8,7 @@ public class testinginBP : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "UMG", "LockOnTarget" ,"MultiplayerSessions", "OnlineSubsystem","OnlineSubsystemSteam", "Niagara" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "UMG", "LockOnTarget" ,"MultiplayerSessions", "OnlineSubsystem","OnlineSubsystemSteam", "Niagara", "GameplayCameras"});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

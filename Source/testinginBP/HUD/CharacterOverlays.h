@@ -26,4 +26,5 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 		class UTextBlock* MatchCountdownText;
+
 };
