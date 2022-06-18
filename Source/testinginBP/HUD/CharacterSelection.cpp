@@ -29,6 +29,7 @@ void UCharacterSelection::NativeConstruct()
 	BTN_ShieldCharacter->SetIsEnabled(false);
 	BTN_CloneCharacter->SetIsEnabled(false);
 	BTN_TimeCharacter->SetIsEnabled(false);
+	BTN_ConfirmCharacterSelect->SetIsEnabled(false);
 
 
 }
@@ -81,6 +82,8 @@ void UCharacterSelection::StealCharacterBTNPressed()
 	CrimsonBanner->SetVisibility(ESlateVisibility::Hidden);
 	BTN_CrimsonMoreInfo->SetVisibility(ESlateVisibility::Hidden);
 
+	BTN_ConfirmCharacterSelect->SetIsEnabled(true);
+
 	bMelodySelected = true;
 	bCrimsonSelected = false;
 }
@@ -95,6 +98,8 @@ void UCharacterSelection::PowerCharacterBTNPressed()
 	Crimson->SetVisibility(ESlateVisibility::Visible);
 	CrimsonBanner->SetVisibility(ESlateVisibility::Visible);
 	BTN_CrimsonMoreInfo->SetVisibility(ESlateVisibility::Visible);
+
+	BTN_ConfirmCharacterSelect->SetIsEnabled(true);
 
 	bMelodySelected = false;
 	bCrimsonSelected = true;
