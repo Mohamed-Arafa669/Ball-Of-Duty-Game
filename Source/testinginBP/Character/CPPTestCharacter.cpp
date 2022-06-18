@@ -23,6 +23,7 @@
 #include "testinginBP/PlayerController/CPPPlayerController.h"
 #include "testinginBP/GameComponents/MyPlayerState.h"
 #include "testinginBP/GameMode/MyGameMode.h"
+#include "Components/SceneCaptureComponent2D.h"
 
 
 #include "TimerManager.h"
@@ -39,7 +40,15 @@ ACPPTestCharacter::ACPPTestCharacter()
 	cameraBoom->SetupAttachment(GetMesh());
 	cameraBoom->TargetArmLength = 500.0f;
 
-	
+	MiniMapBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("MiniMapBoom"));
+	MiniMapBoom->SetupAttachment(RootComponent);
+	MiniMapBoom->TargetArmLength = 700.0f;
+
+	MiniMapCam = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("MiniMap"));
+	MiniMapCam->SetupAttachment(MiniMapBoom, USpringArmComponent::SocketName);
+
+	MiniMapCam->SetIsReplicated(true);
+
 
 	followCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Follow Camera"));
 	followCamera->SetupAttachment(cameraBoom, USpringArmComponent::SocketName);
@@ -47,8 +56,8 @@ ACPPTestCharacter::ACPPTestCharacter()
 	DashFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DashFX"));
 	DashFX->SetupAttachment(GetMesh());
 
-	LockFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LockFX"));
-	LockFX->SetupAttachment(GetMesh());
+	//LockFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LockFX"));
+	//LockFX->SetupAttachment(GetMesh());
 
 	StunFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("StunFX"));
 	StunFX->SetupAttachment(GetMesh());
@@ -451,6 +460,41 @@ void ACPPTestCharacter::ClientRespawnCountDown_Implementation(float seconds)
 #pragma region ThrowMechanics
 void ACPPTestCharacter::ThrowButtonPressed()
 {
+	//if (HasAuthority())
+	//{
+		if (IsBallEquipped())
+		{
+
+			LockTarget();
+
+			//if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
+			//{
+			//	UE_LOG(LogTemp, Warning, TEXT("Target %s"), *TargetPlayer->GetFName().ToString());
+			//	TargetPlayer->MulticastPlayNiagara(TargetPlayer->LockFX, true);
+			//	TargetPlayer->ServerPlayNiagara(TargetPlayer->LockFX, true);
+			//}
+			
+		}
+	//}
+	//else
+	//	ServerThrowButtonPressed();
+}
+
+
+void ACPPTestCharacter::ServerThrowButtonPressed_Implementation()
+{
+	//if (IsBallEquipped())
+	//{
+	//	LockTarget();
+
+	//	if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
+	//	{
+	//		UE_LOG(LogTemp, Warning, TEXT("TargetServer %s"), *TargetPlayer->GetFName().ToString());
+
+	//		TargetPlayer->MulticastPlayNiagara(TargetPlayer->LockFX, true);
+	//		TargetPlayer->ServerPlayNiagara(TargetPlayer->LockFX, true);
+	//	}
+	//}
 	if (IsBallEquipped())
 	{
 		LockTarget();
@@ -463,12 +507,6 @@ void ACPPTestCharacter::ThrowButtonPressed()
 			}
 		}
 	}
-
-}
-
-
-void ACPPTestCharacter::ServerThrowButtonPressed_Implementation()
-{
 
 }
 
@@ -602,6 +640,11 @@ void ACPPTestCharacter::Knocked(FVector ImpulseDirection,bool bPlayerLeftGame)
 	{
 		MultiKnocked(ImpulseDirection, bPlayerLeftGame);
 
+		if (IsBallEquipped())
+		{
+			combat->UnEquipBall(combat->equippedBall);
+		}
+
 		FTimerHandle KnockedTimerDestroy;
 
 		GetWorld()->GetTimerManager().SetTimer(KnockedTimerDestroy, this, &ACPPTestCharacter::CallDestroy, 6.0f, false);
@@ -630,12 +673,16 @@ bool ACPPTestCharacter::MultiKnocked_Validate(FVector ImpulseDirection,bool bPla
 
 void ACPPTestCharacter::MultiKnocked_Implementation(FVector ImpulseDirection,bool bPlayerLeftGame)
 {
+
+	
 	bLeftGame = bPlayerLeftGame;
 	bKnocked = true;
+	
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CharacterMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 	CharacterMesh->SetAllBodiesSimulatePhysics(true);
 	CharacterMesh->SetEnableGravity(false);
-	CharacterMesh->SetAllMassScale(0.5);
+	CharacterMesh->SetAllMassScale(0.1);
 	CharacterMesh->AddImpulse(GetActorLocation() + ((ImpulseDirection + GetActorUpVector()) * HitImpulse * CharacterMesh->GetMass()));
 
 }
@@ -790,6 +837,46 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 			combat->EquipBall(BallHit);
 		}*/
 
+		//else if ((BallHit->GetBallState() == EBallState::EBS_Dropped ||
+		//	BallHit->GetBallState() == EBallState::EBS_SuperThrow) && BallHit->GetOwner() != this)
+		//{
+		//	if (!bIsSpawnInvincible) {
+
+		//		NiagaraComponent->Activate(true);
+
+		//		GetWorld()->GetFirstPlayerController()->ClientStartCameraShake(CamShake);
+
+		//		FDamageEvent GotHitEvent;
+		//		AController* ballOwnerController = BallHit->GetInstigatorController();
+		//		ballHitDirection = ballOwnerController->GetCharacter()->GetActorForwardVector();
+		//		
+		//		if (BallHit->GetBallState() == EBallState::EBS_SuperThrow)
+		//		{
+		//			Knocked(ballHitDirection, false);
+		//			UGameplayStatics::ApplyDamage(this, 100.f, ballOwnerController, BallHit, NULL);	
+		//			
+		//		}
+		//		else
+		//		{
+		//			UGameplayStatics::ApplyDamage(this, 50.f, ballOwnerController, BallHit, NULL);
+		//		}
+		//		
+		//		if (CurrentHealth > 0 && GetHitAnim) {
+		//			MulticastPlayAnimMontage(GetHitAnim, 1, NAME_None);
+		//		}
+		//	}
+		//	//this->TakeDamage(50.f, GotHitEvent, BallHit->GetInstigatorController(), BallHit);
+		//	BallHit->SetBallState(EBallState::EBS_Initial);
+		//	//TODO : Make A reset function for owner and instigator
+		//	BallHit->SetOwner(nullptr);
+		//	BallHit->SetInstigator(nullptr);
+
+
+		//}
+		//else if (BallHit->GetBallState() == EBallState::EBS_Initial && combat && !IsBallEquipped())
+		//{
+		//	combat->EquipBall(BallHit);
+		//}
 		
 	}
 }
@@ -815,7 +902,7 @@ void ACPPTestCharacter::MyThrow()
 			combat->equippedBall->ProjectileMovementComponent->Activate(true);
 			combat->equippedBall->ProjectileMovementComponent->bIsHomingProjectile = true;
 			
-		}
+		} 
 		bThrown = true;
 		//combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
 		//combat->equippedBall->GetAreaSphere()->SetSimulatePhysics(true);
@@ -830,6 +917,7 @@ void ACPPTestCharacter::MyThrow()
 		}
 		else
 		{
+			ClearTarget();
 			FVector CameraLocation;
 			FRotator CameraRotation;
 			GetActorEyesViewPoint(CameraLocation, CameraRotation);
@@ -963,8 +1051,8 @@ void ACPPTestCharacter::RemoveWidget(UUI_RespawnWidget* MsgToRemove)
 {
 	if (MsgToRemove)
 	{
-		FString lol = FString::Printf(TEXT("LOL mn el widget"));
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Emerald, lol);
+		/*FString lol = FString::Printf(TEXT("LOL mn el widget"));
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Emerald, lol);*/
 
 		MsgToRemove->RemoveFromParent();
 	}

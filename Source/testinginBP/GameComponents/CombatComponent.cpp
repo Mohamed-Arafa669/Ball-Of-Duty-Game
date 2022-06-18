@@ -98,6 +98,7 @@ void UCombatComponent::UnEquipBall(class ACPPBall* BalltoUnequip)
 	if (BalltoUnequip) {
 		BalltoUnequip->GetAreaSphere()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
 		BalltoUnequip->SetBallState(EBallState::EBS_Initial);
+		BalltoUnequip->SetOwner(nullptr);
 		//BalltoUnequip->GetAreaSphere()->SetSimulatePhysics(true);
 		character->combat->equippedBall = nullptr;
 	}
