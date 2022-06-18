@@ -14,6 +14,7 @@ enum class EBallState : uint8
 	EBS_Initial	UMETA(DisplayName = "Initial State"),
 	EBS_Equipped	UMETA(DisplayName = "Eqipped"),
 	EBS_SuperThrow	UMETA(DisplayName = "Super Throw"),
+	EBS_Stolen	UMETA(DisplayName = "Stolen"),
 	EBS_Dropped	UMETA(DisplayName = "Dropped"),
 	EBS_MAX	UMETA(DisplayName = "DefaultMax")
 };
@@ -151,10 +152,20 @@ public:
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE UStaticMeshComponent* GetBallMesh() const { return ballMesh; }
 
+	UFUNCTION(NetMulticast, Reliable)
 	void MoveHookedBall(class AStealCharacter* TargetPlayer);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MoveHooked")
 		class AStealCharacter* Target;
+
+	UPROPERTY(EditAnywhere)
+		UNiagaraComponent* SuperTrailFX;
+
+	UPROPERTY(EditAnywhere)
+		UNiagaraComponent* TrailFX;
+	UPROPERTY(EditAnywhere)
+		UNiagaraComponent* BungeeGumFX;
+
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "MoveHooked")
@@ -203,19 +214,28 @@ protected:
 	UPROPERTY(visibleAnywhere)
 		class UWorld* world;
 
-	UPROPERTY(EditAnywhere)
-		UNiagaraComponent* TrailFX;
 
 	UPROPERTY(EditAnywhere)
 		UNiagaraComponent* SuperBallFX;
+
+	
+	
 
 	UFUNCTION(Server, Reliable, WithValidation, Category = Effects)
 		void ServerPlayNiagara(UNiagaraComponent* fx, bool state);
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Effects)
 		void MulticastPlayNiagara(UNiagaraComponent* fx, bool state);
+	
 
 	UFUNCTION()
 		void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor,
 			UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION(Server, Reliable, WithValidation, Category = BallHandling)
+		void ServerBallStateHandle(EBallState bs);
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = BallHandling)
+		void MulticastBallStateHandle(EBallState bs);
+
 };

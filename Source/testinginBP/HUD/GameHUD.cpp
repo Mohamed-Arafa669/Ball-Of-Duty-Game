@@ -7,6 +7,7 @@
 #include "testinginBP/HUD/ElimAnnouncements.h"
 #include "testinginBP/HUD/CrimsonProfiler.h"
 #include "testinginBP/HUD/MelodyProfiler.h"
+#include "testinginBP/HUD/CharacterSelection.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/HorizontalBox.h"
 #include "Components/CanvasPanelSlot.h"
@@ -119,6 +120,33 @@ void AGameHUD::AddElimAnnouncement(FString Attacker, FString Victim)
 		}
 	}
 }
+
+void AGameHUD::AddCharacterSelect()
+{
+	APlayerController* playerController = GetOwningPlayerController();
+	if (playerController && CharacterSelectionClass)
+	{
+		CharacterSelection = CreateWidget<UCharacterSelection>(playerController, CharacterSelectionClass);
+		CharacterSelection->Setup();
+	}
+
+}
+
+//void AGameHUD::AddCharacterSelect()
+//{
+//	if (!ensure(CharacterSelectionClass != nullptr))
+//	{
+//		return;
+//	}
+//	CharacterSelection = CreateWidget<UCharacterSelection>(this, CharacterSelectionClass);
+//
+//	if (!ensure(CharacterSelection != nullptr))
+//	{
+//		return;
+//	}
+//
+//	CharacterSelection->Setup();
+//}
 
 void AGameHUD::ElimAnnouncementTimerFinished(UElimAnnouncements* MsgToRemove)
 {

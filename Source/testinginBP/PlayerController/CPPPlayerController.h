@@ -30,6 +30,23 @@ public:
 	void HandleCooldown();
 	void BroadcastElim(APlayerState* Attacker, APlayerState* Victim);
 
+	//////////////////////////////////////////////////////////////////////////
+	///
+	///	 Character Selection
+	/// 
+
+	UFUNCTION(Server, Reliable)
+		void ServerSelectedCharacter(uint8 index);
+
+	uint8 CharacterSelectIndex = -1;
+
+	/*UPROPERTY(EditAnywhere, Category = "CharacterSelection")
+		TSubclassOf<class UUserWidget> CharacterSelectionClass;
+
+	UPROPERTY()
+		class UCharacterSelection* CharacterSelection;*/
+
+	//void CreateCharacterSelectMenu();
 	/// <summary>
 	/// Time Sync Between Client and Server
 	/// </summary>

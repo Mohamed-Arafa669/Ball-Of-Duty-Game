@@ -11,9 +11,11 @@
 #include "testinginBP/GameMode/MyGameMode.h"
 #include "testinginBP/HUD/Announcement.h"
 #include "testinginBP/Character/CPPTestCharacter.h"
+#include "testinginBP/HUD/CharacterSelection.h"
 #include "testinginBP/GameComponents/CombatComponent.h"
 #include "testinginBP/GameState/MyGameState.h"
 #include "testinginBP/GameComponents/MyPlayerState.h"
+#include "GameFramework/PlayerController.h"
 #include "testinginBP/HUD/InGameMenu.h"
 
 void ACPPPlayerController::BeginPlay()
@@ -21,6 +23,9 @@ void ACPPPlayerController::BeginPlay()
 	Super::BeginPlay();
 
 	GameHUD = Cast<AGameHUD>(GetHUD());
+
+	//GameHUD->AddCharacterSelect();
+	//CreateCharacterSelectMenu();
 
 	ServerCheckMatchState();
 
@@ -121,6 +126,8 @@ void ACPPPlayerController::ClientJoinMidgame_Implementation(FName StateOfMatch, 
 	if (GameHUD && MatchState == MatchState::WaitingToStart)
 	{
 		GameHUD->AddAnnouncement();
+		GameHUD->AddCharacterSelect();
+
 	}
 }
 
@@ -357,6 +364,7 @@ void ACPPPlayerController::HandleMatchHasStarted()
 		if (GameHUD->Announcement)
 		{
 			GameHUD->Announcement->SetVisibility(ESlateVisibility::Hidden);
+			GameHUD->CharacterSelection->CloseWidget();
 		}
 	}
 }
@@ -429,6 +437,13 @@ void ACPPPlayerController::BroadcastElim(APlayerState* Attacker, APlayerState* V
 	ClientElimAnnouncement(Attacker, Victim);
 }
 
+void ACPPPlayerController::ServerSelectedCharacter_Implementation(uint8 index)
+{
+	CharacterSelectIndex = index;
+
+	ServerRestartPlayer();
+}
+
 void ACPPPlayerController::ClientElimAnnouncement_Implementation(APlayerState* Attacker, APlayerState* Victim)
 {
 	APlayerState* Self = GetPlayerState<APlayerState>();
@@ -462,3 +477,19 @@ void ACPPPlayerController::ClientElimAnnouncement_Implementation(APlayerState* A
 
 	}
 }
+
+//void ACPPPlayerController::CreateCharacterSelectMenu()
+//{
+//	if (!ensure(CharacterSelectionClass != nullptr))
+//	{
+//		return;
+//	}
+//	CharacterSelection = CreateWidget<UCharacterSelection>(this, CharacterSelectionClass);
+//
+//	if (!ensure(CharacterSelection != nullptr))
+//	{
+//		return;
+//	}
+//
+//	CharacterSelection->Setup();
+//}
