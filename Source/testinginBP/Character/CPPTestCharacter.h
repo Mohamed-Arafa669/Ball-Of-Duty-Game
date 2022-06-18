@@ -14,6 +14,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftGame);
 
+
 UCLASS()
 class TESTINGINBP_API ACPPTestCharacter : public ACharacter
 {
@@ -49,8 +50,17 @@ public:
 		class UCameraComponent* followCamera;
 	UPROPERTY(EditAnywhere, Category = Camera)
 		class USpringArmComponent* cameraBoom;
+
+	UPROPERTY(EditAnywhere, Category = "SceneCaptureComponent")
+		class USceneCaptureComponent2D* MiniMapCam;
+
+	UPROPERTY(EditAnywhere, Category = "SceneCaptureComponent")
+		class USpringArmComponent* MiniMapBoom;
+
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly,  meta = (AllowPrivateAccess = "true"))
 		class ULockOnTargetComponent* lockOnTargets;
+
+	
 
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly,  meta = (AllowPrivateAccess = "true"))
 		class UTargetingHelperComponent* targetComponent;
@@ -122,6 +132,9 @@ protected:
 
 
 
+
+	UPROPERTY(EditAnywhere, Category = "CameraShake")
+	TSubclassOf<class UCameraShakeBase> CamShake;
 
 private:
 
@@ -266,7 +279,7 @@ public:
 
 
 	 UFUNCTION()
-		 void MyThrow();
+		 virtual void MyThrow();
 
 	 void StopThrow();
 
@@ -336,8 +349,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	UNiagaraComponent* DashFX;
 
-	UPROPERTY(EditAnywhere)
-		UNiagaraComponent* LockFX;
+	//UPROPERTY(EditAnywhere)
+	//	UNiagaraComponent* LockFX;
 
 	UPROPERTY(EditAnywhere)
 	UNiagaraComponent* AbilityFX;
