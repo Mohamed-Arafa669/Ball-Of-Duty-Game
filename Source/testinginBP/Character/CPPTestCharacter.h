@@ -27,8 +27,8 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void Jump() override;;
 
-	/*UPROPERTY(Replicated)
-	bool bDoingAbility;*/
+	UPROPERTY(Replicated)
+	bool bDoingAbility;
 	/*USphereComponent* DashingSphere;*/
 	
 	UPROPERTY(Replicated)

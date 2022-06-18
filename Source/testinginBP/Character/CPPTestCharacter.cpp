@@ -92,6 +92,8 @@ ACPPTestCharacter::ACPPTestCharacter()
 
 	bSteal = false;
 
+	bDoingAbility = false;
+
 	bisLocked = false;
 	UE_LOG(LogTemp, Warning, TEXT("The vector value is: %s"), *testVect.ToString());
 
@@ -117,7 +119,7 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ACPPTestCharacter, bIsDashing);
 	DOREPLIFETIME(ACPPTestCharacter, bIsSpawnInvincible);
 	DOREPLIFETIME(ACPPTestCharacter, bIsTargeting);
-	/*DOREPLIFETIME(ACPPTestCharacter, bDoingAbility);*/
+	DOREPLIFETIME(ACPPTestCharacter, bDoingAbility);
 
 }
 
@@ -456,7 +458,7 @@ void ACPPTestCharacter::ClientRespawnCountDown_Implementation(float seconds)
 #pragma region ThrowMechanics
 void ACPPTestCharacter::ThrowButtonPressed()
 {
-	if (IsBallEquipped() /*&& !bDoingAbility*/)
+	if (IsBallEquipped() && !bDoingAbility)
 	{
 		LockTarget();
 
@@ -479,12 +481,12 @@ void ACPPTestCharacter::ServerThrowButtonPressed_Implementation()
 
 void ACPPTestCharacter::ThrowButtonReleased()
 {
-	if (combat && IsBallEquipped() )
+	if (combat && IsBallEquipped() && !bDoingAbility)
 	{
 		if (HasAuthority())
 		{
 			combat->ThrowButtonPressed(true);
-			if (combat && bEquipped /*&& !bDoingAbility*/)
+			if (combat && bEquipped )
 			{
 				MyThrow();
 			}
@@ -499,7 +501,7 @@ void ACPPTestCharacter::ThrowButtonReleased()
 }
 void ACPPTestCharacter::ServerThrowButtonReleased_Implementation()
 {
-	if (combat && IsBallEquipped() /*&& !bDoingAbility*/)
+	if (combat && IsBallEquipped() && !bDoingAbility)
 	{
 		combat->ThrowButtonPressed(true);
 

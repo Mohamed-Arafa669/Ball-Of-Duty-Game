@@ -43,6 +43,7 @@ void APowerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 
 	DOREPLIFETIME(APowerCharacter, bSmash);
 	DOREPLIFETIME(APowerCharacter, bSuperBall);
+	DOREPLIFETIME(APowerCharacter, bDoingAbility);
 
 }
 
@@ -89,42 +90,43 @@ void APowerCharacter::StartAbilityTimer()
 void APowerCharacter::DoSweep()
 {
 
-		FVector Start = GetActorLocation() + GetActorForwardVector() * StartDistance;
-		FVector End = Start + (GetControlRotation().Vector() * EndDistance);
+	FVector Start = GetActorLocation() + GetActorForwardVector() * StartDistance;
+	FVector End = Start + (GetControlRotation().Vector() * EndDistance);
 
-		GetWorld()->SweepMultiByChannel(OutHits, Start, End, FQuat::Identity, ECollisionChannel::ECC_Pawn,
-			FCollisionShape::MakeSphere(RangeRadius));
+	GetWorld()->SweepMultiByChannel(OutHits, Start, End, FQuat::Identity, ECollisionChannel::ECC_Pawn,
+		FCollisionShape::MakeSphere(RangeRadius));
 
-		LoopHitActors();
+	LoopHitActors();
 
-		if (PowerAbilityFX) {
-			MulticastPlayNiagara(PowerAbilityFX, true);
-			ServerPlayNiagara(PowerAbilityFX, true);
-			FString msg = TEXT("lol");
-			GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Blue, msg);
-			FTimerHandle AbilityTimer;
-			GetWorld()->GetTimerManager().SetTimer(AbilityTimer, this, &APowerCharacter::DisableEffect, 0.7f);
-		}
-	
+	if (PowerAbilityFX) {
+		MulticastPlayNiagara(PowerAbilityFX, true);
+		ServerPlayNiagara(PowerAbilityFX, true);
+		FString msg = TEXT("lol");
+		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Blue, msg);
+		FTimerHandle AbilityTimer;
+		GetWorld()->GetTimerManager().SetTimer(AbilityTimer, this, &APowerCharacter::DisableEffect, 0.7f);
+	}
+
 }
 
 void APowerCharacter::SuperUpBall()
 {
-	
+
 	combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
 	MyThrow();
-	
+
 }
 
 void APowerCharacter::AbilityDelay()
 {
-	if(!IsBallEquipped())
+	if (!IsBallEquipped())
 	{
 		DoSweep();
 
-	} else if (IsBallEquipped())
+	}
+	else if (IsBallEquipped())
 	{
-		
+
 		SuperUpBall();
 	}
 
@@ -141,19 +143,31 @@ void APowerCharacter::AbilityDelayTimer()
 
 void APowerCharacter::LockTarget()
 {
-	
+
 	Super::LockTarget();
-	
+
 }
 
 void APowerCharacter::LockTargetAbility()
 {
 	if (!bSmash) {
-		//bDoingAbility = true;
-		LockTarget();
-		if (IsBallEquipped()) {
-			
-			combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
+		if (HasAuthority())
+		{
+			LockTarget();
+			bDoingAbility = true;
+			if (IsBallEquipped()) {
+
+				combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
+			}
+
+		} else
+		{
+			LockTarget();
+			bDoingAbility = true;
+			if (IsBallEquipped()) {
+
+				combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
+			}
 		}
 
 	}
@@ -161,8 +175,18 @@ void APowerCharacter::LockTargetAbility()
 
 void APowerCharacter::DisableEffect()
 {
-	MulticastPlayNiagara(PowerAbilityFX, false);
-	ServerPlayNiagara(PowerAbilityFX, false);
+	if(HasAuthority())
+	{
+		MulticastPlayNiagara(PowerAbilityFX, false);
+		ServerPlayNiagara(PowerAbilityFX, false);
+		
+	} else
+	{
+		MulticastPlayNiagara(PowerAbilityFX, false);
+		ServerPlayNiagara(PowerAbilityFX, false);
+		
+	}
+	ClearTarget();
 }
 
 void APowerCharacter::DoAbility()
@@ -170,8 +194,8 @@ void APowerCharacter::DoAbility()
 
 	if (!bSmash) {
 
-		//bDoingAbility = false;
 		if (HasAuthority()) {
+			bDoingAbility = false;
 
 			StartAbilityTimer();
 
@@ -184,6 +208,7 @@ void APowerCharacter::DoAbility()
 		}
 		else
 		{
+			bDoingAbility = false;
 			Server_DoAbility();
 		}
 	}
@@ -192,7 +217,7 @@ void APowerCharacter::DoAbility()
 void APowerCharacter::Server_DoAbility_Implementation()
 {
 	StartAbilityTimer();
-
+	//bDoingAbility = false;
 	/*FTimerHandle ClearHandle1;
 	GetWorld()->GetTimerManager().SetTimer(ClearHandle1, this, &ACPPTestCharacter::ClearTarget, 1.1f);*/
 

@@ -36,8 +36,25 @@ void AStealCharacter::BeginPlay()
 void AStealCharacter::LockTargetAbility()
 {
 	if (bHook) {
-		LockTarget();
-		//bDoingAbility = true;
+		if (HasAuthority())
+		{
+			LockTarget();
+			bDoingAbility = true;
+			if (IsBallEquipped()) {
+
+				combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
+			}
+
+		}
+		else
+		{
+			LockTarget();
+			bDoingAbility = true;
+			if (IsBallEquipped()) {
+
+				combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
+			}
+		}
 	}
 }
 
@@ -54,6 +71,7 @@ void AStealCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME(AStealCharacter, bHook);
 	DOREPLIFETIME(AStealCharacter, isBungeeGum);
 	DOREPLIFETIME(AStealCharacter, BungeeBall);
+	DOREPLIFETIME(AStealCharacter, bDoingAbility);
 
 }
 
@@ -134,8 +152,8 @@ void AStealCharacter::DoAbility()
 
 	if (bHook)
 	{
-		//bDoingAbility = false;
 		if (HasAuthority()) {
+			bDoingAbility = false;
 
 
 			if (SpecialAbilityAnimation)
@@ -167,6 +185,7 @@ void AStealCharacter::DoAbility()
 			GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::AbilityCooldown, CoolDownTime);
 		}
 		else {
+			bDoingAbility = false;
 		Server_DoAbility();
 		}
 
@@ -181,7 +200,7 @@ void AStealCharacter::DoAbility()
 void AStealCharacter::Server_DoAbility_Implementation()
 {
 		bHook = false;
-
+		
 		if (SpecialAbilityAnimation)
 		{
 			PlayAnimMontage(SpecialAbilityAnimation);
