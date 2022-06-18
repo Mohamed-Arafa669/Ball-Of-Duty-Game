@@ -510,12 +510,6 @@ void ACPPTestCharacter::ServerThrowButtonPressed_Implementation()
 
 }
 
-
-void ACPPTestCharacter::ServerThrowButtonPressed_Implementation()
-{
-
-}
-
 void ACPPTestCharacter::ThrowButtonReleased()
 {
 	if (combat && IsBallEquipped())
@@ -843,46 +837,46 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 			combat->EquipBall(BallHit);
 		}*/
 
-		else if ((BallHit->GetBallState() == EBallState::EBS_Dropped ||
-			BallHit->GetBallState() == EBallState::EBS_SuperThrow) && BallHit->GetOwner() != this)
-		{
-			if (!bIsSpawnInvincible) {
+		//else if ((BallHit->GetBallState() == EBallState::EBS_Dropped ||
+		//	BallHit->GetBallState() == EBallState::EBS_SuperThrow) && BallHit->GetOwner() != this)
+		//{
+		//	if (!bIsSpawnInvincible) {
 
-				NiagaraComponent->Activate(true);
+		//		NiagaraComponent->Activate(true);
 
-				GetWorld()->GetFirstPlayerController()->ClientStartCameraShake(CamShake);
+		//		GetWorld()->GetFirstPlayerController()->ClientStartCameraShake(CamShake);
 
-				FDamageEvent GotHitEvent;
-				AController* ballOwnerController = BallHit->GetInstigatorController();
-				ballHitDirection = ballOwnerController->GetCharacter()->GetActorForwardVector();
-				
-				if (BallHit->GetBallState() == EBallState::EBS_SuperThrow)
-				{
-					Knocked(ballHitDirection, false);
-					UGameplayStatics::ApplyDamage(this, 100.f, ballOwnerController, BallHit, NULL);	
-					
-				}
-				else
-				{
-					UGameplayStatics::ApplyDamage(this, 50.f, ballOwnerController, BallHit, NULL);
-				}
-				
-				if (CurrentHealth > 0 && GetHitAnim) {
-					MulticastPlayAnimMontage(GetHitAnim, 1, NAME_None);
-				}
-			}
-			//this->TakeDamage(50.f, GotHitEvent, BallHit->GetInstigatorController(), BallHit);
-			BallHit->SetBallState(EBallState::EBS_Initial);
-			//TODO : Make A reset function for owner and instigator
-			BallHit->SetOwner(nullptr);
-			BallHit->SetInstigator(nullptr);
+		//		FDamageEvent GotHitEvent;
+		//		AController* ballOwnerController = BallHit->GetInstigatorController();
+		//		ballHitDirection = ballOwnerController->GetCharacter()->GetActorForwardVector();
+		//		
+		//		if (BallHit->GetBallState() == EBallState::EBS_SuperThrow)
+		//		{
+		//			Knocked(ballHitDirection, false);
+		//			UGameplayStatics::ApplyDamage(this, 100.f, ballOwnerController, BallHit, NULL);	
+		//			
+		//		}
+		//		else
+		//		{
+		//			UGameplayStatics::ApplyDamage(this, 50.f, ballOwnerController, BallHit, NULL);
+		//		}
+		//		
+		//		if (CurrentHealth > 0 && GetHitAnim) {
+		//			MulticastPlayAnimMontage(GetHitAnim, 1, NAME_None);
+		//		}
+		//	}
+		//	//this->TakeDamage(50.f, GotHitEvent, BallHit->GetInstigatorController(), BallHit);
+		//	BallHit->SetBallState(EBallState::EBS_Initial);
+		//	//TODO : Make A reset function for owner and instigator
+		//	BallHit->SetOwner(nullptr);
+		//	BallHit->SetInstigator(nullptr);
 
 
-		}
-		else if (BallHit->GetBallState() == EBallState::EBS_Initial && combat && !IsBallEquipped())
-		{
-			combat->EquipBall(BallHit);
-		}
+		//}
+		//else if (BallHit->GetBallState() == EBallState::EBS_Initial && combat && !IsBallEquipped())
+		//{
+		//	combat->EquipBall(BallHit);
+		//}
 		
 	}
 }
