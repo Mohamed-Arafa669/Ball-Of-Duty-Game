@@ -37,6 +37,7 @@ void AStealCharacter::LockTargetAbility()
 {
 	if (bHook) {
 		LockTarget();
+		//bDoingAbility = true;
 	}
 }
 
@@ -133,6 +134,7 @@ void AStealCharacter::DoAbility()
 
 	if (bHook)
 	{
+		//bDoingAbility = false;
 		if (HasAuthority()) {
 
 

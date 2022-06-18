@@ -168,27 +168,49 @@ void ACPPBall::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetime
 
 void ACPPBall::OnSphereOverlap(UPrimitiveComponent* overlappedComponent, AActor* otherActor, UPrimitiveComponent* otherComponent, int32 otherBodyIndex, bool bFromSweep, const FHitResult& sweepResult)
 {
-	ACPPTestCharacter* testCharacter = Cast<ACPPTestCharacter>(otherActor);
-	if (testCharacter && pickUpWidget)
-	{
-		testCharacter->SetOverlappingBall(this);
-	}
-	else
-	{
-		//SetBallState(EBallState::EBS_Initial);
-	}
+	
+	//if (testCharacter && pickUpWidget)
+	//{
+	//	testCharacter->SetOverlappingBall(this);
+	//}
+	//else
+	//{
+	//	//SetBallState(EBallState::EBS_Initial);
+	//}
 
+	if(ACPPTestCharacter* testCharacter = Cast<ACPPTestCharacter>(otherActor))
+	{
+		
+		if (testCharacter->bIsDashing && GetBallState() != EBallState::EBS_Stolen) {
+			
+			SetOwner(nullptr);
+			ProjectileMovementComponent->HomingTargetComponent = nullptr;
+			ProjectileMovementComponent->bIsHomingProjectile = false;
+		}
+	}
 }
 
 
 
 void ACPPBall::OnSphereEndOverlap(UPrimitiveComponent* overlappedComponent, AActor* otherActor, UPrimitiveComponent* otherComponent, int32 otherBodyIndex)
 {
-	ACPPTestCharacter* testCharacter = Cast<ACPPTestCharacter>(otherActor);
+	/*ACPPTestCharacter* testCharacter = Cast<ACPPTestCharacter>(otherActor);
 	if (testCharacter && pickUpWidget)
 	{
 		testCharacter->SetOverlappingBall(nullptr);
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+	}*/
+
+	if (ACPPTestCharacter* testCharacter = Cast<ACPPTestCharacter>(otherActor))
+	{
+
+		if (testCharacter->bIsDashing  && GetBallState() != EBallState::EBS_Stolen) {
+			FString msg = TEXT("lol");
+			GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Green, msg);
+			SetOwner(nullptr);
+			ProjectileMovementComponent->HomingTargetComponent = nullptr;
+			ProjectileMovementComponent->bIsHomingProjectile = false;
+		}
 	}
 }
 
@@ -436,11 +458,11 @@ void ACPPBall::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiv
 
 
 		}
-		else if (GetBallState() == EBallState::EBS_Initial && Player->combat && !Player->IsBallEquipped())
+		/*else if (GetBallState() == EBallState::EBS_Initial && Player->combat && !Player->IsBallEquipped())
 		{
 			Player->combat->EquipBall(this);
 
-		}
+		}*/
 		else if (GetBallState() == EBallState::EBS_Stolen )
 		{
 			if (AStealCharacter* Steal = Cast<AStealCharacter>(Player)) {
@@ -528,7 +550,8 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 		ServerPlayNiagara(BungeeGumFX, false);
 		
 		//AreaSphere->SetSimulatePhysics(true);
-		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+		//AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
 		//AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
 		ProjectileMovementComponent->Activate(true);
 		ProjectileMovementComponent->bIsHomingProjectile = false;

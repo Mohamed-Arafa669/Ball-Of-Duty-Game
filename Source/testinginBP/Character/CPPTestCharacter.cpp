@@ -40,6 +40,8 @@ ACPPTestCharacter::ACPPTestCharacter()
 	cameraBoom->TargetArmLength = 500.0f;
 
 	
+	/*DashingSphere = CreateDefaultSubobject<USphereComponent> (TEXT("Dashing Sphere"));
+	DashingSphere->SetupAttachment(GetMesh());*/
 
 	followCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Follow Camera"));
 	followCamera->SetupAttachment(cameraBoom, USpringArmComponent::SocketName);
@@ -115,6 +117,7 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ACPPTestCharacter, bIsDashing);
 	DOREPLIFETIME(ACPPTestCharacter, bIsSpawnInvincible);
 	DOREPLIFETIME(ACPPTestCharacter, bIsTargeting);
+	/*DOREPLIFETIME(ACPPTestCharacter, bDoingAbility);*/
 
 }
 
@@ -136,13 +139,15 @@ void ACPPTestCharacter::Jump()
 }
 
 
+
+
 void ACPPTestCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	UpdateHUDHealth();
 
 	if (HasAuthority()) {
-		CharacterMesh->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
+		GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
 		CPPPlayerController = Cast<ACPPPlayerController>(Controller);
 
 	}
@@ -451,7 +456,7 @@ void ACPPTestCharacter::ClientRespawnCountDown_Implementation(float seconds)
 #pragma region ThrowMechanics
 void ACPPTestCharacter::ThrowButtonPressed()
 {
-	if (IsBallEquipped())
+	if (IsBallEquipped() /*&& !bDoingAbility*/)
 	{
 		LockTarget();
 
@@ -474,12 +479,12 @@ void ACPPTestCharacter::ServerThrowButtonPressed_Implementation()
 
 void ACPPTestCharacter::ThrowButtonReleased()
 {
-	if (combat && IsBallEquipped())
+	if (combat && IsBallEquipped() )
 	{
 		if (HasAuthority())
 		{
 			combat->ThrowButtonPressed(true);
-			if (combat && bEquipped)
+			if (combat && bEquipped /*&& !bDoingAbility*/)
 			{
 				MyThrow();
 			}
@@ -494,7 +499,7 @@ void ACPPTestCharacter::ThrowButtonReleased()
 }
 void ACPPTestCharacter::ServerThrowButtonReleased_Implementation()
 {
-	if (combat && IsBallEquipped())
+	if (combat && IsBallEquipped() /*&& !bDoingAbility*/)
 	{
 		combat->ThrowButtonPressed(true);
 
@@ -794,10 +799,11 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 
 
 		//}
-		/*if (BallHit->GetBallState() == EBallState::EBS_Initial && combat && !IsBallEquipped())
+		if (BallHit->GetBallState() == EBallState::EBS_Initial && combat && !IsBallEquipped())
 		{
 			combat->EquipBall(BallHit);
-		}*/
+			
+		}
 
 		
 	}
