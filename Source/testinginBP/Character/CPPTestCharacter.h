@@ -349,8 +349,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	UNiagaraComponent* DashFX;
 
-	//UPROPERTY(EditAnywhere)
-	//	UNiagaraComponent* LockFX;
+	UPROPERTY(EditAnywhere)
+		UNiagaraComponent* LockFX;
 
 	UPROPERTY(EditAnywhere)
 	UNiagaraComponent* AbilityFX;

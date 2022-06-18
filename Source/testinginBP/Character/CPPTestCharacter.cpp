@@ -56,8 +56,8 @@ ACPPTestCharacter::ACPPTestCharacter()
 	DashFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DashFX"));
 	DashFX->SetupAttachment(GetMesh());
 
-	//LockFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LockFX"));
-	//LockFX->SetupAttachment(GetMesh());
+	LockFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LockFX"));
+	LockFX->SetupAttachment(GetMesh());
 
 	StunFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("StunFX"));
 	StunFX->SetupAttachment(GetMesh());
@@ -467,12 +467,12 @@ void ACPPTestCharacter::ThrowButtonPressed()
 
 			LockTarget();
 
-			//if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
-			//{
-			//	UE_LOG(LogTemp, Warning, TEXT("Target %s"), *TargetPlayer->GetFName().ToString());
-			//	TargetPlayer->MulticastPlayNiagara(TargetPlayer->LockFX, true);
-			//	TargetPlayer->ServerPlayNiagara(TargetPlayer->LockFX, true);
-			//}
+			if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Target %s"), *TargetPlayer->GetFName().ToString());
+				TargetPlayer->MulticastPlayNiagara(TargetPlayer->LockFX, true);
+				TargetPlayer->ServerPlayNiagara(TargetPlayer->LockFX, true);
+			}
 			
 		}
 	//}
