@@ -99,6 +99,8 @@ void AStealCharacter::AbilityCooldown()
 
 
 
+
+
 void AStealCharacter::TraceLine()
 {
 	////TODO Parameters for Trace (location, Rotation)
@@ -151,7 +153,6 @@ void AStealCharacter::DoAbility()
 				if (Target->IsBallEquipped() && !IsBallEquipped())
 				{
 					StealBall(Target);
-					//HandleFire();
 				}
 				else if (IsBallEquipped())
 				{
@@ -185,7 +186,8 @@ void AStealCharacter::Server_DoAbility_Implementation()
 			PlayAnimMontage(SpecialAbilityAnimation);
 			ServerPlayAnimMontage(SpecialAbilityAnimation);
 		}
-		
+		//HandleFire();
+
 		//TraceLine();
 		if (lockOnTargets->GetTarget()) {
 			if (ACPPTestCharacter* Target = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget()))
@@ -198,7 +200,6 @@ void AStealCharacter::Server_DoAbility_Implementation()
 				if (Target->IsBallEquipped() && !IsBallEquipped())
 				{
 					StealBall(Target);
-					//HandleFire();
 				}
 				else if (IsBallEquipped())
 				{
@@ -213,30 +214,30 @@ void AStealCharacter::Server_DoAbility_Implementation()
 	
 }
 
-void AStealCharacter::HandleFire_Implementation()
-{
-	////FVector spawnLocation = GetActorLocation() + (GetControlRotation().Vector() * 500.0f) + (GetActorUpVector() * 100.0f);
-	//FVector spawnLocation = GetActorLocation() + GetActorForwardVector() * 100.0f;
-	//FRotator spawnRotation = GetControlRotation();
-
-	//FActorSpawnParameters spawnParameters;
-	//spawnParameters.Instigator = GetInstigator();
-	//spawnParameters.Owner = this;
-
-	//SpawnHook = GetWorld()->SpawnActor<AHook>(ProjectileClass, spawnLocation, spawnRotation);
-
-		//TODO General Unequip Function
-	//bSteal = true;
-	//SpawnHook->AttachToActor(Target->combat->equippedBall, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-	//Target->combat->equippedBall->SetBallState(EBallState::EBS_Initial);
-	//Target->combat->equippedBall->MoveHookedBall(this);
-	//combat->equippedBall = Target->combat->equippedBall;
-
-	/*Target->combat->equippedBall->GetAreaSphere()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-	Target->combat->equippedBall = nullptr;
-	Target->bEquipped = false;*/
-	
-}
+//void AStealCharacter::HandleFire_Implementation()
+//{
+//	////FVector spawnLocation = GetActorLocation() + (GetControlRotation().Vector() * 500.0f) + (GetActorUpVector() * 100.0f);
+//	FVector spawnLocation = GetActorLocation() + GetActorForwardVector() * 100.0f;
+//	FRotator spawnRotation = GetControlRotation();
+//
+//	FActorSpawnParameters spawnParameters;
+//	spawnParameters.Instigator = GetInstigator();
+//	spawnParameters.Owner = this;
+//
+//	SpawnHook = GetWorld()->SpawnActor<AHook>(ProjectileClass, spawnLocation, spawnRotation);
+//
+//		//TODO General Unequip Function
+//	//bSteal = true;
+//	//SpawnHook->AttachToActor(Target->combat->equippedBall, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+//	//Target->combat->equippedBall->SetBallState(EBallState::EBS_Initial);
+//	//Target->combat->equippedBall->MoveHookedBall(this);
+//	//combat->equippedBall = Target->combat->equippedBall;
+//
+//	/*Target->combat->equippedBall->GetAreaSphere()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+//	Target->combat->equippedBall = nullptr;
+//	Target->bEquipped = false;*/
+//	
+//}
 
 
 void AStealCharacter::StealBall(ACPPTestCharacter* Target)
@@ -244,6 +245,8 @@ void AStealCharacter::StealBall(ACPPTestCharacter* Target)
 
 	//TODO General Unequip Function
 	bSteal = true;
+	SpawnHook = GetWorld()->SpawnActor<AHook>(ProjectileClass, Target->GetActorLocation(), Target->GetActorRotation());
+
 	//SpawnHook->AttachToActor(Target->combat->equippedBall, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 	//Target->combat->equippedBall->SetBallState(EBallState::EBS_Initial);
 	//Target->combat->equippedBall->MoveHookedBall(this);
@@ -261,10 +264,15 @@ void AStealCharacter::StealBall(ACPPTestCharacter* Target)
 	StolenBall->SetBallState(EBallState::EBS_Stolen);
 	StolenBall->ProjectileMovementComponent->HomingTargetComponent = GetRootComponent();
 
-
+	FTimerHandle handle;
+	GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::DestroyHook, 5.0f);
 	
 }
-
+void AStealCharacter::DestroyHook()
+{
+	if (SpawnHook)
+		SpawnHook->Destroy();
+}
 void AStealCharacter::ThrowTwice()
 {
 	BungeeBall = nullptr;
