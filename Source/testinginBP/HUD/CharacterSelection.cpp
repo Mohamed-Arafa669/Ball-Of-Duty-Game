@@ -197,6 +197,13 @@ void UCharacterSelection::CloseWidget()
 		StealAbilityBar->SetVisibility(ESlateVisibility::Hidden);
 		PowerAbilityBar->SetVisibility(ESlateVisibility::Visible);
 	}
+	else if (!bConfirmed && !bMelodySelected)
+	{
+		MelodyProfiler->SetVisibility(ESlateVisibility::Visible);
+		CrimsonProfiler->SetVisibility(ESlateVisibility::Hidden);
+		StealAbilityBar->SetVisibility(ESlateVisibility::Visible);
+		PowerAbilityBar->SetVisibility(ESlateVisibility::Hidden);
+	}
 	UWorld* World = GetWorld();
 	if (World != nullptr)
 	{
