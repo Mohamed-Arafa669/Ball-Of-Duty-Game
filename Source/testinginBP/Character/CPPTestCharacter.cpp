@@ -1050,7 +1050,9 @@ float ACPPTestCharacter::TakeDamage(float DamageTaken, FDamageEvent const& Damag
 	SetCurrentHealth(DamageApplied);
 	CPPPlayerController->SetHUDHealth(CurrentHealth, MaxHealth);
 
-	PlaySounds(Hit_Cue, GetActorLocation());
+	//PlaySounds(Hit_Cue, GetActorLocation());
+	ServerPlaySounds(Hit_Cue, GetActorLocation());
+	//MulticastPlaySounds(Hit_Cue, GetActorLocation());
 	//UGameplayStatics::PlaySoundAtLocation(GetWorld(), Hit_Cue, GetActorLocation());
 
 	if (CurrentHealth == 0.0f)
@@ -1156,9 +1158,20 @@ void ACPPTestCharacter::PlaySounds(USoundCue* Cue, FVector Location)
 		ServerPlaySounds(Cue, Location);
 }
 
-void ACPPTestCharacter::ServerPlaySounds_Implementation(USoundCue* Cue, FVector Location)
+void ACPPTestCharacter::MulticastPlaySounds_Implementation(USoundCue* Cue, FVector Location)
 {
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), Cue, Location);
+
+}
+
+bool ACPPTestCharacter::MulticastPlaySounds_Validate(USoundCue* Cue, FVector Location)
+{
+	return true;
+}
+
+void ACPPTestCharacter::ServerPlaySounds_Implementation(USoundCue* Cue, FVector Location)
+{
+	MulticastPlaySounds(Cue, Location);
 }
 
 void ACPPTestCharacter::SetDynamicMaterials_Implementation()

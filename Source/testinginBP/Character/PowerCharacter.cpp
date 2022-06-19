@@ -96,7 +96,7 @@ void APowerCharacter::DoSweep()
 			FCollisionShape::MakeSphere(RangeRadius));
 
 		//UGameplayStatics::PlaySoundAtLocation(GetWorld(), AbilityWithoutBall, GetActorLocation());
-		PlaySounds(AbilityWithoutBall, GetActorLocation());
+		ServerPlaySounds(AbilityWithoutBall, GetActorLocation());
 
 		LoopHitActors();
 
@@ -114,7 +114,7 @@ void APowerCharacter::DoSweep()
 void APowerCharacter::SuperUpBall()
 {
 	//UGameplayStatics::PlaySoundAtLocation(GetWorld(), AbilityWithBall, GetActorLocation());
-	PlaySounds(AbilityWithBall, GetActorLocation());
+	ServerPlaySounds(AbilityWithBall, GetActorLocation());
 	combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
 	MyThrow();
 	ClearTarget();
