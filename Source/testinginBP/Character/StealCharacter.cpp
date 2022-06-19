@@ -347,7 +347,7 @@ void AStealCharacter::CreateHUD()
 	GameHUD = GameHUD == nullptr ? Cast<AGameHUD>(GetWorld()->GetFirstPlayerController()->GetHUD()) : GameHUD;
 	if (GameHUD)
 	{
-		GameHUD->AddMelodyProfiler();
+		//GameHUD->AddMelodyProfiler();
 		//GameHUD->AddCrimsonProfiler();
 
 	}

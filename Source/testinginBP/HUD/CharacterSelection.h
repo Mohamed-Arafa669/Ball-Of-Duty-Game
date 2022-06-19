@@ -73,6 +73,14 @@ private:
 		class UImage* MelodyBanner;
 
 	UPROPERTY(meta = (BindWidget))
+		class UImage* MelodyProfiler;
+
+	UPROPERTY(meta = (BindWidget))
+		class UImage* CrimsonProfiler;
+
+	
+
+	UPROPERTY(meta = (BindWidget))
 		class UImage* CrimsonBanner;
 
 	UPROPERTY(meta = (BindWidget))
@@ -105,12 +113,19 @@ public:
 	void Setup();
 	void CloseWidget();
 	void CallCharacterSelect();
-
+	
 
 	bool bConfirmed = false;
 	bool bMelodySelected = false;
 	bool bCrimsonSelected = false;
+	bool bIsColsed = true;
 
+	UPROPERTY()
+		class AGameHUD* GameHUD;
 
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+		class UProgressBar* StealAbilityBar;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (BindWidget))
+		class UProgressBar* PowerAbilityBar;
 };

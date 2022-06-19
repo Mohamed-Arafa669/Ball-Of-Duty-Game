@@ -4,7 +4,9 @@
 #include "CharacterSelection.h"
 #include "Components/Button.h"
 #include "Components/Image.h"
+#include "Components/ProgressBar.h"
 #include "testinginBP/PlayerController/CPPPlayerController.h"
+#include "testinginBP/HUD/GameHUD.h"
 #include "testinginBP/CharacterSelectInterface.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -24,6 +26,10 @@ void UCharacterSelection::NativeConstruct()
 	BTN_CrimsonMoreInfo->SetVisibility(ESlateVisibility::Hidden);
 	BTN_MelodyExit->SetVisibility(ESlateVisibility::Hidden);
 	BTN_CrimsonExit->SetVisibility(ESlateVisibility::Hidden);
+	MelodyProfiler->SetVisibility(ESlateVisibility::Hidden);
+	CrimsonProfiler->SetVisibility(ESlateVisibility::Hidden);
+	StealAbilityBar->SetVisibility(ESlateVisibility::Hidden);
+	PowerAbilityBar->SetVisibility(ESlateVisibility::Hidden);
 
 	BTN_CageCharacter->SetIsEnabled(false);
 	BTN_ShieldCharacter->SetIsEnabled(false);
@@ -125,7 +131,7 @@ void UCharacterSelection::ConfirmButtonSelected()
 			 BTN_PowerCharacter->SetIsEnabled(false);
 			 BTN_StealCharacter->SetIsEnabled(false);
 			 ButtonIndex = 2;
-			 CallCharacterSelect();
+			 CallCharacterSelect();		 
 		 }
 
 	
@@ -158,8 +164,51 @@ void UCharacterSelection::Setup()
 
 void UCharacterSelection::CloseWidget()
 {
-	this->RemoveFromViewport();
+	Melody->SetVisibility(ESlateVisibility::Hidden);
+	Crimson->SetVisibility(ESlateVisibility::Hidden);
+	CrimsonBanner->SetVisibility(ESlateVisibility::Hidden);
+	BTN_CrimsonMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	MelodyBanner->SetVisibility(ESlateVisibility::Hidden);
+	BTN_MelodyMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	Tint->SetVisibility(ESlateVisibility::Hidden);
+	MelodyMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	CrimsonMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	BTN_MelodyMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	BTN_CrimsonMoreInfo->SetVisibility(ESlateVisibility::Hidden);
+	BTN_MelodyExit->SetVisibility(ESlateVisibility::Hidden);
+	BTN_CrimsonExit->SetVisibility(ESlateVisibility::Hidden);
+	BTN_CageCharacter->SetVisibility(ESlateVisibility::Hidden);
+	BTN_ShieldCharacter->SetVisibility(ESlateVisibility::Hidden);
+	BTN_CloneCharacter->SetVisibility(ESlateVisibility::Hidden);
+	BTN_TimeCharacter->SetVisibility(ESlateVisibility::Hidden);
+	BTN_StealCharacter->SetVisibility(ESlateVisibility::Hidden);
+	BTN_PowerCharacter->SetVisibility(ESlateVisibility::Hidden);
+	BTN_ConfirmCharacterSelect->SetVisibility(ESlateVisibility::Hidden);
 
+	if (bConfirmed && bMelodySelected)
+	{
+		
+		MelodyProfiler->SetVisibility(ESlateVisibility::Visible);
+		CrimsonProfiler->SetVisibility(ESlateVisibility::Hidden);
+		StealAbilityBar->SetVisibility(ESlateVisibility::Visible);
+		PowerAbilityBar->SetVisibility(ESlateVisibility::Hidden);
+
+	}
+	else if (bConfirmed && bCrimsonSelected)
+	{
+		
+		MelodyProfiler->SetVisibility(ESlateVisibility::Hidden);
+		CrimsonProfiler->SetVisibility(ESlateVisibility::Visible);
+		StealAbilityBar->SetVisibility(ESlateVisibility::Hidden);
+		PowerAbilityBar->SetVisibility(ESlateVisibility::Visible);
+	}
+	else if (!bConfirmed && !bMelodySelected)
+	{
+		MelodyProfiler->SetVisibility(ESlateVisibility::Visible);
+		CrimsonProfiler->SetVisibility(ESlateVisibility::Hidden);
+		StealAbilityBar->SetVisibility(ESlateVisibility::Visible);
+		PowerAbilityBar->SetVisibility(ESlateVisibility::Hidden);
+	}
 	UWorld* World = GetWorld();
 	if (World != nullptr)
 	{
@@ -233,3 +282,5 @@ void UCharacterSelection::CrimsonInfoExitBTNPressed()
 	BTN_MelodyExit->SetVisibility(ESlateVisibility::Hidden);
 	BTN_CrimsonExit->SetVisibility(ESlateVisibility::Hidden);
 }
+
+
