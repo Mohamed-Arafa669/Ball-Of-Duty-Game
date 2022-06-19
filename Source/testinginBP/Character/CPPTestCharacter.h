@@ -378,16 +378,16 @@ public:
 		UMaterialInstance* LockedMaterialInstance;
 
 
-	UFUNCTION(NetMulticast, Reliable, WithValidation)
-	void MultiSetOriginalMaterials();
+	//UFUNCTION(NetMulticast, Reliable, WithValidation)
+	//void MultiSetOriginalMaterials();
 
-	UFUNCTION(Server, Reliable)
-		void SetOriginalMaterials();
-	
-	UFUNCTION(Server, Reliable)
-		void SetDynamicMaterials();
-	UFUNCTION(NetMulticast, Reliable, WithValidation)
-	void MultiSetDynamicMaterials();
+	//UFUNCTION(Server, Reliable)
+	//	void SetOriginalMaterials();
+	//
+	//UFUNCTION(Server, Reliable)
+	//	void SetDynamicMaterials();
+	//UFUNCTION(NetMulticast, Reliable, WithValidation)
+	//void MultiSetDynamicMaterials();
 
 	
 

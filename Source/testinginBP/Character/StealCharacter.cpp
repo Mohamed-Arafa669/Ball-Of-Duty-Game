@@ -185,7 +185,7 @@ void AStealCharacter::DoAbility()
 				
 				GetWorld()->GetTimerManager().SetTimer(AbilityHandler, this, &ThisClass::IncreaseAbilityCharge, 0.1f, true);
 				AbilityTime = 0;
-				UGameplayStatics::PlaySoundAtLocation(GetWorld(), BungeeGum, GetActorLocation());
+				//UGameplayStatics::PlaySoundAtLocation(GetWorld(), BungeeGum, GetActorLocation());
 
 				//CoolDownTime = 1.0f;
 				if (Target->IsBallEquipped() && !IsBallEquipped())
@@ -237,7 +237,7 @@ void AStealCharacter::Server_DoAbility_Implementation()
 				bHook = false;
 				GetWorld()->GetTimerManager().SetTimer(AbilityHandler, this, &ThisClass::IncreaseAbilityCharge, 0.1f, true);
 				AbilityTime = 0;
-				UGameplayStatics::PlaySoundAtLocation(GetWorld(), BungeeGum, GetActorLocation());
+				//UGameplayStatics::PlaySoundAtLocation(GetWorld(), BungeeGum, GetActorLocation());
 
 
 				if (Target->IsBallEquipped() && !IsBallEquipped())
