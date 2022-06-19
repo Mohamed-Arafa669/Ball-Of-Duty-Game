@@ -430,6 +430,9 @@ public:
 	UFUNCTION(Server, Reliable)
 		void ServerPlaySounds(USoundCue* Cue, FVector Location);
 
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+		void MulticastPlaySounds(USoundCue* Cue, FVector Location);
+
 
 
 };

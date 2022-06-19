@@ -324,7 +324,8 @@ void AStealCharacter::DestroyHook()
 void AStealCharacter::ThrowTwice()
 {
 	//UGameplayStatics::PlaySoundAtLocation(GetWorld(), AbilityWithBall, GetActorLocation());
-	PlaySounds(AbilityWithBall, GetActorLocation());
+	//PlaySounds(AbilityWithBall, GetActorLocation());
+	ServerPlaySounds(AbilityWithBall, GetActorLocation());
 	BungeeBall = nullptr;
 	BungeeBall = combat->equippedBall;
 	BungeeBall->SetBallState(EBallState::EBS_Stolen);
