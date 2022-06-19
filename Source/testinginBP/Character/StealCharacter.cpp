@@ -213,6 +213,8 @@ void AStealCharacter::DoAbility()
 		}
 
 		ClearTarget();
+
+		//UGameplayStatics::PlaySoundAtLocation(GetWorld(), BungeeGum, GetActorLocation());
 	}
 }
 
@@ -287,6 +289,8 @@ void AStealCharacter::Server_DoAbility_Implementation()
 void AStealCharacter::StealBall(ACPPTestCharacter* Target)
 {
 
+	//UGameplayStatics::PlaySoundAtLocation(GetWorld(), AbilityWithoutBall, GetActorLocation());
+	PlaySounds(AbilityWithoutBall, GetActorLocation());
 	//TODO General Unequip Function
 	bSteal = true;
 	SpawnHook = GetWorld()->SpawnActor<AHook>(ProjectileClass, Target->GetActorLocation(), Target->GetActorRotation());
@@ -319,6 +323,8 @@ void AStealCharacter::DestroyHook()
 }
 void AStealCharacter::ThrowTwice()
 {
+	//UGameplayStatics::PlaySoundAtLocation(GetWorld(), AbilityWithBall, GetActorLocation());
+	PlaySounds(AbilityWithBall, GetActorLocation());
 	BungeeBall = nullptr;
 	BungeeBall = combat->equippedBall;
 	BungeeBall->SetBallState(EBallState::EBS_Stolen);

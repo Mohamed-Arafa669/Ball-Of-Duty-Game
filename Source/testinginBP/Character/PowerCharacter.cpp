@@ -139,12 +139,18 @@ void APowerCharacter::DoSweep()
 		FTimerHandle AbilityTimer;
 		GetWorld()->GetTimerManager().SetTimer(AbilityTimer, this, &APowerCharacter::DisableEffect, 0.7f);
 	}
+		//UGameplayStatics::PlaySoundAtLocation(GetWorld(), AbilityWithoutBall, GetActorLocation());
+		PlaySounds(AbilityWithoutBall, GetActorLocation());
+
+		LoopHitActors();
 
 }
 
 void APowerCharacter::SuperUpBall()
 {
 
+	//UGameplayStatics::PlaySoundAtLocation(GetWorld(), AbilityWithBall, GetActorLocation());
+	PlaySounds(AbilityWithBall, GetActorLocation());
 	combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
 	MyThrow();
 
