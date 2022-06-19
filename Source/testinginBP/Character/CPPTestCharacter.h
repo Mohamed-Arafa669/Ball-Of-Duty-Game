@@ -35,6 +35,7 @@ public:
 	UPROPERTY(Replicated)
 		bool bKnocked;
 
+
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentHealth, EditDefaultsOnly, Category = "Health")
 		float MaxHealth = 100.f;
 
@@ -183,8 +184,8 @@ private:
 	UFUNCTION(Server, Reliable)
 		void ServerCatch();
 
-	UFUNCTION(Server, Reliable)
-		void ServerThrowButtonPressed();
+	/*UFUNCTION(Server, Reliable)
+		void ServerThrowButtonPressed();*/
 
 	UFUNCTION(Server, Reliable)
 		void ServerThrowButtonReleased();
@@ -374,15 +375,27 @@ public:
 	UPROPERTY(EditAnywhere, Category = Shaders)
 		UMaterialInstance* LockedMaterialInstance;
 
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void MultiSetOriginalMaterials();
+
 	UFUNCTION(Server, Reliable)
 		void SetOriginalMaterials();
-
-	void SetClientOriginalMaterials();
-
+	
 	UFUNCTION(Server, Reliable)
 		void SetDynamicMaterials();
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void MultiSetDynamicMaterials();
 
-	void SetClientDynamicMaterials();
+	
+
+	//UFUNCTION(Server, Reliable)
+	//	void Server_SetOriginalMats(USkeletalMeshComponent* Mesh, UMaterialInstanceDynamic);
+
+	//void SetDynamicMats();
+
+	//UFUNCTION(Server, Reliable)
+	//	void Server_SetDynamicMats();
 
 	UMaterialInterface* OriginalMat1;
 	UMaterialInterface* OriginalMat2;

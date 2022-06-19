@@ -205,7 +205,16 @@ void ACPPTestCharacter::Tick(float DeltaTime)
 	{
 		lockOnTargets->FindTarget();
 
-		
+		//if(lockOnTargets->GetTarget())
+		//{
+		//	if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
+		//	{
+		//		if (!lockOnTargets->GetTarget()) {
+		//			TargetPlayer->SetOriginalMaterials();
+		//			TargetPlayer->MultiSetOriginalMaterials();
+		//		}
+		//	}
+		//}
 	}
 
 }
@@ -481,16 +490,14 @@ void ACPPTestCharacter::ThrowButtonPressed()
 			{
 				ClearTarget();
 			}
-
+				/*TargetPlayer->SetDynamicMaterials();
+				TargetPlayer->MultiSetDynamicMaterials();
 			FString msg = TEXT("lockkkkk?");
-				GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Emerald, msg);
+			GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Emerald, msg);*/
 
-				UE_LOG(LogTemp, Warning, TEXT("Target %s"), *TargetPlayer->GetFName().ToString());
-				//TargetPlayer->MulticastPlayNiagara(TargetPlayer->LockFX, true);
-				//TargetPlayer->ServerPlayNiagara(TargetPlayer->LockFX, true);
 
-				TargetPlayer->SetDynamicMaterials();
 		}
+		
 	}
 
 }
@@ -690,11 +697,12 @@ void ACPPTestCharacter::ClearTarget()
 
 	if (bIsTargeting) {
 
-		if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
-		{
-			TargetPlayer->SetOriginalMaterials();
-		}
-
+		//if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
+		//{
+		//	TargetPlayer->SetOriginalMaterials();
+		//	TargetPlayer->MultiSetOriginalMaterials();
+		//}
+		//
 		bIsTargeting = false;
 		lockOnTargets->ClearTargetManual(false);
 
@@ -1073,52 +1081,8 @@ void ACPPTestCharacter::SpawnActors()
 	}
 }
 
-void ACPPTestCharacter::SetClientOriginalMaterials()
+void ACPPTestCharacter::MultiSetDynamicMaterials_Implementation()
 {
-	if (HasAuthority())
-	{
-		GetMesh()->SetMaterial(0, OriginalMat1);
-		GetMesh()->SetMaterial(1, OriginalMat2);
-		GetMesh()->SetMaterial(2, OriginalMat3);
-	}
-	else
-		SetOriginalMaterials();
-}
-
-void ACPPTestCharacter::SetOriginalMaterials_Implementation()
-{
-
-	FString msg = TEXT("Originaigaw?");
-	GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Emerald, msg);
-
-	GetMesh()->SetMaterial(0, OriginalMat1);
-	GetMesh()->SetMaterial(1, OriginalMat2);
-	GetMesh()->SetMaterial(2, OriginalMat3);
-
-}
-
-void ACPPTestCharacter::SetClientDynamicMaterials()
-{
-	if (HasAuthority())
-	{
-		if (LockedMaterialInstance) {
-			DynamicLockedMatInst = UMaterialInstanceDynamic::Create(LockedMaterialInstance, this);
-			FString msg = TEXT("dynana?");
-			GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Emerald, msg);
-
-			GetMesh()->SetMaterial(0, DynamicLockedMatInst);
-			GetMesh()->SetMaterial(1, DynamicLockedMatInst);
-			GetMesh()->SetMaterial(2, DynamicLockedMatInst);
-		}
-
-	}
-	else
-		SetDynamicMaterials();
-}
-
-void ACPPTestCharacter::SetDynamicMaterials_Implementation()
-{
-
 	if (LockedMaterialInstance) {
 		DynamicLockedMatInst = UMaterialInstanceDynamic::Create(LockedMaterialInstance, this);
 		FString msg = TEXT("dynana?");
@@ -1128,9 +1092,95 @@ void ACPPTestCharacter::SetDynamicMaterials_Implementation()
 		GetMesh()->SetMaterial(1, DynamicLockedMatInst);
 		GetMesh()->SetMaterial(2, DynamicLockedMatInst);
 	}
-
-
 }
+
+bool ACPPTestCharacter::MultiSetDynamicMaterials_Validate()
+{
+	return true;
+}
+
+void ACPPTestCharacter::SetDynamicMaterials_Implementation()
+{
+	MultiSetDynamicMaterials();
+}
+
+void ACPPTestCharacter::MultiSetOriginalMaterials_Implementation()
+{
+	FString msg = TEXT("Originaigaw?");
+	GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Emerald, msg);
+
+	GetMesh()->SetMaterial(0, OriginalMat1);
+	GetMesh()->SetMaterial(1, OriginalMat2);
+	GetMesh()->SetMaterial(2, OriginalMat3);
+}
+
+bool ACPPTestCharacter::MultiSetOriginalMaterials_Validate()
+{
+	return true;
+}
+
+void ACPPTestCharacter::SetOriginalMaterials_Implementation()
+{
+	MultiSetOriginalMaterials();
+}
+
+//
+//void ACPPTestCharacter::SetClientOriginalMaterials()
+//{
+//	if (HasAuthority())
+//	{
+//		GetMesh()->SetMaterial(0, OriginalMat1);
+//		GetMesh()->SetMaterial(1, OriginalMat2);
+//		GetMesh()->SetMaterial(2, OriginalMat3);
+//	}
+//	else
+//		SetOriginalMaterials();
+//}
+//
+//void ACPPTestCharacter::SetOriginalMaterials_Implementation()
+//{
+//
+
+//
+//}
+//
+//void ACPPTestCharacter::SetClientDynamicMaterials()
+//{
+//	if (HasAuthority())
+//	{
+//		if (LockedMaterialInstance) {
+//			DynamicLockedMatInst = UMaterialInstanceDynamic::Create(LockedMaterialInstance, this);
+//			FString msg = TEXT("dynana?");
+//			GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Emerald, msg);
+//
+//			GetMesh()->SetMaterial(0, DynamicLockedMatInst);
+//			GetMesh()->SetMaterial(1, DynamicLockedMatInst);
+//			GetMesh()->SetMaterial(2, DynamicLockedMatInst);
+//		}
+//
+//	}
+//	else
+//	{
+//		
+//		SetDynamicMaterials();
+//	}
+//}
+//
+//void ACPPTestCharacter::SetDynamicMaterials_Implementation()
+//{
+//
+//	if (LockedMaterialInstance) {
+//		DynamicLockedMatInst = UMaterialInstanceDynamic::Create(LockedMaterialInstance, this);
+//		FString msg = TEXT("dynana?");
+//		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Emerald, msg);
+//
+//		GetMesh()->SetMaterial(0, DynamicLockedMatInst);
+//		GetMesh()->SetMaterial(1, DynamicLockedMatInst);
+//		GetMesh()->SetMaterial(2, DynamicLockedMatInst);
+//	}
+//
+//
+//}
 
 void ACPPTestCharacter::PlayThrowMontage()
 {
