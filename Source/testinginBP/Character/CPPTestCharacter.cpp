@@ -14,23 +14,16 @@
 #include "testinginBP\Character\CPPAnimInstance.h"
 #include "Kismet//KismetMathLibrary.h"
 #include "LockOnTargetComponent.h"
-#include "Camera/PlayerCameraManager.h"
-#include "LockOnSubobjects/RotationModes/RotationModeBase.h"
 #include "LockOnSubobjects/TargetHandlers/TargetHandlerBase.h"
 #include "TargetingHelperComponent.h"
-#include "../../LockOnTarget/Source/LockOnTarget/Public/LockOnTargetComponent.h"
-#include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
-#include "testinginBP/GameMode/MyCPPGameModeBase.h"
 #include "Engine/Engine.h"
 #include "GameFramework/Character.h"
-#include "GameFramework/GameModeBase.h"
-#include "testinginBP/PlayerController/CPPPlayerController.h"
-#include "PowerCharacter.h"
 #include "testinginBP/PlayerController/CPPPlayerController.h"
 #include "testinginBP/GameComponents/MyPlayerState.h"
 #include "testinginBP/GameMode/MyGameMode.h"
+#include "Components/SceneCaptureComponent2D.h"
 
 
 #include "TimerManager.h"
@@ -47,13 +40,27 @@ ACPPTestCharacter::ACPPTestCharacter()
 	cameraBoom->SetupAttachment(GetMesh());
 	cameraBoom->TargetArmLength = 500.0f;
 
-	
+	MiniMapBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("MiniMapBoom"));
+	MiniMapBoom->SetupAttachment(RootComponent);
+	MiniMapBoom->TargetArmLength = 700.0f;
+
+	MiniMapCam = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("MiniMap"));
+	MiniMapCam->SetupAttachment(MiniMapBoom, USpringArmComponent::SocketName);
+
+	MiniMapCam->SetIsReplicated(true);
+
 
 	followCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Follow Camera"));
 	followCamera->SetupAttachment(cameraBoom, USpringArmComponent::SocketName);
 	
 	DashFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DashFX"));
 	DashFX->SetupAttachment(GetMesh());
+
+	LockFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LockFX"));
+	LockFX->SetupAttachment(GetMesh());
+
+	StunFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("StunFX"));
+	StunFX->SetupAttachment(GetMesh());
 
 	/*AbilityFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("AbilityFX"));
 	AbilityFX->SetupAttachment(GetMesh());*/
@@ -67,8 +74,8 @@ ACPPTestCharacter::ACPPTestCharacter()
 	targetComponent = CreateDefaultSubobject<UTargetingHelperComponent>(TEXT("targetComponent"));
 	targetComponent->SetIsReplicated(true);
 
-	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
-	NiagaraComponent->SetupAttachment(RootComponent);
+	HitEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("HitEffect"));
+	HitEffect->SetupAttachment(GetMesh());
 
 	combat = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 	combat->SetIsReplicated(true);
@@ -104,7 +111,6 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	//important to include #include "Net/UnrealNetwork.h" whenever we use the replication macro
 	DOREPLIFETIME_CONDITION(ACPPTestCharacter, overlappingBall, COND_OwnerOnly);//Replication
-
 	DOREPLIFETIME(ACPPTestCharacter, bEquipped);
 	DOREPLIFETIME(ACPPTestCharacter, bCatching);
 	DOREPLIFETIME(ACPPTestCharacter, bSteal);
@@ -114,7 +120,7 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ACPPTestCharacter, CurrentHealth);
 	DOREPLIFETIME(ACPPTestCharacter, MaxHealth);
 	DOREPLIFETIME(ACPPTestCharacter, ballHitDirection);
-	DOREPLIFETIME(ACPPTestCharacter, throwPower);
+	//DOREPLIFETIME(ACPPTestCharacter, throwPower);
 	DOREPLIFETIME(ACPPTestCharacter, bIsDashing);
 	DOREPLIFETIME(ACPPTestCharacter, bIsSpawnInvincible);
 	DOREPLIFETIME(ACPPTestCharacter, bIsTargeting);
@@ -144,10 +150,8 @@ void ACPPTestCharacter::BeginPlay()
 	Super::BeginPlay();
 	UpdateHUDHealth();
 
-	NiagaraComponent->Deactivate();
-
 	if (HasAuthority()) {
-		GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
+		CharacterMesh->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnOverlapBegin);
 		CPPPlayerController = Cast<ACPPPlayerController>(Controller);
 
 	}
@@ -189,6 +193,8 @@ void ACPPTestCharacter::Tick(float DeltaTime)
 	if (bIsTargeting && lockOnTargets->bCanCaptureTarget)
 	{
 		lockOnTargets->FindTarget();
+
+		
 	}
 
 }
@@ -272,11 +278,11 @@ void ACPPTestCharacter::Turn(float value)
 	}
 	else
 	{
-		lockOnTargets->SwitchTargetPitch(value);
+		AddControllerYawInput(value * SensetivityX * GetWorld()->GetDeltaSeconds());
 	}
 #pragma endregion
 
-	AddControllerYawInput(value * SensetivityX * GetWorld()->GetDeltaSeconds());
+	
 }
 
 void ACPPTestCharacter::LookUp(float value)
@@ -291,11 +297,11 @@ void ACPPTestCharacter::LookUp(float value)
 	}
 	else
 	{
-		AddControllerPitchInput(value);
+		AddControllerPitchInput(value * SensetivityY * GetWorld()->GetDeltaSeconds());
 	}
 #pragma endregion
 
-	AddControllerPitchInput(value * SensetivityY * GetWorld()->GetDeltaSeconds());
+	//AddControllerPitchInput(value * SensetivityY * GetWorld()->GetDeltaSeconds());
 }
 
 // Lock on Target 
@@ -303,6 +309,8 @@ void ACPPTestCharacter::LockTarget()
 {
 	bIsTargeting = true;
 	lockOnTargets->EnableTargeting();
+
+
 }
 
 void ACPPTestCharacter::Dash()
@@ -452,18 +460,55 @@ void ACPPTestCharacter::ClientRespawnCountDown_Implementation(float seconds)
 #pragma region ThrowMechanics
 void ACPPTestCharacter::ThrowButtonPressed()
 {
-	if(IsBallEquipped())
-	{
-		
-		LockTarget();
-	}
+	//if (HasAuthority())
+	//{
+		if (IsBallEquipped())
+		{
+
+			LockTarget();
+
+			if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Target %s"), *TargetPlayer->GetFName().ToString());
+				TargetPlayer->MulticastPlayNiagara(TargetPlayer->LockFX, true);
+				TargetPlayer->ServerPlayNiagara(TargetPlayer->LockFX, true);
+			}
+			
+		}
+	//}
+	//else
+	//	ServerThrowButtonPressed();
 }
 
 
 void ACPPTestCharacter::ServerThrowButtonPressed_Implementation()
+{
+	//if (IsBallEquipped())
+	//{
+	//	LockTarget();
+
+	//	if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
+	//	{
+	//		UE_LOG(LogTemp, Warning, TEXT("TargetServer %s"), *TargetPlayer->GetFName().ToString());
+
+	//		TargetPlayer->MulticastPlayNiagara(TargetPlayer->LockFX, true);
+	//		TargetPlayer->ServerPlayNiagara(TargetPlayer->LockFX, true);
+	//	}
+	//}
+	if (IsBallEquipped())
 	{
-		
+		LockTarget();
+
+		if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
+		{
+			if(TargetPlayer->bKnocked)
+			{
+				ClearTarget();
+			}
+		}
 	}
+
+}
 
 void ACPPTestCharacter::ThrowButtonReleased()
 {
@@ -511,13 +556,11 @@ void ACPPTestCharacter::ServerLeaveGame_Implementation()
 
 void ACPPTestCharacter::Stunned()
 {
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1,
-			5.f, FColor::Green, FString::Printf(TEXT("STUN")));
-	}
 	bStunned = true;
-
+	if (StunFX) {
+		MulticastPlayNiagara(StunFX, true);
+		ServerPlayNiagara(StunFX, true);
+	}
 	FTimerHandle StunHandle;
 	GetWorld()->GetTimerManager().SetTimer(StunHandle, this, &ThisClass::StunCoolDown, StunDuration);
 }
@@ -525,6 +568,10 @@ void ACPPTestCharacter::Stunned()
 void ACPPTestCharacter::StunCoolDown()
 {
 	bStunned = false;
+	if (StunFX) {
+		MulticastPlayNiagara(StunFX, false);
+		ServerPlayNiagara(StunFX, false);
+	}
 }
 
 void ACPPTestCharacter::OnHealthUpdate()
@@ -563,11 +610,11 @@ void ACPPTestCharacter::OnHealthUpdate()
 			{
 				combat->UnEquipBall(combat->equippedBall);
 			}
-			FString deathMessage = FString::Printf(TEXT("You have been killed."));
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, deathMessage);
-
+			/*FString deathMessage = FString::Printf(TEXT("You have been killed."));
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, deathMessage);*/
+			
 			Knocked(ballHitDirection,bLeftGame);
-		}
+		} 
 	}
 }
 
@@ -592,6 +639,11 @@ void ACPPTestCharacter::Knocked(FVector ImpulseDirection,bool bPlayerLeftGame)
 	if (GetLocalRole() == ROLE_Authority)
 	{
 		MultiKnocked(ImpulseDirection, bPlayerLeftGame);
+
+		if (IsBallEquipped())
+		{
+			combat->UnEquipBall(combat->equippedBall);
+		}
 
 		FTimerHandle KnockedTimerDestroy;
 
@@ -621,12 +673,16 @@ bool ACPPTestCharacter::MultiKnocked_Validate(FVector ImpulseDirection,bool bPla
 
 void ACPPTestCharacter::MultiKnocked_Implementation(FVector ImpulseDirection,bool bPlayerLeftGame)
 {
+
+	
 	bLeftGame = bPlayerLeftGame;
 	bKnocked = true;
+	
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CharacterMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 	CharacterMesh->SetAllBodiesSimulatePhysics(true);
 	CharacterMesh->SetEnableGravity(false);
-	CharacterMesh->SetAllMassScale(0.5);
+	CharacterMesh->SetAllMassScale(0.1);
 	CharacterMesh->AddImpulse(GetActorLocation() + ((ImpulseDirection + GetActorUpVector()) * HitImpulse * CharacterMesh->GetMass()));
 
 }
@@ -646,13 +702,14 @@ void ACPPTestCharacter::PollInit()
 
 void ACPPTestCharacter::ClearTarget()
 {
-	if(AbilityFX)
-	{
-		MulticastPlayNiagara(AbilityFX, false);
-		ServerPlayNiagara(AbilityFX, false);
+
+	if (bIsTargeting) {
+		bIsTargeting = false;
+		lockOnTargets->ClearTargetManual(false);
+
+		FString msg = TEXT("meen?");
+		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Emerald, msg);
 	}
-	bIsTargeting = false;
-	lockOnTargets->ClearTargetManual();
 }
 
 
@@ -736,61 +793,101 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 	if (ACPPBall* BallHit = Cast<ACPPBall>(OtherActor))
 	{
 
-		if (bCatching && combat && !IsBallEquipped() || bSteal)
+		//if (bCatching && combat && !IsBallEquipped() || bSteal)
+		//{
+		//	combat->EquipBall(BallHit);
+		//	bCanThrow = true;
+		//	bSteal = false;
+		//}
+
+		//else if ((BallHit->GetBallState() == EBallState::EBS_Dropped ||
+		//	BallHit->GetBallState() == EBallState::EBS_SuperThrow) && BallHit->GetOwner() != this)
+		//{
+		//	if (!bIsSpawnInvincible) {
+
+		//		FDamageEvent GotHitEvent;
+		//		AController* ballOwnerController = BallHit->GetInstigatorController();
+		//		ballHitDirection = ballOwnerController->GetCharacter()->GetActorForwardVector();
+		//		
+		//		if (BallHit->GetBallState() == EBallState::EBS_SuperThrow)
+		//		{
+		//			Knocked(ballHitDirection, false);
+		//			UGameplayStatics::ApplyDamage(this, 100.f, ballOwnerController, BallHit, NULL);
+		//			
+		//		}
+		//		else
+		//		{
+		//			UGameplayStatics::ApplyDamage(this, 50.f, ballOwnerController, BallHit, NULL);
+		//		}
+		//		
+		//		if (CurrentHealth > 0 && GetHitAnim) {
+		//			MulticastPlayAnimMontage(GetHitAnim, 1, NAME_None);
+		//		}
+		//	}
+		//	//this->TakeDamage(50.f, GotHitEvent, BallHit->GetInstigatorController(), BallHit);
+		//	BallHit->SetBallState(EBallState::EBS_Initial);
+		//	//TODO : Make A reset function for owner and instigator
+		//	BallHit->SetOwner(nullptr);
+		//	BallHit->SetInstigator(nullptr);
+
+
+		//}
+		/*if (BallHit->GetBallState() == EBallState::EBS_Initial && combat && !IsBallEquipped())
 		{
 			combat->EquipBall(BallHit);
-			bCanThrow = true;
-			bSteal = false;
-		}
+		}*/
 
-		else if ((BallHit->GetBallState() == EBallState::EBS_Dropped ||
-			BallHit->GetBallState() == EBallState::EBS_SuperThrow) && BallHit->GetOwner() != this)
-		{
-			if (!bIsSpawnInvincible) {
+		//else if ((BallHit->GetBallState() == EBallState::EBS_Dropped ||
+		//	BallHit->GetBallState() == EBallState::EBS_SuperThrow) && BallHit->GetOwner() != this)
+		//{
+		//	if (!bIsSpawnInvincible) {
 
-				NiagaraComponent->Activate(true);
+		//		NiagaraComponent->Activate(true);
 
-				FDamageEvent GotHitEvent;
-				AController* ballOwnerController = BallHit->GetInstigatorController();
-				ballHitDirection = ballOwnerController->GetCharacter()->GetActorForwardVector();
-				
-				if (BallHit->GetBallState() == EBallState::EBS_SuperThrow)
-				{
-					Knocked(ballHitDirection, false);
-					UGameplayStatics::ApplyDamage(this, 100.f, ballOwnerController, BallHit, NULL);	
-					
-				}
-				else
-				{
-					UGameplayStatics::ApplyDamage(this, 50.f, ballOwnerController, BallHit, NULL);
-				}
-				
-				if (CurrentHealth > 0 && GetHitAnim) {
-					MulticastPlayAnimMontage(GetHitAnim, 1, NAME_None);
-				}
-			}
-			//this->TakeDamage(50.f, GotHitEvent, BallHit->GetInstigatorController(), BallHit);
-			BallHit->SetBallState(EBallState::EBS_Initial);
-			//TODO : Make A reset function for owner and instigator
-			BallHit->SetOwner(nullptr);
-			BallHit->SetInstigator(nullptr);
+		//		GetWorld()->GetFirstPlayerController()->ClientStartCameraShake(CamShake);
+
+		//		FDamageEvent GotHitEvent;
+		//		AController* ballOwnerController = BallHit->GetInstigatorController();
+		//		ballHitDirection = ballOwnerController->GetCharacter()->GetActorForwardVector();
+		//		
+		//		if (BallHit->GetBallState() == EBallState::EBS_SuperThrow)
+		//		{
+		//			Knocked(ballHitDirection, false);
+		//			UGameplayStatics::ApplyDamage(this, 100.f, ballOwnerController, BallHit, NULL);	
+		//			
+		//		}
+		//		else
+		//		{
+		//			UGameplayStatics::ApplyDamage(this, 50.f, ballOwnerController, BallHit, NULL);
+		//		}
+		//		
+		//		if (CurrentHealth > 0 && GetHitAnim) {
+		//			MulticastPlayAnimMontage(GetHitAnim, 1, NAME_None);
+		//		}
+		//	}
+		//	//this->TakeDamage(50.f, GotHitEvent, BallHit->GetInstigatorController(), BallHit);
+		//	BallHit->SetBallState(EBallState::EBS_Initial);
+		//	//TODO : Make A reset function for owner and instigator
+		//	BallHit->SetOwner(nullptr);
+		//	BallHit->SetInstigator(nullptr);
 
 
-		}
-		else if (BallHit->GetBallState() == EBallState::EBS_Initial && combat && !IsBallEquipped())
-		{
-			combat->EquipBall(BallHit);
-		}
+		//}
+		//else if (BallHit->GetBallState() == EBallState::EBS_Initial && combat && !IsBallEquipped())
+		//{
+		//	combat->EquipBall(BallHit);
+		//}
+		
 	}
 }
 
 
 void ACPPTestCharacter::MyThrow()
 {
-	if (combat && IsBallEquipped() && IsAllowedToMove())
+	if (combat && IsBallEquipped() && IsAllowedToMove() && bCanThrow)
 	{
 		
-		UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
+		//UKismetMathLibrary::GetForwardVector(GetControlRotation()) *= throwPower;
 		//const FVector forwardVec = this->GetMesh()->GetForwardVector();
 		 //gded
 		//combat->equippedBall->GetBallMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
@@ -798,23 +895,33 @@ void ACPPTestCharacter::MyThrow()
 		if (combat->equippedBall->GetBallState() != EBallState::EBS_SuperThrow) {
 			combat->equippedBall->SetBallState(EBallState::EBS_Dropped);
 			combat->ThrowButtonPressed(false);
-		}
+		} else if (combat->equippedBall->GetBallState() == EBallState::EBS_SuperThrow)
+		{
+			combat->equippedBall->AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+			combat->equippedBall->AreaSphere->SetSimulatePhysics(false);
+			combat->equippedBall->ProjectileMovementComponent->Activate(true);
+			combat->equippedBall->ProjectileMovementComponent->bIsHomingProjectile = true;
+			
+		} 
 		bThrown = true;
 		//combat->equippedBall->GetBallMesh()->SetSimulatePhysics(true);
-		combat->equippedBall->GetAreaSphere()->SetSimulatePhysics(true);
+		//combat->equippedBall->GetAreaSphere()->SetSimulatePhysics(true);
 		
 
 		if (lockOnTargets->GetTarget())
 		{
-		//combat->equippedBall->GetBallMesh()->AddForce((((lockOnTargets->GetTarget()->GetTargetLocation()) - (GetActorLocation())) + GetActorUpVector()) * throwPower * 25);
-		combat->equippedBall->GetAreaSphere()->AddForce((((lockOnTargets->GetTarget()->GetTargetLocation()) - (GetActorLocation())) + GetActorUpVector()) * throwPower * 25);
 
+			//combat->equippedBall->ProjectileMovementComponent->bIsHomingProjectile = true;
+
+			combat->equippedBall->ProjectileMovementComponent->HomingTargetComponent = lockOnTargets->GetTarget()->GetRootComponent();
 		}
 		else
 		{
-		//combat->equippedBall->GetBallMesh()->AddForce((GetActorForwardVector() + GetActorUpVector()) * throwPower * 2500);
-		combat->equippedBall->GetAreaSphere()->AddForce((GetActorForwardVector() + GetActorUpVector()) * throwPower * 2500);
-
+			ClearTarget();
+			FVector CameraLocation;
+			FRotator CameraRotation;
+			GetActorEyesViewPoint(CameraLocation, CameraRotation);
+			combat->equippedBall->ProjectileMovementComponent->Velocity = CameraRotation.Vector() * throwPower;
 		}
 		bEquipped = false;
 		combat->equippedBall->AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
@@ -865,6 +972,8 @@ void ACPPTestCharacter::OnRep_CurrentHealth()
 	OnHealthUpdate();
 
 }
+
+
 
 void ACPPTestCharacter::OnRep_OverlappingBall(ACPPBall* lastBall)
 {
@@ -942,8 +1051,8 @@ void ACPPTestCharacter::RemoveWidget(UUI_RespawnWidget* MsgToRemove)
 {
 	if (MsgToRemove)
 	{
-		FString lol = FString::Printf(TEXT("LOL mn el widget"));
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Emerald, lol);
+		/*FString lol = FString::Printf(TEXT("LOL mn el widget"));
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Emerald, lol);*/
 
 		MsgToRemove->RemoveFromParent();
 	}

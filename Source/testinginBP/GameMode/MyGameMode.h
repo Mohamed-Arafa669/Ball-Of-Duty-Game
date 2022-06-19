@@ -68,7 +68,7 @@ protected:
 
 	TSubclassOf<class ACharacter> CurrentPawnToAssign;
 
-	virtual UClass* GetDefaultPawnClassForController_Implementation(AController* InController) override;
+	 virtual UClass* GetDefaultPawnClassForController_Implementation(AController* InController) override;
 
 	virtual void OnMatchStateSet() override;
 
@@ -89,6 +89,13 @@ public:
 	
 	UPROPERTY(EditAnywhere, Category = "Respawning")
 	float RespawnTime = 3.f;
+
+	UPROPERTY(EditAnywhere, Category = "CharacterSelection")
+	TSubclassOf<class UUserWidget> CharacterSelectionClass;
+
+	UPROPERTY()
+		class UCharacterSelection* CharacterSelection;
+
 
 	FORCEINLINE float GetCountdownTime() const { return CountdownTime; }
 };

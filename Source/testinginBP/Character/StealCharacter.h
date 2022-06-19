@@ -20,6 +20,21 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	UPROPERTY(Replicated)
+	bool isBungeeGum;
+
+	UPROPERTY(EditAnywhere)
+		USoundCue* BungeeGum;
+
+	void HomeOnMe();
+
+	UFUNCTION(Server, Reliable)
+	void ServerHomeOnMe();
+
+	UPROPERTY(Replicated)
+		ACPPBall* BungeeBall;
+
+
 	UPROPERTY(EditAnywhere, Category = "Gameplay|Projectile")
 		TSubclassOf<class AHook>ProjectileClass;
 
@@ -36,6 +51,7 @@ public:
 
 	UFUNCTION()
 		void CreateHUD();
+	void ThrowTwice();
 
 protected:
 	virtual void BeginPlay() override;
@@ -45,17 +61,16 @@ protected:
 
 	void StealBall(ACPPTestCharacter* Target);
 
-	void ThrowTwice();
 
 	UFUNCTION(Server, Reliable)
 		void Server_DoAbility();
 
-	UFUNCTION(Server, Reliable)
-		void HandleFire();
+	//UFUNCTION(Server, Reliable)
+	//	void HandleFire();
 
 	void AbilityCooldown();
 
-	
+	void DestroyHook();
 
 	void TraceLine(); /// 
 	//TODO remove UFUNCTION 
@@ -76,6 +91,10 @@ protected:
 
 	TArray<AActor*> OverlappingActors;
 	TArray<ACPPTestCharacter*> OverlappingEnemies;
+
+	
+
+
 
 };
 

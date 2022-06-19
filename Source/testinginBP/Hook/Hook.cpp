@@ -29,16 +29,16 @@ AHook::AHook()
 	//StaticMesh->SetupAttachment(RootComponent);
 
 	//Definition for the Projectile Movement Component.
-	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
-	ProjectileMovementComponent->SetUpdatedComponent(SphereComponent);
-	ProjectileMovementComponent->InitialSpeed = 1500.0f;
-	ProjectileMovementComponent->MaxSpeed = 1500.0f;
-	ProjectileMovementComponent->bRotationFollowsVelocity = true;
-	ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
+	//ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovement"));
+	//ProjectileMovementComponent->SetUpdatedComponent(SphereComponent);
+	//ProjectileMovementComponent->InitialSpeed = 1500.0f;
+	//ProjectileMovementComponent->MaxSpeed = 1500.0f;
+	//ProjectileMovementComponent->bRotationFollowsVelocity = true;
+	//ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
 
 	NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComponent"));
 	NiagaraComponent->SetupAttachment(RootComponent);
-
+	NiagaraComponent->Activate(true);
 	//Definition for the Projectile Particle System.
 	//ExplosionEffect = CreateDefaultSubobject<UNiagaraSystem>(TEXT("ExplosionEffect"));
 
@@ -47,8 +47,8 @@ AHook::AHook()
 
 	// Delete the projectile after 3 seconds.
 	/*InitialLifeSpan = 0.3f;*/
-	this->InitialLifeSpan = 0.5f;
-
+	//InitialLifeSpan = 0.3f;
+	
 	///TODO Pull player by Impulse
 	//USE CableComponent (Just Cosmetic)
 
@@ -64,8 +64,11 @@ AHook::AHook()
 void AHook::BeginPlay()
 {
 	Super::BeginPlay();
-	ServerPlayNiagara(NiagaraComponent, true);
-	MulticastPlayNiagara(NiagaraComponent, true);
+	/*ServerPlayNiagara(NiagaraComponent, true);
+	MulticastPlayNiagara(NiagaraComponent, true);*/
+	//NiagaraComponent->Activate(true);
+	/*FTimerHandle ClearHandle;
+	GetWorld()->GetTimerManager().SetTimer(ClearHandle, this, &AHook::DestroyHook, 1.f);*/
 }
 
 void AHook::Destroyed()
@@ -74,8 +77,8 @@ void AHook::Destroyed()
 	//UGameplayStatics::SpawnEmitterAtLocation(this, ExplosionEffect, spawnLocation, FRotator::ZeroRotator, true, EPSCPoolMethod::AutoRelease);
 	//Effect->ActivateSystem(true);
 	//UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, Effect, spawnLocation);
-	//NiagaraComponent->Deactivate();
-	ServerPlayNiagara(NiagaraComponent, false);
+	NiagaraComponent->Deactivate();
+	//ServerPlayNiagara(NiagaraComponent, false);
 }
 
 void AHook::OnProjectileImpact(UPrimitiveComponent* HitComponent, AActor* OtherActor, 
@@ -91,7 +94,7 @@ void AHook::OnProjectileImpact(UPrimitiveComponent* HitComponent, AActor* OtherA
 		
 	}
 	FTimerHandle ClearHandle;
-	GetWorld()->GetTimerManager().SetTimer(ClearHandle, this, &AHook::DestroyHook, 0.5f);
+	GetWorld()->GetTimerManager().SetTimer(ClearHandle, this, &AHook::DestroyHook, 1.f);
 	//Destroy();
 }
 
