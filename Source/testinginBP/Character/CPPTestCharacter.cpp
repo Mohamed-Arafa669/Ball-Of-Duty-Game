@@ -23,6 +23,7 @@
 #include "testinginBP/PlayerController/CPPPlayerController.h"
 #include "testinginBP/GameComponents/MyPlayerState.h"
 #include "testinginBP/GameMode/MyGameMode.h"
+#include "Components/SceneCaptureComponent2D.h"
 
 
 #include "TimerManager.h"
@@ -39,9 +40,15 @@ ACPPTestCharacter::ACPPTestCharacter()
 	cameraBoom->SetupAttachment(GetMesh());
 	cameraBoom->TargetArmLength = 500.0f;
 
-	
-	/*DashingSphere = CreateDefaultSubobject<USphereComponent> (TEXT("Dashing Sphere"));
-	DashingSphere->SetupAttachment(GetMesh());*/
+	MiniMapBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("MiniMapBoom"));
+	MiniMapBoom->SetupAttachment(RootComponent);
+	MiniMapBoom->TargetArmLength = 700.0f;
+
+	MiniMapCam = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("MiniMap"));
+	MiniMapCam->SetupAttachment(MiniMapBoom, USpringArmComponent::SocketName);
+
+	MiniMapCam->SetIsReplicated(true);
+
 
 	followCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Follow Camera"));
 	followCamera->SetupAttachment(cameraBoom, USpringArmComponent::SocketName);
@@ -77,6 +84,7 @@ ACPPTestCharacter::ACPPTestCharacter()
 	{
 		LockOnTargetComponent = CreateDefaultSubobject<ULockOnTargetComponent>(TEXT("LockOnTargetComponent"));
 	}
+
 
 	bStunned = false;
 
@@ -158,6 +166,8 @@ void ACPPTestCharacter::BeginPlay()
 	FTimerHandle InvincibleHandle;
 	GetWorld()->GetTimerManager().SetTimer(InvincibleHandle, this, &ThisClass::SetSpawnInvincibility, SpawnInvincibilityDuration);
 
+	
+
 	if(InvincibleMaterialInstance)
 	{
 		OriginalMat1 = GetMesh()->GetMaterial(0);
@@ -165,12 +175,15 @@ void ACPPTestCharacter::BeginPlay()
 		OriginalMat3 = GetMesh()->GetMaterial(2);
 
 		DynamicInvincibleMatInst = UMaterialInstanceDynamic::Create(InvincibleMaterialInstance, this);
+
 		GetMesh()->SetMaterial(0, DynamicInvincibleMatInst);
 		GetMesh()->SetMaterial(1, DynamicInvincibleMatInst);
 		GetMesh()->SetMaterial(2, DynamicInvincibleMatInst);
 
 		
 	}
+
+
 	
 }
 
@@ -468,14 +481,17 @@ void ACPPTestCharacter::ThrowButtonPressed()
 			{
 				ClearTarget();
 			}
+
+			FString msg = TEXT("lockkkkk?");
+				GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Emerald, msg);
+
+				UE_LOG(LogTemp, Warning, TEXT("Target %s"), *TargetPlayer->GetFName().ToString());
+				//TargetPlayer->MulticastPlayNiagara(TargetPlayer->LockFX, true);
+				//TargetPlayer->ServerPlayNiagara(TargetPlayer->LockFX, true);
+
+				TargetPlayer->SetDynamicMaterials();
 		}
 	}
-
-}
-
-
-void ACPPTestCharacter::ServerThrowButtonPressed_Implementation()
-{
 
 }
 
@@ -673,6 +689,12 @@ void ACPPTestCharacter::ClearTarget()
 {
 
 	if (bIsTargeting) {
+
+		if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
+		{
+			TargetPlayer->SetOriginalMaterials();
+		}
+
 		bIsTargeting = false;
 		lockOnTargets->ClearTargetManual(false);
 
@@ -807,6 +829,46 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 			
 		}
 
+		//else if ((BallHit->GetBallState() == EBallState::EBS_Dropped ||
+		//	BallHit->GetBallState() == EBallState::EBS_SuperThrow) && BallHit->GetOwner() != this)
+		//{
+		//	if (!bIsSpawnInvincible) {
+
+		//		NiagaraComponent->Activate(true);
+
+		//		GetWorld()->GetFirstPlayerController()->ClientStartCameraShake(CamShake);
+
+		//		FDamageEvent GotHitEvent;
+		//		AController* ballOwnerController = BallHit->GetInstigatorController();
+		//		ballHitDirection = ballOwnerController->GetCharacter()->GetActorForwardVector();
+		//		
+		//		if (BallHit->GetBallState() == EBallState::EBS_SuperThrow)
+		//		{
+		//			Knocked(ballHitDirection, false);
+		//			UGameplayStatics::ApplyDamage(this, 100.f, ballOwnerController, BallHit, NULL);	
+		//			
+		//		}
+		//		else
+		//		{
+		//			UGameplayStatics::ApplyDamage(this, 50.f, ballOwnerController, BallHit, NULL);
+		//		}
+		//		
+		//		if (CurrentHealth > 0 && GetHitAnim) {
+		//			MulticastPlayAnimMontage(GetHitAnim, 1, NAME_None);
+		//		}
+		//	}
+		//	//this->TakeDamage(50.f, GotHitEvent, BallHit->GetInstigatorController(), BallHit);
+		//	BallHit->SetBallState(EBallState::EBS_Initial);
+		//	//TODO : Make A reset function for owner and instigator
+		//	BallHit->SetOwner(nullptr);
+		//	BallHit->SetInstigator(nullptr);
+
+
+		//}
+		//else if (BallHit->GetBallState() == EBallState::EBS_Initial && combat && !IsBallEquipped())
+		//{
+		//	combat->EquipBall(BallHit);
+		//}
 		
 	}
 }
@@ -1009,6 +1071,65 @@ void ACPPTestCharacter::SpawnActors()
 		UE_LOG(LogTemp, Warning, TEXT("Found"));
 		ActorSpawnerReference->SpawnActor();
 	}
+}
+
+void ACPPTestCharacter::SetClientOriginalMaterials()
+{
+	if (HasAuthority())
+	{
+		GetMesh()->SetMaterial(0, OriginalMat1);
+		GetMesh()->SetMaterial(1, OriginalMat2);
+		GetMesh()->SetMaterial(2, OriginalMat3);
+	}
+	else
+		SetOriginalMaterials();
+}
+
+void ACPPTestCharacter::SetOriginalMaterials_Implementation()
+{
+
+	FString msg = TEXT("Originaigaw?");
+	GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Emerald, msg);
+
+	GetMesh()->SetMaterial(0, OriginalMat1);
+	GetMesh()->SetMaterial(1, OriginalMat2);
+	GetMesh()->SetMaterial(2, OriginalMat3);
+
+}
+
+void ACPPTestCharacter::SetClientDynamicMaterials()
+{
+	if (HasAuthority())
+	{
+		if (LockedMaterialInstance) {
+			DynamicLockedMatInst = UMaterialInstanceDynamic::Create(LockedMaterialInstance, this);
+			FString msg = TEXT("dynana?");
+			GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Emerald, msg);
+
+			GetMesh()->SetMaterial(0, DynamicLockedMatInst);
+			GetMesh()->SetMaterial(1, DynamicLockedMatInst);
+			GetMesh()->SetMaterial(2, DynamicLockedMatInst);
+		}
+
+	}
+	else
+		SetDynamicMaterials();
+}
+
+void ACPPTestCharacter::SetDynamicMaterials_Implementation()
+{
+
+	if (LockedMaterialInstance) {
+		DynamicLockedMatInst = UMaterialInstanceDynamic::Create(LockedMaterialInstance, this);
+		FString msg = TEXT("dynana?");
+		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Emerald, msg);
+
+		GetMesh()->SetMaterial(0, DynamicLockedMatInst);
+		GetMesh()->SetMaterial(1, DynamicLockedMatInst);
+		GetMesh()->SetMaterial(2, DynamicLockedMatInst);
+	}
+
+
 }
 
 void ACPPTestCharacter::PlayThrowMontage()

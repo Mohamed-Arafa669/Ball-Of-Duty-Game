@@ -14,6 +14,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnLeftGame);
 
+
 UCLASS()
 class TESTINGINBP_API ACPPTestCharacter : public ACharacter
 {
@@ -53,8 +54,17 @@ public:
 		class UCameraComponent* followCamera;
 	UPROPERTY(EditAnywhere, Category = Camera)
 		class USpringArmComponent* cameraBoom;
+
+	UPROPERTY(EditAnywhere, Category = "SceneCaptureComponent")
+		class USceneCaptureComponent2D* MiniMapCam;
+
+	UPROPERTY(EditAnywhere, Category = "SceneCaptureComponent")
+		class USpringArmComponent* MiniMapBoom;
+
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly,  meta = (AllowPrivateAccess = "true"))
 		class ULockOnTargetComponent* lockOnTargets;
+
+	
 
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly,  meta = (AllowPrivateAccess = "true"))
 		class UTargetingHelperComponent* targetComponent;
@@ -126,6 +136,9 @@ protected:
 
 
 
+
+	UPROPERTY(EditAnywhere, Category = "CameraShake")
+	TSubclassOf<class UCameraShakeBase> CamShake;
 
 private:
 
@@ -355,9 +368,29 @@ public:
 	UPROPERTY(EditAnywhere, Category = Shaders)
 		UMaterialInstance* InvincibleMaterialInstance;
 
+	UPROPERTY(VisibleAnywhere, Category = Shaders)
+		UMaterialInstanceDynamic* DynamicLockedMatInst;
+
+	UPROPERTY(EditAnywhere, Category = Shaders)
+		UMaterialInstance* LockedMaterialInstance;
+
+	UFUNCTION(Server, Reliable)
+		void SetOriginalMaterials();
+
+	void SetClientOriginalMaterials();
+
+	UFUNCTION(Server, Reliable)
+		void SetDynamicMaterials();
+
+	void SetClientDynamicMaterials();
+
 	UMaterialInterface* OriginalMat1;
 	UMaterialInterface* OriginalMat2;
 	UMaterialInterface* OriginalMat3;
+
+	UMaterialInterface* TargetOriginalMat1;
+	UMaterialInterface* TargetOriginalMat2;
+	UMaterialInterface* TargetOriginalMat3;
 
 	UPROPERTY(EditAnywhere, Category = "Aiming")
 		float SensetivityX = 40;
