@@ -23,8 +23,8 @@ public:
 	UPROPERTY(Replicated)
 	bool isBungeeGum;
 
-	UPROPERTY(EditAnywhere)
-		USoundCue* BungeeGum;
+	//UPROPERTY(EditAnywhere)
+	//	USoundCue* BungeeGum;
 
 	void HomeOnMe();
 

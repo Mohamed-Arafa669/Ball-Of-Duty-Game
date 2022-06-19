@@ -40,14 +40,14 @@ ACPPTestCharacter::ACPPTestCharacter()
 	cameraBoom->SetupAttachment(GetMesh());
 	cameraBoom->TargetArmLength = 500.0f;
 
-	MiniMapBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("MiniMapBoom"));
-	MiniMapBoom->SetupAttachment(RootComponent);
-	MiniMapBoom->TargetArmLength = 700.0f;
+	//MiniMapBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("MiniMapBoom"));
+	//MiniMapBoom->SetupAttachment(RootComponent);
+	//MiniMapBoom->TargetArmLength = 700.0f;
 
-	MiniMapCam = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("MiniMap"));
-	MiniMapCam->SetupAttachment(MiniMapBoom, USpringArmComponent::SocketName);
+	//MiniMapCam = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("MiniMap"));
+	//MiniMapCam->SetupAttachment(MiniMapBoom, USpringArmComponent::SocketName);
 
-	MiniMapCam->SetIsReplicated(true);
+	//MiniMapCam->SetIsReplicated(true);
 
 
 	followCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Follow Camera"));
@@ -1049,6 +1049,10 @@ float ACPPTestCharacter::TakeDamage(float DamageTaken, FDamageEvent const& Damag
 	float DamageApplied = CurrentHealth - DamageTaken;
 	SetCurrentHealth(DamageApplied);
 	CPPPlayerController->SetHUDHealth(CurrentHealth, MaxHealth);
+
+	PlaySounds(Hit_Cue, GetActorLocation());
+	//UGameplayStatics::PlaySoundAtLocation(GetWorld(), Hit_Cue, GetActorLocation());
+
 	if (CurrentHealth == 0.0f)
 	{
 		AMyGameMode* MyGameMode = GetWorld()->GetAuthGameMode<AMyGameMode>();
@@ -1139,6 +1143,22 @@ void ACPPTestCharacter::SetClientDynamicMaterials()
 	}
 	else
 		SetDynamicMaterials();
+}
+
+void ACPPTestCharacter::PlaySounds(USoundCue* Cue, FVector Location)
+{
+	if (HasAuthority())
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), Cue, Location);
+
+	}
+	else
+		ServerPlaySounds(Cue, Location);
+}
+
+void ACPPTestCharacter::ServerPlaySounds_Implementation(USoundCue* Cue, FVector Location)
+{
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), Cue, Location);
 }
 
 void ACPPTestCharacter::SetDynamicMaterials_Implementation()

@@ -95,6 +95,9 @@ void APowerCharacter::DoSweep()
 		GetWorld()->SweepMultiByChannel(OutHits, Start, End, FQuat::Identity, ECollisionChannel::ECC_Pawn,
 			FCollisionShape::MakeSphere(RangeRadius));
 
+		//UGameplayStatics::PlaySoundAtLocation(GetWorld(), AbilityWithoutBall, GetActorLocation());
+		PlaySounds(AbilityWithoutBall, GetActorLocation());
+
 		LoopHitActors();
 
 		if (PowerAbilityFX) {
@@ -110,7 +113,8 @@ void APowerCharacter::DoSweep()
 
 void APowerCharacter::SuperUpBall()
 {
-	
+	//UGameplayStatics::PlaySoundAtLocation(GetWorld(), AbilityWithBall, GetActorLocation());
+	PlaySounds(AbilityWithBall, GetActorLocation());
 	combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
 	MyThrow();
 	ClearTarget();

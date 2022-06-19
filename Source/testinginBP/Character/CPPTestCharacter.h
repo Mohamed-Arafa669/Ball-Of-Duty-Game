@@ -51,11 +51,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = Camera)
 		class USpringArmComponent* cameraBoom;
 
-	UPROPERTY(EditAnywhere, Category = "SceneCaptureComponent")
-		class USceneCaptureComponent2D* MiniMapCam;
+	//UPROPERTY(EditAnywhere, Category = "SceneCaptureComponent")
+	//	class USceneCaptureComponent2D* MiniMapCam;
 
-	UPROPERTY(EditAnywhere, Category = "SceneCaptureComponent")
-		class USpringArmComponent* MiniMapBoom;
+	//UPROPERTY(EditAnywhere, Category = "SceneCaptureComponent")
+	//	class USpringArmComponent* MiniMapBoom;
 
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly,  meta = (AllowPrivateAccess = "true"))
 		class ULockOnTargetComponent* lockOnTargets;
@@ -167,10 +167,10 @@ private:
 	UFUNCTION()
 	void OnRep_OverlappingBall(ACPPBall* lastBall); //Replication
 
-	UPROPERTY(visibleAnywhere)
+	UPROPERTY(VisibleAnywhere)
 	class UGameplayStatics* gameStatic;
 
-	UPROPERTY(visibleAnywhere)
+	UPROPERTY(VisibleAnywhere)
 	class UWorld* world;
 
 	UFUNCTION(Server, Reliable)
@@ -224,6 +224,8 @@ public:
 
 	UFUNCTION(Server, Reliable)
 		void ServerLeaveGame();
+
+	
 
 	FOnLeftGame OnLeftGame;
 
@@ -393,5 +395,24 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Aiming")
 		float SensetivityY = 40.f;
+
+
+	///Sound Cue
+	UPROPERTY(EditAnywhere, Category = "SFX")
+		USoundCue* Hit_Cue;
+
+	UPROPERTY(EditAnywhere, Category = "SFX")
+		USoundCue* AbilityWithBall;
+
+	UPROPERTY(EditAnywhere, Category = "SFX")
+		USoundCue* AbilityWithoutBall;
+
+	UFUNCTION()
+		void PlaySounds(USoundCue* Cue, FVector Location);
+
+	UFUNCTION(Server, Reliable)
+		void ServerPlaySounds(USoundCue* Cue, FVector Location);
+
+
 
 };
