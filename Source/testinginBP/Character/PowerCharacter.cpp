@@ -61,14 +61,14 @@ void APowerCharacter::IncreaseAbilityCharge()
 		{
 
 			AbilityTime += (0.1f / (float)Ability_Cooldown_Duration);
-			FString msg = FString::Printf(TEXT("%f"), AbilityTime);
-			GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, msg);
+			/*FString msg = FString::Printf(TEXT("%f"), AbilityTime);
+			GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, msg);*/
 
 		}
 		else
 		{
-			FString msg1 = TEXT("?????????????????");
-			GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Blue, msg1);
+			/*FString msg1 = TEXT("?????????????????");
+			GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Blue, msg1);*/
 			GetWorld()->GetTimerManager().ClearTimer(AbilityHandler);
 			//AbilityTime = Ability_Cooldown_Duration;
 		}

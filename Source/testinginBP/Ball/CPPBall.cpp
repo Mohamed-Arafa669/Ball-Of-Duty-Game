@@ -205,8 +205,8 @@ void ACPPBall::OnSphereEndOverlap(UPrimitiveComponent* overlappedComponent, AAct
 	{
 
 		if (testCharacter->bIsDashing && GetBallState() != EBallState::EBS_Stolen) {
-			FString msg = TEXT("lol");
-			GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Green, msg);
+			/*FString msg = TEXT("lol");
+			GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Green, msg);*/
 			SetOwner(nullptr);
 			ProjectileMovementComponent->HomingTargetComponent = nullptr;
 			ProjectileMovementComponent->bIsHomingProjectile = false;

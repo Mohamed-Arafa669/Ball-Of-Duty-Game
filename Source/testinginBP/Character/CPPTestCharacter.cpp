@@ -706,8 +706,8 @@ void ACPPTestCharacter::ClearTarget()
 		bIsTargeting = false;
 		lockOnTargets->ClearTargetManual(false);
 
-		FString msg = TEXT("meen?");
-		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Emerald, msg);
+		/*FString msg = TEXT("meen?");
+		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Emerald, msg);*/
 	}
 }
 
