@@ -16,6 +16,7 @@
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "testinginBP/HUD/CharacterSelection.h"
+#include "testinginBP/HUD/GameHUD.h"
 #include "testinginBP/GameState/MyGameState.h"
 namespace MatchState
 {
@@ -72,14 +73,6 @@ void AMyGameMode::Tick(float DeltaTime)
 			UGameplayStatics::OpenLevel(GetWorld(), FName("GameStartupMap1"));
 		}
 	}
-
-	//SpawnTimer -= DeltaTime;
-	//if (SpawnTimer < 0)
-	//{
-	//	SpawnTimer = NumerOfSecondBetweenSpawns;
-
-	//	BallSpawner[GetRandomLocation()]->SpawnActor();
-	//}
 }
 
 int32 AMyGameMode::GetRandomLocation()
@@ -101,7 +94,6 @@ void AMyGameMode::OnMatchStateSet()
 			MyPlayer->OnMatchStateSet(MatchState);
 		}
 	}
-
 }
 
 
@@ -164,10 +156,12 @@ UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController
 
 		if (Controller->CharacterSelectIndex == 1)
 		{
+			
 			return FirstPawn;
 		}
 		else if (Controller->CharacterSelectIndex == 2)
 		{
+			
 			return SecondPawn;
 		}
 	}
@@ -179,10 +173,12 @@ UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController
 		{
 			if (CurrentPawnToAssign == FirstPawn && Controller->CharacterSelectIndex == 2)
 			{
+				
 				CurrentPawnToAssign = SecondPawn;
 			}
 			else
 			{
+				
 				CurrentPawnToAssign = FirstPawn;
 
 			}
@@ -192,7 +188,18 @@ UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController
 	{
 		if (FirstPawn != nullptr && SecondPawn != nullptr)
 		{
-			CurrentPawnToAssign = (Controller->CharacterSelectIndex == 1) ? FirstPawn : SecondPawn;
+			if (Controller->CharacterSelectIndex == 1)
+			{
+				
+				CurrentPawnToAssign = FirstPawn;
+			}
+			else
+			{
+				
+				CurrentPawnToAssign = SecondPawn;
+
+			}
+			//CurrentPawnToAssign = (Controller->CharacterSelectIndex == 1) ? FirstPawn : SecondPawn;
 		}
 
 	}

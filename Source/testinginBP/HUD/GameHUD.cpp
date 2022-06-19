@@ -184,7 +184,8 @@ void AGameHUD::AddCrimsonProfiler()
 		UCrimsonProfiler* CrimsonProfilerWidget = CreateWidget<UCrimsonProfiler>(OwningPlayer, CrimsonProfilerClass);
 		if (CrimsonProfilerWidget)
 		{
-			CrimsonProfilerWidget->AddToViewport();
+			CrimsonProfilerWidget->AddToPlayerScreen();
+			//CrimsonProfilerWidget->AddToViewport();
 		}
 	}
 }
@@ -197,7 +198,8 @@ void AGameHUD::AddMelodyProfiler()
 		UMelodyProfiler* MelodyProfilerWidget = CreateWidget<UMelodyProfiler>(OwningPlayer, MelodyProfilerClass);
 		if (MelodyProfilerWidget)
 		{
-			MelodyProfilerWidget->AddToViewport();
+			MelodyProfilerWidget->AddToPlayerScreen();
+			//MelodyProfilerWidget->AddToViewport();
 		}
 	}
 }

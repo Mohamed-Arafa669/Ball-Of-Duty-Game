@@ -440,8 +440,8 @@ void ACPPPlayerController::BroadcastElim(APlayerState* Attacker, APlayerState* V
 void ACPPPlayerController::ServerSelectedCharacter_Implementation(uint8 index)
 {
 	CharacterSelectIndex = index;
-
 	ServerRestartPlayer();
+
 }
 
 void ACPPPlayerController::ClientElimAnnouncement_Implementation(APlayerState* Attacker, APlayerState* Victim)

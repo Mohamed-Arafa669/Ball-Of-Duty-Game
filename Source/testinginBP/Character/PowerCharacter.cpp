@@ -275,7 +275,9 @@ void APowerCharacter::CreateHUD()
 	GameHUD = GameHUD == nullptr ? Cast<AGameHUD>(GetWorld()->GetFirstPlayerController()->GetHUD()) : GameHUD;
 	if (GameHUD)
 	{
-		GameHUD->AddCrimsonProfiler();
+		//GameHUD->AddCrimsonProfiler();
+		///
+		// GameHUD->AddCrimsonProfiler();
 		//GameHUD->AddMelodyProfiler();
 
 	}
