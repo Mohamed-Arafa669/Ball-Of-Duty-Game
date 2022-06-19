@@ -22,6 +22,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	UFUNCTION(BlueprintPure, Category = "AbilityCoolDown")
+		FORCEINLINE float GetAbilityTime() const { return AbilityTime; }
+
+	FTimerHandle AbilityHandler;
 
 	UPROPERTY(Replicated)
 		bool bSuperBall;
@@ -33,6 +37,12 @@ public:
 
 	UFUNCTION()
 		void CreateHUD();
+
+	UPROPERTY(EditAnywhere, Replicated)
+		float AbilityTime;
+
+	void IncreaseAbilityCharge();
+
 
 protected:
 	virtual void BeginPlay() override;

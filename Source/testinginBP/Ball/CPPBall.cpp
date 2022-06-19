@@ -168,7 +168,7 @@ void ACPPBall::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetime
 
 void ACPPBall::OnSphereOverlap(UPrimitiveComponent* overlappedComponent, AActor* otherActor, UPrimitiveComponent* otherComponent, int32 otherBodyIndex, bool bFromSweep, const FHitResult& sweepResult)
 {
-	
+
 	//if (testCharacter && pickUpWidget)
 	//{
 	//	testCharacter->SetOverlappingBall(this);
@@ -178,11 +178,11 @@ void ACPPBall::OnSphereOverlap(UPrimitiveComponent* overlappedComponent, AActor*
 	//	//SetBallState(EBallState::EBS_Initial);
 	//}
 
-	if(ACPPTestCharacter* testCharacter = Cast<ACPPTestCharacter>(otherActor))
+	if (ACPPTestCharacter* testCharacter = Cast<ACPPTestCharacter>(otherActor))
 	{
-		
+
 		if (testCharacter->bIsDashing && GetBallState() != EBallState::EBS_Stolen) {
-			
+
 			SetOwner(nullptr);
 			ProjectileMovementComponent->HomingTargetComponent = nullptr;
 			ProjectileMovementComponent->bIsHomingProjectile = false;
@@ -204,7 +204,7 @@ void ACPPBall::OnSphereEndOverlap(UPrimitiveComponent* overlappedComponent, AAct
 	if (ACPPTestCharacter* testCharacter = Cast<ACPPTestCharacter>(otherActor))
 	{
 
-		if (testCharacter->bIsDashing  && GetBallState() != EBallState::EBS_Stolen) {
+		if (testCharacter->bIsDashing && GetBallState() != EBallState::EBS_Stolen) {
 			FString msg = TEXT("lol");
 			GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Green, msg);
 			SetOwner(nullptr);
@@ -393,15 +393,29 @@ void ACPPBall::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiv
 	{
 		AController* ballOwnerController = this->GetInstigatorController();
 
-		if (Player->bCatching && Player->combat && !Player->IsBallEquipped() || Player->bSteal)
+		if (Player->bCatching && Player->combat)
 		{
+			if (Player->IsBallEquipped())
+			{
+				Player->combat->UnEquipBall(Player->combat->equippedBall);
+			}
 			Player->combat->EquipBall(this);
 			Player->bCanThrow = true;
 			Player->bSteal = false;
 		}
+		else if (Player->bIsSpawnInvincible)
+		{
+			ProjectileMovementComponent->bIsHomingProjectile = false;
+			ProjectileMovementComponent->HomingTargetComponent = nullptr;
+			if(AStealCharacter* tempCont = Cast<AStealCharacter>(ballOwnerController->GetCharacter()))
+			{
+				tempCont->bSteal = false;
+				tempCont->isBungeeGum = false;
+			} 
+		}
 
 		else if ((GetBallState() == EBallState::EBS_Dropped ||
-			GetBallState() == EBallState::EBS_SuperThrow) && !Player->bIsSpawnInvincible &&
+			GetBallState() == EBallState::EBS_SuperThrow) &&
 			Player->GetController() != ballOwnerController && !Player->bKnocked)
 		{
 
@@ -463,13 +477,22 @@ void ACPPBall::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiv
 			Player->combat->EquipBall(this);
 
 		}*/
-		else if (GetBallState() == EBallState::EBS_Stolen )
+		else if (GetBallState() == EBallState::EBS_Stolen)
 		{
 			if (AStealCharacter* Steal = Cast<AStealCharacter>(Player)) {
 				if (Steal->bSteal) {
 					Steal->bSteal = false;
+					if (Steal->IsBallEquipped())
+					{
+						Steal->combat->UnEquipBall(Steal->combat->equippedBall);
+					}
+					Steal->combat->EquipBall(this);
 				}
 				if (Steal->isBungeeGum) {
+					if (Steal->IsBallEquipped())
+					{
+						Steal->combat->UnEquipBall(Steal->combat->equippedBall);
+					}
 					Steal->isBungeeGum = false;
 					Steal->combat->EquipBall(this);
 				}
@@ -497,9 +520,9 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 	{
 		ServerPlayNiagara(TrailFX, false);
 		ServerPlayNiagara(SuperBallFX, false);
-		
+
 		ServerPlayNiagara(BungeeGumFX, false);
-		
+
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 		//AreaSphere->SetSimulatePhysics(false);
 		ProjectileMovementComponent->HomingTargetComponent = nullptr;
@@ -511,7 +534,7 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 	else if (bs == EBallState::EBS_Dropped)
 	{
 		ServerPlayNiagara(TrailFX, true);
-		
+
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
 		//AreaSphere->SetSimulatePhysics(false);
 		ProjectileMovementComponent->Activate(true);
@@ -519,36 +542,36 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 	}
 	else if (bs == EBallState::EBS_SuperThrow)
 	{
-		
+
 		ServerPlayNiagara(TrailFX, false);
 		ServerPlayNiagara(SuperBallFX, true);
-		
+
 		ServerPlayNiagara(SuperTrailFX, true);
-		
+
 	}
 	else if (bs == EBallState::EBS_Stolen)
 	{
-		
+
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
 		ServerPlayNiagara(TrailFX, false);
-		
+
 		ServerPlayNiagara(BungeeGumFX, true);
-		
+
 		ProjectileMovementComponent->Activate(true);
 		ProjectileMovementComponent->bIsHomingProjectile = true;
-	
-		
+
+
 	}
 	else if (bs == EBallState::EBS_Initial)
 	{
 		ServerPlayNiagara(TrailFX, false);
 		ServerPlayNiagara(SuperBallFX, false);
-		
+
 		ServerPlayNiagara(SuperTrailFX, false);
-		
+
 		ServerPlayNiagara(BungeeGumFX, false);
-		
+
 		//AreaSphere->SetSimulatePhysics(true);
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 		//AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
@@ -566,7 +589,7 @@ bool ACPPBall::MulticastBallStateHandle_Validate(EBallState bs)
 void ACPPBall::ServerBallStateHandle_Implementation(EBallState bs)
 {
 	MulticastBallStateHandle(bs);
-	
+
 }
 
 bool ACPPBall::ServerBallStateHandle_Validate(EBallState bs)

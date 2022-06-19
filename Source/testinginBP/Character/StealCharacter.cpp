@@ -27,9 +27,15 @@ AStealCharacter::AStealCharacter()
 void AStealCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	bHook = true;
+	bHook = false;
 	isBungeeGum = false;
 	CreateHUD();
+
+	AbilityTime = 0;
+	GetWorld()->GetTimerManager().SetTimer(AbilityHandler, this, &ThisClass::IncreaseAbilityCharge, 0.1f, true);
+
+	FTimerHandle handle;
+	GetWorld()->GetTimerManager().SetTimer(handle, this, &ThisClass::AbilityCooldown, CoolDownTime);
 }
 
 
@@ -40,20 +46,14 @@ void AStealCharacter::LockTargetAbility()
 		{
 			LockTarget();
 			bDoingAbility = true;
-			if (IsBallEquipped()) {
-
-				combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
-			}
+			
 
 		}
 		else
 		{
 			LockTarget();
 			bDoingAbility = true;
-			if (IsBallEquipped()) {
-
-				combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
-			}
+			
 		}
 	}
 }
@@ -72,6 +72,7 @@ void AStealCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME(AStealCharacter, isBungeeGum);
 	DOREPLIFETIME(AStealCharacter, BungeeBall);
 	DOREPLIFETIME(AStealCharacter, bDoingAbility);
+	DOREPLIFETIME(AStealCharacter, AbilityTime);
 
 }
 
@@ -147,36 +148,56 @@ void AStealCharacter::TraceLine()
 	//UE_LOG(LogTemp, Warning,TEXT("HhHH %s"), *Hit.GetActor()->GetFName().ToString());
 }
 
+void AStealCharacter::IncreaseAbilityCharge()
+{
+	if (GetLocalRole() == ROLE_Authority) {
+		if (AbilityTime <= (CoolDownTime) / (CoolDownTime))
+		{
+			AbilityTime += (0.1f / (float)CoolDownTime);
+		}
+		else
+		{
+			GetWorld()->GetTimerManager().ClearTimer(AbilityHandler);
+			//AbilityTime = Ability_Cooldown_Duration;
+		}
+	}
+}
+
 void AStealCharacter::DoAbility()
 {
 
 	if (bHook)
 	{
 		if (HasAuthority()) {
-			bDoingAbility = false;
-
-
-			if (SpecialAbilityAnimation)
-			{
-				MulticastPlayAnimMontage(SpecialAbilityAnimation);
-			}
-			bHook = false; //hook cool down (bCanHook)
 			//HandleFire();
 			//TraceLine();
 			if (ACPPTestCharacter* Target = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget()))
 			{
-				GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Blue, Target->GetName());
 
-				CoolDownTime = 1.0f;
+			bDoingAbility = false;
+			bHook = false; //hook cool down (bCanHook)
+				if (SpecialAbilityAnimation)
+				{
+					MulticastPlayAnimMontage(SpecialAbilityAnimation);
+				}
+				
+				GetWorld()->GetTimerManager().SetTimer(AbilityHandler, this, &ThisClass::IncreaseAbilityCharge, 0.1f, true);
+				AbilityTime = 0;
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), BungeeGum, GetActorLocation());
+
+				//CoolDownTime = 1.0f;
 				if (Target->IsBallEquipped() && !IsBallEquipped())
 				{
 					StealBall(Target);
+					
 					//HandleFire();
 				}
 				else if (IsBallEquipped())
 				{
 					ThrowTwice();
+					
 				}
+
 			}
 			/*else
 				CoolDownTime = 1.0f;*/
@@ -190,8 +211,6 @@ void AStealCharacter::DoAbility()
 		}
 
 		ClearTarget();
-
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), BungeeGum, GetActorLocation());
 	}
 }
 
@@ -199,7 +218,6 @@ void AStealCharacter::DoAbility()
 
 void AStealCharacter::Server_DoAbility_Implementation()
 {
-		bHook = false;
 		
 		if (SpecialAbilityAnimation)
 		{
@@ -211,19 +229,22 @@ void AStealCharacter::Server_DoAbility_Implementation()
 		if (lockOnTargets->GetTarget()) {
 			if (ACPPTestCharacter* Target = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget()))
 			{
-				GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Blue, Target->GetName());
-				
-				UE_LOG(LogTemp, Warning, TEXT("hHhHAIHDOWA"));
-				CoolDownTime = 1.0f;
+				bHook = false;
+				GetWorld()->GetTimerManager().SetTimer(AbilityHandler, this, &ThisClass::IncreaseAbilityCharge, 0.1f, true);
+				AbilityTime = 0;
+				UGameplayStatics::PlaySoundAtLocation(GetWorld(), BungeeGum, GetActorLocation());
+
 
 				if (Target->IsBallEquipped() && !IsBallEquipped())
 				{
 					StealBall(Target);
+					
 					//HandleFire();
 				}
 				else if (IsBallEquipped())
 				{
 					ThrowTwice();
+					
 				}
 			}
 		}

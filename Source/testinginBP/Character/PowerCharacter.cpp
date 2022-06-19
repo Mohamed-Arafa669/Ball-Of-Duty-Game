@@ -1,6 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PowerCharacter.h"
+
+#include <string>
+
 #include "Components/SceneComponent.h"
 #include "testinginBP/HUD/GameHUD.h"
 #include "Net/UnrealNetwork.h"
@@ -44,8 +47,35 @@ void APowerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME(APowerCharacter, bSmash);
 	DOREPLIFETIME(APowerCharacter, bSuperBall);
 	DOREPLIFETIME(APowerCharacter, bDoingAbility);
+	DOREPLIFETIME(APowerCharacter, AbilityTime);
+
+
+	
 
 }
+
+void APowerCharacter::IncreaseAbilityCharge()
+{
+	if (GetLocalRole() == ROLE_Authority) {
+		if (AbilityTime <= (Ability_Cooldown_Duration) / (Ability_Cooldown_Duration))
+		{
+
+			AbilityTime += (0.1f / (float)Ability_Cooldown_Duration);
+			FString msg = FString::Printf(TEXT("%f"), AbilityTime);
+			GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, msg);
+
+		}
+		else
+		{
+			FString msg1 = TEXT("?????????????????");
+			GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Blue, msg1);
+			GetWorld()->GetTimerManager().ClearTimer(AbilityHandler);
+			//AbilityTime = Ability_Cooldown_Duration;
+		}
+	} 
+}
+
+
 
 void APowerCharacter::BeginPlay()
 {
@@ -55,11 +85,15 @@ void APowerCharacter::BeginPlay()
 
 	CreateHUD();
 
+	AbilityTime = 0;
+	GetWorld()->GetTimerManager().SetTimer(AbilityHandler, this, &ThisClass::IncreaseAbilityCharge, 0.1f, true);
+	StartAbilityTimer();
+
 }
 
 void APowerCharacter::AbilityCooldown()
 {
-	bSmash = false;
+	bSmash = true;
 	OutHits.Empty();
 }
 
@@ -82,9 +116,9 @@ void APowerCharacter::LoopHitActors()
 
 void APowerCharacter::StartAbilityTimer()
 {
-	bSmash = true;
-	FTimerHandle AbilityHandle;
-	GetWorld()->GetTimerManager().SetTimer(AbilityHandle, this, &ThisClass::AbilityCooldown, Ability_Cooldown_Duration);
+	AbilityTime = 0;
+	FTimerHandle CooldownHandler;
+	GetWorld()->GetTimerManager().SetTimer(CooldownHandler, this, &ThisClass::AbilityCooldown, Ability_Cooldown_Duration);
 }
 
 void APowerCharacter::DoSweep()
@@ -101,8 +135,7 @@ void APowerCharacter::DoSweep()
 	if (PowerAbilityFX) {
 		MulticastPlayNiagara(PowerAbilityFX, true);
 		ServerPlayNiagara(PowerAbilityFX, true);
-		FString msg = TEXT("lol");
-		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Blue, msg);
+		
 		FTimerHandle AbilityTimer;
 		GetWorld()->GetTimerManager().SetTimer(AbilityTimer, this, &APowerCharacter::DisableEffect, 0.7f);
 	}
@@ -119,6 +152,9 @@ void APowerCharacter::SuperUpBall()
 
 void APowerCharacter::AbilityDelay()
 {
+	
+	GetWorld()->GetTimerManager().SetTimer(AbilityHandler, this, &ThisClass::IncreaseAbilityCharge, 0.1f, true);
+
 	if (!IsBallEquipped())
 	{
 		DoSweep();
@@ -150,7 +186,7 @@ void APowerCharacter::LockTarget()
 
 void APowerCharacter::LockTargetAbility()
 {
-	if (!bSmash) {
+	if (bSmash) {
 		if (HasAuthority())
 		{
 			LockTarget();
@@ -192,11 +228,11 @@ void APowerCharacter::DisableEffect()
 void APowerCharacter::DoAbility()
 {
 
-	if (!bSmash) {
+	if (bSmash) {
 
 		if (HasAuthority()) {
 			bDoingAbility = false;
-
+			bSmash = false;
 			StartAbilityTimer();
 
 			if (AbilityAnim)
@@ -209,6 +245,7 @@ void APowerCharacter::DoAbility()
 		else
 		{
 			bDoingAbility = false;
+			bSmash = false;
 			Server_DoAbility();
 		}
 	}
@@ -216,6 +253,8 @@ void APowerCharacter::DoAbility()
 
 void APowerCharacter::Server_DoAbility_Implementation()
 {
+	bDoingAbility = false;
+	bSmash = false;
 	StartAbilityTimer();
 	//bDoingAbility = false;
 	/*FTimerHandle ClearHandle1;

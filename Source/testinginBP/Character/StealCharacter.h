@@ -20,6 +20,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+
+	UFUNCTION(BlueprintPure, Category = "AbilityCoolDown")
+		FORCEINLINE float GetAbilityTime() const { return AbilityTime; }
+
 	UPROPERTY(Replicated)
 	bool isBungeeGum;
 
@@ -79,7 +83,16 @@ protected:
 	UPROPERTY(Replicated)
 		bool bHook;
 
+	UPROPERTY(EditAnywhere, Replicated)
+		float AbilityTime;
 
+	void IncreaseAbilityCharge();
+
+	FTimerHandle AbilityHandler;
+
+
+	
+	UPROPERTY(EditAnywhere, Category= "Abilities")
 	float CoolDownTime;
 	
 	FVector Loc;
