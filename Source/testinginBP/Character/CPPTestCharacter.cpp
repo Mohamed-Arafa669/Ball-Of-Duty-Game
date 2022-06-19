@@ -85,6 +85,7 @@ ACPPTestCharacter::ACPPTestCharacter()
 		LockOnTargetComponent = CreateDefaultSubobject<ULockOnTargetComponent>(TEXT("LockOnTargetComponent"));
 	}
 
+
 	bStunned = false;
 
 	bCanDash = true;
@@ -160,6 +161,8 @@ void ACPPTestCharacter::BeginPlay()
 	FTimerHandle InvincibleHandle;
 	GetWorld()->GetTimerManager().SetTimer(InvincibleHandle, this, &ThisClass::SetSpawnInvincibility, SpawnInvincibilityDuration);
 
+	
+
 	if(InvincibleMaterialInstance)
 	{
 		OriginalMat1 = GetMesh()->GetMaterial(0);
@@ -167,12 +170,15 @@ void ACPPTestCharacter::BeginPlay()
 		OriginalMat3 = GetMesh()->GetMaterial(2);
 
 		DynamicInvincibleMatInst = UMaterialInstanceDynamic::Create(InvincibleMaterialInstance, this);
+
 		GetMesh()->SetMaterial(0, DynamicInvincibleMatInst);
 		GetMesh()->SetMaterial(1, DynamicInvincibleMatInst);
 		GetMesh()->SetMaterial(2, DynamicInvincibleMatInst);
 
 		
 	}
+
+
 	
 }
 
@@ -469,9 +475,14 @@ void ACPPTestCharacter::ThrowButtonPressed()
 
 			if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
 			{
+				FString msg = TEXT("lockkkkk?");
+				GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Emerald, msg);
+
 				UE_LOG(LogTemp, Warning, TEXT("Target %s"), *TargetPlayer->GetFName().ToString());
-				TargetPlayer->MulticastPlayNiagara(TargetPlayer->LockFX, true);
-				TargetPlayer->ServerPlayNiagara(TargetPlayer->LockFX, true);
+				//TargetPlayer->MulticastPlayNiagara(TargetPlayer->LockFX, true);
+				//TargetPlayer->ServerPlayNiagara(TargetPlayer->LockFX, true);
+
+				TargetPlayer->SetDynamicMaterials();
 			}
 			
 		}
@@ -704,6 +715,12 @@ void ACPPTestCharacter::ClearTarget()
 {
 
 	if (bIsTargeting) {
+
+		if (ACPPTestCharacter* TargetPlayer = Cast<ACPPTestCharacter>(lockOnTargets->GetTarget())) //MulticastPlayNiagara(LockFX, true);
+		{
+			TargetPlayer->SetOriginalMaterials();
+		}
+
 		bIsTargeting = false;
 		lockOnTargets->ClearTargetManual(false);
 
@@ -1079,6 +1096,65 @@ void ACPPTestCharacter::SpawnActors()
 		UE_LOG(LogTemp, Warning, TEXT("Found"));
 		ActorSpawnerReference->SpawnActor();
 	}
+}
+
+void ACPPTestCharacter::SetClientOriginalMaterials()
+{
+	if (HasAuthority())
+	{
+		GetMesh()->SetMaterial(0, OriginalMat1);
+		GetMesh()->SetMaterial(1, OriginalMat2);
+		GetMesh()->SetMaterial(2, OriginalMat3);
+	}
+	else
+		SetOriginalMaterials();
+}
+
+void ACPPTestCharacter::SetOriginalMaterials_Implementation()
+{
+
+	FString msg = TEXT("Originaigaw?");
+	GEngine->AddOnScreenDebugMessage(2, 5.f, FColor::Emerald, msg);
+
+	GetMesh()->SetMaterial(0, OriginalMat1);
+	GetMesh()->SetMaterial(1, OriginalMat2);
+	GetMesh()->SetMaterial(2, OriginalMat3);
+
+}
+
+void ACPPTestCharacter::SetClientDynamicMaterials()
+{
+	if (HasAuthority())
+	{
+		if (LockedMaterialInstance) {
+			DynamicLockedMatInst = UMaterialInstanceDynamic::Create(LockedMaterialInstance, this);
+			FString msg = TEXT("dynana?");
+			GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Emerald, msg);
+
+			GetMesh()->SetMaterial(0, DynamicLockedMatInst);
+			GetMesh()->SetMaterial(1, DynamicLockedMatInst);
+			GetMesh()->SetMaterial(2, DynamicLockedMatInst);
+		}
+
+	}
+	else
+		SetDynamicMaterials();
+}
+
+void ACPPTestCharacter::SetDynamicMaterials_Implementation()
+{
+
+	if (LockedMaterialInstance) {
+		DynamicLockedMatInst = UMaterialInstanceDynamic::Create(LockedMaterialInstance, this);
+		FString msg = TEXT("dynana?");
+		GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Emerald, msg);
+
+		GetMesh()->SetMaterial(0, DynamicLockedMatInst);
+		GetMesh()->SetMaterial(1, DynamicLockedMatInst);
+		GetMesh()->SetMaterial(2, DynamicLockedMatInst);
+	}
+
+
 }
 
 void ACPPTestCharacter::PlayThrowMontage()

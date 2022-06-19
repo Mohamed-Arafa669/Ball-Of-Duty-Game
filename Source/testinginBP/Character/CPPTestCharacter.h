@@ -364,9 +364,29 @@ public:
 	UPROPERTY(EditAnywhere, Category = Shaders)
 		UMaterialInstance* InvincibleMaterialInstance;
 
+	UPROPERTY(VisibleAnywhere, Category = Shaders)
+		UMaterialInstanceDynamic* DynamicLockedMatInst;
+
+	UPROPERTY(EditAnywhere, Category = Shaders)
+		UMaterialInstance* LockedMaterialInstance;
+
+	UFUNCTION(Server, Reliable)
+		void SetOriginalMaterials();
+
+	void SetClientOriginalMaterials();
+
+	UFUNCTION(Server, Reliable)
+		void SetDynamicMaterials();
+
+	void SetClientDynamicMaterials();
+
 	UMaterialInterface* OriginalMat1;
 	UMaterialInterface* OriginalMat2;
 	UMaterialInterface* OriginalMat3;
+
+	UMaterialInterface* TargetOriginalMat1;
+	UMaterialInterface* TargetOriginalMat2;
+	UMaterialInterface* TargetOriginalMat3;
 
 	UPROPERTY(EditAnywhere, Category = "Aiming")
 		float SensetivityX = 40;
