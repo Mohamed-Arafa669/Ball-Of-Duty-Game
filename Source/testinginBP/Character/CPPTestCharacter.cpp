@@ -200,18 +200,14 @@ void ACPPTestCharacter::MoveForward(float value)
 		if (value < 0 && !bIsDashing)
 		{
 			AddMovementInput(GetActorForwardVector() * (value * BackwardMultiplier));
-			if (DustFX) {
-				ServerPlayNiagara(DustFX, false);
-				MulticastPlayNiagara(DustFX, false);
-			}
+			
+			
 		}
 		else
 		{
-			if (DustFX) {
-				ServerPlayNiagara(DustFX, true);
-				MulticastPlayNiagara(DustFX, true);
-			}
+			
 			AddMovementInput(GetActorForwardVector() * value);
+			
 		}
 	}
 }
@@ -228,20 +224,15 @@ void ACPPTestCharacter::MoveRight(float value)
 	if (IsAllowedToMove()) {
 		if (!bIsDashing)
 		{
+			
 			AddMovementInput(GetActorRightVector() * (value * StrafeMultiplier));
-			if (DustFX) {
-				ServerPlayNiagara(DustFX, false);
-				MulticastPlayNiagara(DustFX, false);
-			}
+			
 
 		}
 		else
 		{
 			AddMovementInput(GetActorRightVector() * value);
-			if (DustFX) {
-				ServerPlayNiagara(DustFX, false);
-				MulticastPlayNiagara(DustFX, false);
-			}
+			
 		}
 	}
 }
