@@ -71,7 +71,6 @@ void ACPPBall::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetime
 
 void ACPPBall::OnSphereOverlap(UPrimitiveComponent* overlappedComponent, AActor* otherActor, UPrimitiveComponent* otherComponent, int32 otherBodyIndex, bool bFromSweep, const FHitResult& sweepResult)
 {
-
 	if (ACPPTestCharacter* testCharacter = Cast<ACPPTestCharacter>(otherActor))
 	{
 		if (testCharacter->bIsDashing && GetBallState() != EBallState::EBS_Stolen) {

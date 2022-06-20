@@ -299,5 +299,17 @@ float AMyGameMode::CurrentTime()
 	return GetWorld()->GetTimeSeconds();
 }
 
+//void AMyGameMode::SpawnActors()
+//{
+//	//Find the Actor Spawner in the world, and invoke it's Spawn Actor function
+//	AActor* ActorSpawnerTofind = UGameplayStatics::GetActorOfClass(GetWorld(), ABallSpawner::StaticClass());
+//
+//	ABallSpawner* ActorSpawnerReference = Cast<ABallSpawner>(ActorSpawnerTofind);
+//	if (ActorSpawnerReference)
+//	{
+//		UE_LOG(LogTemp, Warning, TEXT("Found"));
+//		ActorSpawnerReference->SpawnActor();
+//	}
+//}
 
 

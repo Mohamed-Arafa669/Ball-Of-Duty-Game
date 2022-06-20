@@ -7,7 +7,7 @@
 #include "Components/WidgetComponent.h"
 #include "Net/UnrealNetwork.h" //Replication
 #include "testinginBP\Ball\CPPBall.h"
-#include "testinginBP\Ball\BallSpawner.h"
+//#include "testinginBP\Ball\BallSpawner.h"
 #include "testinginBP\GameComponents\CombatComponent.h"
 #include "Animation/AnimMontage.h"
 #include "Components/CapsuleComponent.h"
@@ -182,7 +182,7 @@ void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis("Turn", this, &ACPPTestCharacter::Turn);
 	PlayerInputComponent->BindAxis("LookUp", this, &ACPPTestCharacter::LookUp);
 
-	PlayerInputComponent->BindAction("SpawnBall", IE_Pressed, this, &ThisClass::SpawnActors);
+	//PlayerInputComponent->BindAction("SpawnBall", IE_Pressed, this, &ThisClass::SpawnActors);
 
 }
 
@@ -846,17 +846,18 @@ void ACPPTestCharacter::SetDashingAnimOff()
 	}
 }
 
-void ACPPTestCharacter::SpawnActors()
-{
-	//Find the Actor Spawner in the world, and invoke it's Spawn Actor function
-	AActor* ActorSpawnerTofind = UGameplayStatics::GetActorOfClass(GetWorld(), ABallSpawner::StaticClass());
-
-	ABallSpawner* ActorSpawnerReference = Cast<ABallSpawner>(ActorSpawnerTofind);
-	if (ActorSpawnerReference)
-	{
-		ActorSpawnerReference->SpawnActor();
-	}
-}
+//void ACPPTestCharacter::SpawnActors()
+//{
+//	//Find the Actor Spawner in the world, and invoke it's Spawn Actor function
+//	AActor* ActorSpawnerTofind = UGameplayStatics::GetActorOfClass(GetWorld(), ABallSpawner::StaticClass());
+//
+//	ABallSpawner* ActorSpawnerReference = Cast<ABallSpawner>(ActorSpawnerTofind);
+//	if (ActorSpawnerReference)
+//	{
+//		UE_LOG(LogTemp, Warning, TEXT("Found"));
+//		ActorSpawnerReference->SpawnActor();
+//	}
+//}
 
 void ACPPTestCharacter::PlaySounds(USoundCue* Cue, FVector Location)
 {
