@@ -1,14 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PowerCharacter.h"
-
 #include <string>
-
 #include "Components/SceneComponent.h"
 #include "testinginBP/HUD/GameHUD.h"
 #include "Net/UnrealNetwork.h"
 #include "CPPTestCharacter.h"
-#include "DrawDebugHelpers.h"
 #include "testinginBP/GameComponents/CombatComponent.h"
 
 
@@ -49,9 +46,6 @@ void APowerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME(APowerCharacter, bDoingAbility);
 	DOREPLIFETIME(APowerCharacter, AbilityTime);
 
-
-	
-
 }
 
 void APowerCharacter::IncreaseAbilityCharge()
@@ -59,23 +53,14 @@ void APowerCharacter::IncreaseAbilityCharge()
 	if (GetLocalRole() == ROLE_Authority) {
 		if (AbilityTime <= (Ability_Cooldown_Duration) / (Ability_Cooldown_Duration))
 		{
-
 			AbilityTime += (0.1f / (float)Ability_Cooldown_Duration);
-			/*FString msg = FString::Printf(TEXT("%f"), AbilityTime);
-			GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Blue, msg);*/
-
 		}
 		else
 		{
-			/*FString msg1 = TEXT("?????????????????");
-			GEngine->AddOnScreenDebugMessage(1, 5.f, FColor::Blue, msg1);*/
 			GetWorld()->GetTimerManager().ClearTimer(AbilityHandler);
-			//AbilityTime = Ability_Cooldown_Duration;
 		}
-	} 
+	}
 }
-
-
 
 void APowerCharacter::BeginPlay()
 {
@@ -102,9 +87,6 @@ void APowerCharacter::LoopHitActors()
 	if (OutHits.Num() > 0) {
 		for (int i = 0; i < OutHits.Num(); i++)
 		{
-
-			//DrawDebugSphere(GetWorld(), OutHits[i].GetActor()->GetActorLocation(), 100.f, 30, FColor::Red, false, 2.f);
-
 			if (ACPPTestCharacter* Temp = Cast<ACPPTestCharacter>(OutHits[i].GetActor())) {
 
 				if (Temp == this) continue;
@@ -123,7 +105,6 @@ void APowerCharacter::StartAbilityTimer()
 
 void APowerCharacter::DoSweep()
 {
-
 	FVector Start = GetActorLocation() + GetActorForwardVector() * StartDistance;
 	FVector End = Start + (GetControlRotation().Vector() * EndDistance);
 
@@ -135,21 +116,18 @@ void APowerCharacter::DoSweep()
 	if (PowerAbilityFX) {
 		MulticastPlayNiagara(PowerAbilityFX, true);
 		ServerPlayNiagara(PowerAbilityFX, true);
-		
+
 		FTimerHandle AbilityTimer;
 		GetWorld()->GetTimerManager().SetTimer(AbilityTimer, this, &APowerCharacter::DisableEffect, 0.7f);
 	}
-		//UGameplayStatics::PlaySoundAtLocation(GetWorld(), AbilityWithoutBall, GetActorLocation());
-		ServerPlaySounds(AbilityWithoutBall, GetActorLocation());
+	ServerPlaySounds(AbilityWithoutBall, GetActorLocation());
 
-		LoopHitActors();
+	LoopHitActors();
 
 }
 
 void APowerCharacter::SuperUpBall()
 {
-
-	//UGameplayStatics::PlaySoundAtLocation(GetWorld(), AbilityWithBall, GetActorLocation());
 	ServerPlaySounds(AbilityWithBall, GetActorLocation());
 	combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
 	MyThrow();
@@ -158,17 +136,15 @@ void APowerCharacter::SuperUpBall()
 
 void APowerCharacter::AbilityDelay()
 {
-	
+
 	GetWorld()->GetTimerManager().SetTimer(AbilityHandler, this, &ThisClass::IncreaseAbilityCharge, 0.1f, true);
 
 	if (!IsBallEquipped())
 	{
 		DoSweep();
-
 	}
 	else if (IsBallEquipped())
 	{
-
 		SuperUpBall();
 	}
 
@@ -179,15 +155,11 @@ void APowerCharacter::AbilityDelayTimer()
 {
 	FTimerHandle AbilityDelay;
 	GetWorld()->GetTimerManager().SetTimer(AbilityDelay, this, &ThisClass::AbilityDelay, AbilityDelayTime);
-
 }
-
 
 void APowerCharacter::LockTarget()
 {
-
 	Super::LockTarget();
-
 }
 
 void APowerCharacter::LockTargetAbility()
@@ -202,7 +174,8 @@ void APowerCharacter::LockTargetAbility()
 				combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
 			}
 
-		} else
+		}
+		else
 		{
 			LockTarget();
 			bDoingAbility = true;
@@ -217,16 +190,17 @@ void APowerCharacter::LockTargetAbility()
 
 void APowerCharacter::DisableEffect()
 {
-	if(HasAuthority())
+	if (HasAuthority())
 	{
 		MulticastPlayNiagara(PowerAbilityFX, false);
 		ServerPlayNiagara(PowerAbilityFX, false);
-		
-	} else
+
+	}
+	else
 	{
 		MulticastPlayNiagara(PowerAbilityFX, false);
 		ServerPlayNiagara(PowerAbilityFX, false);
-		
+
 	}
 	ClearTarget();
 }
@@ -262,9 +236,6 @@ void APowerCharacter::Server_DoAbility_Implementation()
 	bDoingAbility = false;
 	bSmash = false;
 	StartAbilityTimer();
-	//bDoingAbility = false;
-	/*FTimerHandle ClearHandle1;
-	GetWorld()->GetTimerManager().SetTimer(ClearHandle1, this, &ACPPTestCharacter::ClearTarget, 1.1f);*/
 
 	if (AbilityAnim)
 	{
@@ -279,13 +250,6 @@ void APowerCharacter::Server_DoAbility_Implementation()
 void APowerCharacter::CreateHUD()
 {
 	GameHUD = GameHUD == nullptr ? Cast<AGameHUD>(GetWorld()->GetFirstPlayerController()->GetHUD()) : GameHUD;
-	if (GameHUD)
-	{
-		//GameHUD->AddCrimsonProfiler();
-		///
-		// GameHUD->AddCrimsonProfiler();
-		//GameHUD->AddMelodyProfiler();
-
-	}
+	
 }
 

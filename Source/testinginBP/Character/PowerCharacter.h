@@ -32,9 +32,6 @@ public:
 
 	FORCEINLINE bool IsSuperBall() const { return bSuperBall; }
 
-	/*UPROPERTY()
-		AGameHUD* GameHUD;*/
-
 	UFUNCTION()
 		void CreateHUD();
 
@@ -60,7 +57,7 @@ protected:
 	void SuperUpBall();
 
 	UPROPERTY()
-		float AbilityDelayTime = 1.f;
+		float AbilityDelayTime = 1.1f;
 
 	void AbilityDelay();
 

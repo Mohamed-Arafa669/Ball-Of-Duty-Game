@@ -8,7 +8,6 @@
 #include "LockOnTargetComponent.h"
 #include "testinginBP/Ball/CPPBall.h"
 #include "NiagaraComponent.h"
-#include "Components/PrimitiveComponent.h"
 #include "testinginBP/HUD/UI/UI_RespawnWidget.h"
 #include "CPPTestCharacter.generated.h"
 
@@ -30,7 +29,6 @@ public:
 
 	UPROPERTY(Replicated)
 	bool bDoingAbility;
-	/*USphereComponent* DashingSphere;*/
 	
 	UPROPERTY(Replicated)
 		bool bKnocked;
@@ -49,23 +47,14 @@ public:
 	void ClearTarget();
 
 	void PlayThrowMontage();
-	UFUNCTION(BlueprintCallable, Category = "BallThrow")
-		void OnBallReleased();
+
 	UPROPERTY(EditAnywhere, Category = Camera)
 		class UCameraComponent* followCamera;
 	UPROPERTY(EditAnywhere, Category = Camera)
 		class USpringArmComponent* cameraBoom;
 
-	//UPROPERTY(EditAnywhere, Category = "SceneCaptureComponent")
-	//	class USceneCaptureComponent2D* MiniMapCam;
-
-	//UPROPERTY(EditAnywhere, Category = "SceneCaptureComponent")
-	//	class USpringArmComponent* MiniMapBoom;
-
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly,  meta = (AllowPrivateAccess = "true"))
 		class ULockOnTargetComponent* lockOnTargets;
-
-	
 
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly,  meta = (AllowPrivateAccess = "true"))
 		class UTargetingHelperComponent* targetComponent;
@@ -107,7 +96,7 @@ protected:
 	void MoveRight(float value);
 	void Turn(float value);
 	void LookUp(float value);
-	void EquipButtonPressed();
+	//void EquipButtonPressed();
 	void Catch();
 	void Dash();
 	void CanDash();
@@ -132,18 +121,12 @@ protected:
 	UPROPERTY(Replicated)
 	bool bIsTargeting;
 
-//>>>>>>> origin/GoharyMain
 	USkeletalMeshComponent* CharacterMesh;
-
-
-
-
+	
 	UPROPERTY(EditAnywhere, Category = "CameraShake")
 	TSubclassOf<class UCameraShakeBase> CamShake;
 
 private:
-
-	
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		class UWidgetComponent* overHeadWidget;
@@ -155,22 +138,16 @@ private:
 		class UAnimMontage* CatchAnim;
 	
 
-	UPROPERTY(ReplicatedUsing = OnRep_OverlappingBall) //Replication
-		class ACPPBall* overlappingBall;
-
+	//UPROPERTY(ReplicatedUsing = OnRep_OverlappingBall) //Replication
+	//	class ACPPBall* overlappingBall;
 
 	void CallDestroy();
-
-	
 
 	UFUNCTION()
 	void OnRep_CurrentHealth();
 
-	/*UFUNCTION()
-		void OnRep_IsTargeted();*/
-
-	UFUNCTION()
-	void OnRep_OverlappingBall(ACPPBall* lastBall); //Replication
+	//UFUNCTION()
+	//void OnRep_OverlappingBall(ACPPBall* lastBall); //Replication
 
 	UPROPERTY(VisibleAnywhere)
 	class UGameplayStatics* gameStatic;
@@ -178,14 +155,11 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	class UWorld* world;
 
-	UFUNCTION(Server, Reliable)
-	void ServerEquipButtonPressed();
+	/*UFUNCTION(Server, Reliable)
+	void ServerEquipButtonPressed();*/
 
 	UFUNCTION(Server, Reliable)
 		void ServerCatch();
-
-	/*UFUNCTION(Server, Reliable)
-		void ServerThrowButtonPressed();*/
 
 	UFUNCTION(Server, Reliable)
 		void ServerThrowButtonReleased();
@@ -202,6 +176,9 @@ public:
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* GetHitAnim;
 
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* ClappingAnim;
+
 	UFUNCTION(Server, Reliable, WithValidation, Category = Animation)
 		void ServerPlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
 
@@ -216,28 +193,24 @@ public:
 
 	FTimerHandle ElimTimer;
 
+	void DoEmote();
+
 	UPROPERTY(EditDefaultsOnly)
 		float ElimDelay = 3.f;
 	void ElimTimerFinished();
 
 	bool bLeftGame = false;
 
-
-	
-
 public:
 
 	UFUNCTION(Server, Reliable)
 		void ServerLeaveGame();
 
-	
-
 	FOnLeftGame OnLeftGame;
-
-
+	
 	void Stunned();
 
-	 void SetOverlappingBall(ACPPBall* cppBall);
+	/* void SetOverlappingBall(ACPPBall* cppBall);*/
 
 	
 	 bool IsBallEquipped();
@@ -255,8 +228,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Effects")
 		UNiagaraComponent* HitEffect;
-
-
 
 	 bool bCanDash;
 
@@ -313,11 +284,6 @@ public:
 	UPROPERTY(EditAnywhere, Replicated, Category = "Movement")
 	 float DashDistance = 6000.f;
 
-	/*UPROPERTY(EditAnywhere, Replicated, Category = "Throw power")
-		float throwPower = 500.0f;*/
-	/*UPROPERTY(EditAnywhere, Category = "Catching")
-		float CatchCooldown = 10.f;*/
-
 	FVector testVect;
 
 	UPROPERTY(EditAnywhere, Category = "Throw")
@@ -365,6 +331,9 @@ public:
 	UPROPERTY(EditAnywhere)
 		UNiagaraComponent* StunFX;
 
+	UPROPERTY(EditAnywhere)
+		UNiagaraComponent* DustFX;
+
 	UPROPERTY(VisibleAnywhere, Category = Shaders)
 		UMaterialInstanceDynamic* DynamicInvincibleMatInst;
 
@@ -376,28 +345,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = Shaders)
 		UMaterialInstance* LockedMaterialInstance;
-
-
-	//UFUNCTION(NetMulticast, Reliable, WithValidation)
-	//void MultiSetOriginalMaterials();
-
-	//UFUNCTION(Server, Reliable)
-	//	void SetOriginalMaterials();
-	//
-	//UFUNCTION(Server, Reliable)
-	//	void SetDynamicMaterials();
-	//UFUNCTION(NetMulticast, Reliable, WithValidation)
-	//void MultiSetDynamicMaterials();
-
-	
-
-	//UFUNCTION(Server, Reliable)
-	//	void Server_SetOriginalMats(USkeletalMeshComponent* Mesh, UMaterialInstanceDynamic);
-
-	//void SetDynamicMats();
-
-	//UFUNCTION(Server, Reliable)
-	//	void Server_SetDynamicMats();
 
 	UMaterialInterface* OriginalMat1;
 	UMaterialInterface* OriginalMat2;
@@ -433,6 +380,10 @@ public:
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 		void MulticastPlaySounds(USoundCue* Cue, FVector Location);
 
+	UPROPERTY(EditAnywhere, Category = "Movement")
+		float StrafeMultiplier = 0.4f;
 
+	UPROPERTY(EditAnywhere, Category = "Movement")
+		float BackwardMultiplier = 0.4f;
 
 };

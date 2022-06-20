@@ -348,7 +348,7 @@ void ACPPPlayerController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 	MyCharacter = MyCharacter == nullptr ? Cast<ACPPTestCharacter>(InPawn) : MyCharacter;
-	//ACPPTestCharacter* MyCharacter = Cast<ACPPTestCharacter>(InPawn);
+	
 	if (MyCharacter)
 	{
 		SetHUDHealth(MyCharacter->GetCurrentHealth(), MyCharacter->GetMaxHealth());
@@ -385,11 +385,6 @@ void ACPPPlayerController::HandleCooldown()
 			FString AnnouncementText("Returning to Main Menu In:");
 			GameHUD->Announcement->AnnouncementText->SetText(FText::FromString(AnnouncementText));
 
-			/// <summary>
-			/// THE SCOREBOARD DISPLAY
-			/// </summary>
-			//AMyGameState* GameState = Cast<AMyGameState>(UGameplayStatics::GetGameState(this));
-			//AMyPlayerState* MPlayerState = GetPlayerState<AMyPlayerState>();
 			MyGameState = MyGameState == nullptr ? Cast<AMyGameState>(UGameplayStatics::GetGameState(this)) : MyGameState;
 			MyPlayerState = MyPlayerState == nullptr ? GetPlayerState<AMyPlayerState>() : MyPlayerState;
 
@@ -424,12 +419,6 @@ void ACPPPlayerController::HandleCooldown()
 			}
 		}
 	}
-	/*MyCharacter = MyCharacter == nullptr ? Cast<ACPPTestCharacter>(GetPawn()) : MyCharacter;
-	if (MyCharacter && MyCharacter->GetCombat() )
-	{
-		MyCharacter->bDisableGameplay = true;
-		MyCharacter->GetCombat()->ThrowButtonPressed(false);
-	}*/
 }
 
 void ACPPPlayerController::BroadcastElim(APlayerState* Attacker, APlayerState* Victim)
@@ -477,19 +466,3 @@ void ACPPPlayerController::ClientElimAnnouncement_Implementation(APlayerState* A
 
 	}
 }
-
-//void ACPPPlayerController::CreateCharacterSelectMenu()
-//{
-//	if (!ensure(CharacterSelectionClass != nullptr))
-//	{
-//		return;
-//	}
-//	CharacterSelection = CreateWidget<UCharacterSelection>(this, CharacterSelectionClass);
-//
-//	if (!ensure(CharacterSelection != nullptr))
-//	{
-//		return;
-//	}
-//
-//	CharacterSelection->Setup();
-//}

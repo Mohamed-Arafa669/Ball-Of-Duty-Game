@@ -27,8 +27,6 @@ public:
 	UPROPERTY(Replicated)
 	bool isBungeeGum;
 
-	//UPROPERTY(EditAnywhere)
-	//	USoundCue* BungeeGum;
 
 	void HomeOnMe();
 
@@ -50,9 +48,6 @@ public:
 
 	AHook* SpawnHook;
 
-	/*UPROPERTY()
-		AGameHUD* GameHUD;*/
-
 	UFUNCTION()
 		void CreateHUD();
 	void ThrowTwice();
@@ -69,16 +64,9 @@ protected:
 	UFUNCTION(Server, Reliable)
 		void Server_DoAbility();
 
-	//UFUNCTION(Server, Reliable)
-	//	void HandleFire();
-
 	void AbilityCooldown();
 
 	void DestroyHook();
-
-	void TraceLine(); /// 
-	//TODO remove UFUNCTION 
-
 
 	UPROPERTY(Replicated)
 		bool bHook;
@@ -101,13 +89,6 @@ protected:
 	FVector Start;
 	FVector End;
 	float HookDistance = 2000.0f;
-
-	TArray<AActor*> OverlappingActors;
-	TArray<ACPPTestCharacter*> OverlappingEnemies;
-
-	
-
-
 
 };
 
