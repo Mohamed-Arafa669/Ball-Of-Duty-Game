@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "NiagaraComponent.h"
 #include "BallSpawner.generated.h"
 
 UCLASS()
@@ -18,8 +19,32 @@ public:
 	UFUNCTION()
 		void SpawnActor();
 
+	UFUNCTION()
+		void SpawnCoolDown();
+
+	UPROPERTY(EditAnywhere, Category = "SpawnTimer")
+	float SpawnTimer = 30.f;
+
+	bool bCanSpawnBall;
+
 	UPROPERTY(EditAnywhere, Category = "Gameplay|Projectile")
-		TSubclassOf<class ACPPBall> Ball;
+		TArray<TSubclassOf<class ACPPBall>> Balls;
+
+	ACPPBall* SpawnedBall;
+
+	UFUNCTION(Server, Reliable, Category = Effects)
+		void ServerPlayNiagara(UNiagaraComponent* fx, bool state);
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Effects)
+		void MulticastPlayNiagara(UNiagaraComponent* fx, bool state);
+
+	UPROPERTY(EditAnywhere)
+		UNiagaraComponent* ShowBallFX;
+
+	//UPROPERTY(EditAnywhere, Category = "Gameplay|BallMesh")
+	//	TArray<UStaticMesh*> Meshes;
+		//UStaticMesh* Meshy;
+	int32 RandIdx;
 
 protected:
 	// Called when the game starts or when spawned
@@ -31,5 +56,9 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	UFUNCTION()
+	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+		class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 };

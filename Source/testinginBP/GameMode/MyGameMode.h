@@ -99,6 +99,7 @@ public:
 
 	FORCEINLINE float GetCountdownTime() const { return CountdownTime; }
 
+	/*void SpawnActors();*/
 
 	
 };
