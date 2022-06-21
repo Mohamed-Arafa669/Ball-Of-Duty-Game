@@ -395,4 +395,7 @@ public:
 		void ServerSprayDecal();
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 		void MulticastSprayDecal();
+
+	UPROPERTY(EditAnywhere, Category = "Decals");
+	class UMaterialInterface* Decal;
 };

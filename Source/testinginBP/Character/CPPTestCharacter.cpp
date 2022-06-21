@@ -950,17 +950,30 @@ void ACPPTestCharacter::SprayDecal()
 
 void ACPPTestCharacter::FunDecal()
 {
+	FVector Loc;
+	FRotator Rot;
+	FHitResult Hit;
 
+	GetController()->GetPlayerViewPoint(Loc, Rot);
+
+	FVector Start = Loc;
+	FVector End = Start + (Rot.Vector() * 100.0f);
+
+	FCollisionQueryParams TraceParams;
+	bool b = GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_WorldStatic, TraceParams);
+	if(b)
+		//GetWorld()->SpawnActor()
+	UGameplayStatics::SpawnDecalAtLocation(this, Decal, FVector::OneVector, Hit.Location, GetActorRotation());
 }
 
 void ACPPTestCharacter::ServerSprayDecal_Implementation()
 {
-
+	MulticastSprayDecal();
 }
 
 void ACPPTestCharacter::MulticastSprayDecal_Implementation()
 {
-
+	FunDecal();
 }
 
 bool ACPPTestCharacter::MulticastSprayDecal_Validate()
