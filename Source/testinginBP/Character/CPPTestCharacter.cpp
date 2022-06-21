@@ -78,6 +78,8 @@ ACPPTestCharacter::ACPPTestCharacter()
 	MaxHealth = 100.0f;
 	CurrentHealth = MaxHealth;
 
+	DECLARE_DELEGATE_OneParam(DoEmoteDelegate, UAnimInstance);
+
 }
 
 void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -98,6 +100,8 @@ void ACPPTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ACPPTestCharacter, bIsSpawnInvincible);
 	DOREPLIFETIME(ACPPTestCharacter, bIsTargeting);
 	DOREPLIFETIME(ACPPTestCharacter, bDoingAbility);
+	DOREPLIFETIME(ACPPTestCharacter, Dancing);
+
 
 }
 
@@ -114,7 +118,16 @@ void ACPPTestCharacter::Jump()
 {
 	if (IsAllowedToMove()) {
 		Super::Jump();
+
+		if (Dancing)
+		{
+			ServerStopAnimMontage();
+			MulticastStopAnimMontage();
+		}
+
 	}
+
+
 }
 
 void ACPPTestCharacter::BeginPlay()
@@ -171,8 +184,6 @@ void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Dash", IE_Pressed, this, &ACPPTestCharacter::Dash);
 
-	PlayerInputComponent->BindAction("Emote", IE_Pressed, this, &ACPPTestCharacter::DoEmote);
-
 	PlayerInputComponent->BindAction("Catch", IE_Pressed, this, &ACPPTestCharacter::Catch);
 	PlayerInputComponent->BindAction("Throw", IE_Pressed, this, &ACPPTestCharacter::ThrowButtonPressed);
 	PlayerInputComponent->BindAction("Throw", IE_Released, this, &ACPPTestCharacter::ThrowButtonReleased);
@@ -182,8 +193,13 @@ void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis("Turn", this, &ACPPTestCharacter::Turn);
 	PlayerInputComponent->BindAxis("LookUp", this, &ACPPTestCharacter::LookUp);
 
-	//PlayerInputComponent->BindAction("SpawnBall", IE_Pressed, this, &ThisClass::SpawnActors);
-
+	PlayerInputComponent->BindAction("Clap", IE_Pressed, this, &ACPPTestCharacter::DoEmote);
+	PlayerInputComponent->BindAction("Emote1", IE_Pressed, this, &ACPPTestCharacter::DoEmote1);
+	PlayerInputComponent->BindAction("Emote2", IE_Pressed, this, &ACPPTestCharacter::DoEmote2);
+	PlayerInputComponent->BindAction("Emote3", IE_Pressed, this, &ACPPTestCharacter::DoEmote3);
+	PlayerInputComponent->BindAction("Emote4", IE_Pressed, this, &ACPPTestCharacter::DoEmote4);
+	PlayerInputComponent->BindAction("Emote5", IE_Pressed, this, &ACPPTestCharacter::DoEmote5);
+	PlayerInputComponent->BindAction("Emote6", IE_Pressed, this, &ACPPTestCharacter::DoEmote6);
 }
 
 #pragma region Movement and Dashing
@@ -197,17 +213,26 @@ void ACPPTestCharacter::MoveForward(float value)
 	}*/
 
 	if (IsAllowedToMove()) {
-		if (value < 0 && !bIsDashing)
+
+		if (value < 0)
 		{
 			AddMovementInput(GetActorForwardVector() * (value * BackwardMultiplier));
-			
-			
+			if (Dancing)
+			{
+				ServerStopAnimMontage();
+				MulticastStopAnimMontage();
+				Dancing = false;
+			}
 		}
-		else
+		else if (value > 0)
 		{
-			
-			AddMovementInput(GetActorForwardVector() * value);
-			
+			AddMovementInput(GetActorForwardVector() * (value));
+			if (Dancing)
+			{
+				ServerStopAnimMontage();
+				MulticastStopAnimMontage();
+				Dancing = false;
+			}
 		}
 	}
 }
@@ -222,18 +247,29 @@ void ACPPTestCharacter::MoveRight(float value)
 	}*/
 
 	if (IsAllowedToMove()) {
-		if (!bIsDashing)
+		if (value < 0)
 		{
-			
 			AddMovementInput(GetActorRightVector() * (value * StrafeMultiplier));
-			
+
+			if (Dancing)
+			{
+				ServerStopAnimMontage();
+				MulticastStopAnimMontage();
+				Dancing = false;
+			}
 
 		}
-		else
+		else if (value > 0)
 		{
-			AddMovementInput(GetActorRightVector() * value);
-			
+			AddMovementInput(GetActorRightVector() * (value));
+			if (Dancing)
+			{
+				ServerStopAnimMontage();
+				MulticastStopAnimMontage();
+				Dancing = false;
+			}
 		}
+
 	}
 }
 
@@ -279,6 +315,12 @@ void ACPPTestCharacter::LockTarget()
 
 void ACPPTestCharacter::Dash()
 {
+	if (Dancing)
+	{
+		ServerStopAnimMontage();
+		MulticastStopAnimMontage();
+		Dancing = false;
+	}
 
 	if (HasAuthority())
 	{
@@ -623,6 +665,25 @@ void ACPPTestCharacter::ClearTarget()
 }
 
 
+void ACPPTestCharacter::DoEmotes(UAnimMontage* Emote)
+{
+	if (Emote) {
+		if (HasAuthority())
+		{
+			Dancing = true;
+			ServerPlayAnimMontage(Emote, 1);
+			MulticastPlayAnimMontage(Emote, 1);
+
+		}
+		else
+		{
+			Dancing = true;
+			ServerPlayAnimMontage(Emote, 1);
+			MulticastPlayAnimMontage(Emote, 1);
+		}
+	}
+}
+
 void ACPPTestCharacter::DoEmote()
 {
 	if (ClappingAnim && !IsBallEquipped()) {
@@ -692,6 +753,63 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 			combat->EquipBall(BallHit);
 		}
 	}
+}
+
+void ACPPTestCharacter::DoEmote1()
+{
+	Dancing = true;
+	ServerPlayAnimMontage(Emote1, 1);
+	MulticastPlayAnimMontage(Emote1, 1);
+}
+void ACPPTestCharacter::DoEmote2()
+{
+	Dancing = true;
+	ServerPlayAnimMontage(Emote2, 1);
+	MulticastPlayAnimMontage(Emote2, 1);
+}
+void ACPPTestCharacter::DoEmote3()
+{
+	Dancing = true;
+	ServerPlayAnimMontage(Emote3, 1);
+	MulticastPlayAnimMontage(Emote3, 1);
+}
+void ACPPTestCharacter::DoEmote4()
+{
+	Dancing = true;
+	ServerPlayAnimMontage(Emote4, 1);
+	MulticastPlayAnimMontage(Emote4, 1);
+}
+void ACPPTestCharacter::DoEmote5()
+{
+	Dancing = true;
+	ServerPlayAnimMontage(Emote5, 1);
+	MulticastPlayAnimMontage(Emote5, 1);
+}
+void ACPPTestCharacter::DoEmote6()
+{
+	Dancing = true;
+	ServerPlayAnimMontage(Emote6, 1);
+	MulticastPlayAnimMontage(Emote6, 1);
+}
+
+void ACPPTestCharacter::MulticastStopAnimMontage_Implementation()
+{
+	StopAnimMontage();
+}
+
+bool ACPPTestCharacter::MulticastStopAnimMontage_Validate()
+{
+	return true;
+}
+
+void ACPPTestCharacter::ServerStopAnimMontage_Implementation()
+{
+	MulticastStopAnimMontage();
+}
+
+bool ACPPTestCharacter::ServerStopAnimMontage_Validate()
+{
+	return true;
 }
 
 void ACPPTestCharacter::MyThrow()
@@ -918,7 +1036,7 @@ void ACPPTestCharacter::MulticastPlayNiagara_Implementation(UNiagaraComponent* f
 	if (!state)
 	{
 		fx->Deactivate();
-		
+
 	}
 	else
 	{
