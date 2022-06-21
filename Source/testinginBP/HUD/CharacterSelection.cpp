@@ -202,7 +202,7 @@ void UCharacterSelection::CloseWidget()
 		StealAbilityBar->SetVisibility(ESlateVisibility::Hidden);
 		PowerAbilityBar->SetVisibility(ESlateVisibility::Visible);
 	}
-	else if (!bConfirmed && !bMelodySelected)
+	else if (!bConfirmed)
 	{
 		MelodyProfiler->SetVisibility(ESlateVisibility::Visible);
 		CrimsonProfiler->SetVisibility(ESlateVisibility::Hidden);
