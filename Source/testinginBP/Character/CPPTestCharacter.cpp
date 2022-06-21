@@ -918,6 +918,7 @@ void ACPPTestCharacter::MulticastPlayNiagara_Implementation(UNiagaraComponent* f
 	if (!state)
 	{
 		fx->Deactivate();
+		
 	}
 	else
 	{

@@ -21,6 +21,9 @@ ACPPBall::ACPPBall()
 	AreaSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AreaSphere"));
 	RootComponent = AreaSphere;
 
+	ballMesh = CreateDefaultSubobject <UStaticMeshComponent> (TEXT("Ball Mesh"));
+	ballMesh->SetupAttachment(RootComponent);
+
 	AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 	TrailFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("TrailFX"));
@@ -341,10 +344,11 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 		ServerPlayNiagara(SuperTrailFX, false);
 
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-
+		
 		ProjectileMovementComponent->HomingTargetComponent = nullptr;
 		ProjectileMovementComponent->bIsHomingProjectile = false;
 		ProjectileMovementComponent->Deactivate();
+		
 
 	}
 	else if (bs == EBallState::EBS_Dropped)
@@ -386,7 +390,9 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 		ServerPlayNiagara(SuperBallFX, false);
 		ServerPlayNiagara(SuperTrailFX, false);
 		ServerPlayNiagara(BungeeGumFX, false);
+		ballMesh->SetRenderInDepthPass(false);
 
+		ballMesh->SetRenderInDepthPass(true);
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 		
 		ProjectileMovementComponent->Activate(true);

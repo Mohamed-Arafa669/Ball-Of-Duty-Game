@@ -75,6 +75,7 @@ void UCombatComponent::EquipBall(class ACPPBall* ballToEquip)
 	equippedBall = ballToEquip;
 	equippedBall->DisableComponentsSimulatePhysics();
 	equippedBall->SetBallState(EBallState::EBS_Equipped);
+	//equippedBall->ballMesh->SetRenderInDepthPass(true);
 	handSocket = character->GetMesh()->GetSocketByName(FName("RightHandSocket"));
 
 	if (handSocket)

@@ -386,4 +386,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Movement")
 		float BackwardMultiplier = 0.4f;
 
+
+
 };
