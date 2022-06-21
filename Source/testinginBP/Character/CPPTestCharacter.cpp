@@ -182,6 +182,8 @@ void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis("Turn", this, &ACPPTestCharacter::Turn);
 	PlayerInputComponent->BindAxis("LookUp", this, &ACPPTestCharacter::LookUp);
 
+	PlayerInputComponent->BindAction("Spray",IE_Pressed, this, &ACPPTestCharacter::SprayDecal);
+
 	//PlayerInputComponent->BindAction("SpawnBall", IE_Pressed, this, &ThisClass::SpawnActors);
 
 }
@@ -936,6 +938,32 @@ void ACPPTestCharacter::ServerPlayNiagara_Implementation(UNiagaraComponent* fx, 
 }
 
 bool ACPPTestCharacter::ServerPlayNiagara_Validate(UNiagaraComponent* fx, bool state)
+{
+	return true;
+}
+
+void ACPPTestCharacter::SprayDecal()
+{
+	ServerSprayDecal();
+	MulticastSprayDecal();
+}
+
+void ACPPTestCharacter::FunDecal()
+{
+
+}
+
+void ACPPTestCharacter::ServerSprayDecal_Implementation()
+{
+
+}
+
+void ACPPTestCharacter::MulticastSprayDecal_Implementation()
+{
+
+}
+
+bool ACPPTestCharacter::MulticastSprayDecal_Validate()
 {
 	return true;
 }

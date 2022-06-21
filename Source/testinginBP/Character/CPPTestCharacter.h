@@ -386,4 +386,13 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Movement")
 		float BackwardMultiplier = 0.4f;
 
+
+	///Spawn Decals
+	void SprayDecal();
+	void FunDecal();
+
+	UFUNCTION(Server, Reliable)
+		void ServerSprayDecal();
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+		void MulticastSprayDecal();
 };
