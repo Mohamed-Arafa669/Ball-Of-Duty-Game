@@ -394,7 +394,8 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 
 		//ballMesh->SetRenderInDepthPass(true);
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-		
+		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
+
 		ProjectileMovementComponent->Activate(true);
 		ProjectileMovementComponent->bIsHomingProjectile = false;
 	}

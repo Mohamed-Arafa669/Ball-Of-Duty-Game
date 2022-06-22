@@ -527,6 +527,11 @@ void ACPPTestCharacter::Stunned()
 		MulticastPlayNiagara(StunFX, true);
 		ServerPlayNiagara(StunFX, true);
 	}
+
+	if(IsBallEquipped())
+	{
+		combat->UnEquipBall(combat->equippedBall);
+	}
 	FTimerHandle StunHandle;
 	GetWorld()->GetTimerManager().SetTimer(StunHandle, this, &ThisClass::StunCoolDown, StunDuration);
 }
