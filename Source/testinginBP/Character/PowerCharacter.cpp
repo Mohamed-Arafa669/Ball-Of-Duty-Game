@@ -124,7 +124,6 @@ void APowerCharacter::DoSweep()
 
 	LoopHitActors();
 
-	ClearTarget();
 
 }
 
@@ -134,7 +133,6 @@ void APowerCharacter::SuperUpBall()
 	combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
 	MyThrow();
 
-	ClearTarget();
 
 }
 
@@ -152,7 +150,7 @@ void APowerCharacter::AbilityDelay()
 		SuperUpBall();
 	}
 
-	ClearTarget();
+	
 }
 
 void APowerCharacter::AbilityDelayTimer()
@@ -169,9 +167,9 @@ void APowerCharacter::LockTarget()
 void APowerCharacter::LockTargetAbility()
 {
 	if (bSmash) {
+			LockTarget();
 		if (HasAuthority())
 		{
-			LockTarget();
 			bDoingAbility = true;
 			if (IsBallEquipped()) {
 
@@ -181,7 +179,6 @@ void APowerCharacter::LockTargetAbility()
 		}
 		else
 		{
-			LockTarget();
 			bDoingAbility = true;
 			if (IsBallEquipped()) {
 
@@ -206,6 +203,11 @@ void APowerCharacter::DisableEffect()
 		ServerPlayNiagara(PowerAbilityFX, false);
 
 	}
+	
+}
+
+void APowerCharacter::StopTargeting()
+{
 	ClearTarget();
 }
 
@@ -232,6 +234,9 @@ void APowerCharacter::DoAbility()
 			bSmash = false;
 			Server_DoAbility();
 		}
+
+		FTimerHandle TargetingHandler;
+		GetWorld()->GetTimerManager().SetTimer(TargetingHandler, this, &ThisClass::StopTargeting, 1.3f);
 	}
 }
 
@@ -248,6 +253,9 @@ void APowerCharacter::Server_DoAbility_Implementation()
 	}
 
 	AbilityDelayTimer();
+
+	
+
 
 }
 

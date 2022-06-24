@@ -91,4 +91,5 @@ protected:
 
 	void DisableEffect();
 
+	void StopTargeting();
 };
