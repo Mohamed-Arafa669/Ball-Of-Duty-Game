@@ -124,6 +124,8 @@ void APowerCharacter::DoSweep()
 
 	LoopHitActors();
 
+	ClearTarget();
+
 }
 
 void APowerCharacter::SuperUpBall()
@@ -131,6 +133,8 @@ void APowerCharacter::SuperUpBall()
 	ServerPlaySounds(AbilityWithBall, GetActorLocation());
 	combat->equippedBall->SetBallState(EBallState::EBS_SuperThrow);
 	MyThrow();
+
+	ClearTarget();
 
 }
 

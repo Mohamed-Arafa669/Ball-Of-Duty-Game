@@ -111,10 +111,10 @@ protected:
 	UPROPERTY(EditAnywhere)
 		UNiagaraComponent* SuperBallFX;
 
-	UFUNCTION(Server, Reliable, WithValidation, Category = Effects)
+	UFUNCTION(Server, Unreliable, WithValidation, Category = Effects)
 		void ServerPlayNiagara(UNiagaraComponent* fx, bool state);
 
-	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Effects)
+	UFUNCTION(NetMulticast, Unreliable, WithValidation, Category = Effects)
 		void MulticastPlayNiagara(UNiagaraComponent* fx, bool state);
 	
 

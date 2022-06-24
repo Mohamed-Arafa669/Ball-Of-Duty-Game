@@ -200,6 +200,7 @@ void ACPPTestCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction("Emote4", IE_Pressed, this, &ACPPTestCharacter::DoEmote4);
 	PlayerInputComponent->BindAction("Emote5", IE_Pressed, this, &ACPPTestCharacter::DoEmote5);
 	PlayerInputComponent->BindAction("Emote6", IE_Pressed, this, &ACPPTestCharacter::DoEmote6);
+	PlayerInputComponent->BindAction("Emote7", IE_Pressed, this, &ACPPTestCharacter::DoEmote7);
 }
 
 #pragma region Movement and Dashing
@@ -613,7 +614,7 @@ void ACPPTestCharacter::Knocked(FVector ImpulseDirection, bool bPlayerLeftGame)
 		GetWorld()->GetTimerManager().SetTimer(KnockedTimerDestroy, this, &ACPPTestCharacter::CallDestroy, 5.5f, false);
 
 		ClientRespawnCountDown(5);
-		ResetHealthHUD(5);
+		ResetHealthHUD(5.6);
 		
 		if (bLeftGame && IsLocallyControlled())
 		{
@@ -761,41 +762,53 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 
 void ACPPTestCharacter::DoEmote1()
 {
+	if(Dancing) return;
 	Dancing = true;
 	ServerPlayAnimMontage(Emote1, 1);
 	MulticastPlayAnimMontage(Emote1, 1);
 }
 void ACPPTestCharacter::DoEmote2()
 {
+	if (Dancing) return;
 	Dancing = true;
 	ServerPlayAnimMontage(Emote2, 1);
 	MulticastPlayAnimMontage(Emote2, 1);
 }
 void ACPPTestCharacter::DoEmote3()
 {
+	if (Dancing) return;
 	Dancing = true;
 	ServerPlayAnimMontage(Emote3, 1);
 	MulticastPlayAnimMontage(Emote3, 1);
 }
 void ACPPTestCharacter::DoEmote4()
 {
+	if (Dancing) return;
 	Dancing = true;
 	ServerPlayAnimMontage(Emote4, 1);
 	MulticastPlayAnimMontage(Emote4, 1);
 }
 void ACPPTestCharacter::DoEmote5()
 {
+	if (Dancing) return;
 	Dancing = true;
 	ServerPlayAnimMontage(Emote5, 1);
 	MulticastPlayAnimMontage(Emote5, 1);
 }
 void ACPPTestCharacter::DoEmote6()
 {
+	if (Dancing) return;
 	Dancing = true;
 	ServerPlayAnimMontage(Emote6, 1);
 	MulticastPlayAnimMontage(Emote6, 1);
 }
-
+void ACPPTestCharacter::DoEmote7()
+{
+	if (Dancing) return;
+	Dancing = true;
+	ServerPlayAnimMontage(Emote7, 1);
+	MulticastPlayAnimMontage(Emote7, 1);
+}
 void ACPPTestCharacter::MulticastStopAnimMontage_Implementation()
 {
 	StopAnimMontage();

@@ -107,7 +107,7 @@ protected:
 	void OnHealthUpdate();
 	void UpdateHUDHealth();
 	void Elim();
-	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	UFUNCTION(NetMulticast, Unreliable,WithValidation)
 	void MultiKnocked(FVector ImpulseDirection ,bool bPlayerLeftGame);
 	auto MultiKnocked_Validate(FVector ImpulseDirection,bool bPlayerLeftGame) -> bool;
 	void MultiKnocked_Implementation(FVector ImpulseDirection,bool bPlayerLeftGame);
@@ -196,6 +196,8 @@ public:
 
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Emotes, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* Emote6;
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Emotes, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* Emote7;
 
 	void DoEmote1();
 	void DoEmote2();
@@ -203,24 +205,25 @@ public:
 	void DoEmote4();
 	void DoEmote5();
 	void DoEmote6();
+	void DoEmote7();
 
 
-	UFUNCTION(Server, Reliable, WithValidation, Category = Animation)
+	UFUNCTION(Server, Unreliable, WithValidation, Category = Animation)
 		void ServerPlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
 
-	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Animation)
+	UFUNCTION(NetMulticast, Unreliable, WithValidation, Category = Animation)
 		void MulticastPlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
 
-	UFUNCTION(Server, Reliable, WithValidation, Category = Animation)
+	UFUNCTION(Server, Unreliable, WithValidation, Category = Animation)
 		void ServerStopAnimMontage();
 
-	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Animation)
+	UFUNCTION(NetMulticast, Unreliable, WithValidation, Category = Animation)
 		void MulticastStopAnimMontage();
 
-	UFUNCTION(Server, Reliable, WithValidation, Category = Effects)
+	UFUNCTION(Server, Unreliable, WithValidation, Category = Effects)
 		void ServerPlayNiagara(UNiagaraComponent* fx, bool state);
 
-	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Effects)
+	UFUNCTION(NetMulticast, Unreliable, WithValidation, Category = Effects)
 		void MulticastPlayNiagara(UNiagaraComponent* fx, bool state);
 
 	FTimerHandle ElimTimer;
@@ -409,10 +412,10 @@ public:
 	UFUNCTION()
 		void PlaySounds(USoundCue* Cue, FVector Location);
 
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, Unreliable)
 		void ServerPlaySounds(USoundCue* Cue, FVector Location);
 
-	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	UFUNCTION(NetMulticast, Unreliable, WithValidation)
 		void MulticastPlaySounds(USoundCue* Cue, FVector Location);
 
 	UPROPERTY(EditAnywhere, Category = "Movement")
