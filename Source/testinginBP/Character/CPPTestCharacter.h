@@ -45,6 +45,7 @@ public:
 
 	virtual void LockTarget();
 	void ClearTarget();
+	void DoEmotes(UAnimMontage* Emote);
 
 	void PlayThrowMontage();
 
@@ -179,11 +180,42 @@ public:
 	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Animations, meta = (AllowPrivateAccess = "true"))
 		class UAnimMontage* ClappingAnim;
 
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Emotes, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* Emote1;
+
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Emotes, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* Emote2;
+
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Emotes, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* Emote3;
+
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Emotes, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* Emote4;
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Emotes, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* Emote5;
+
+	UPROPERTY(EditAnywhere, Replicated, BlueprintReadOnly, Category = Emotes, meta = (AllowPrivateAccess = "true"))
+		class UAnimMontage* Emote6;
+
+	void DoEmote1();
+	void DoEmote2();
+	void DoEmote3();
+	void DoEmote4();
+	void DoEmote5();
+	void DoEmote6();
+
+
 	UFUNCTION(Server, Reliable, WithValidation, Category = Animation)
 		void ServerPlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Animation)
 		void MulticastPlayAnimMontage(class UAnimMontage* AnimMontage, float InPlayRate = 1.f, FName StartSectionName = NAME_None);
+
+	UFUNCTION(Server, Reliable, WithValidation, Category = Animation)
+		void ServerStopAnimMontage();
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation, Category = Animation)
+		void MulticastStopAnimMontage();
 
 	UFUNCTION(Server, Reliable, WithValidation, Category = Effects)
 		void ServerPlayNiagara(UNiagaraComponent* fx, bool state);
@@ -217,6 +249,9 @@ public:
 
 	UPROPERTY(Replicated)
 	 bool bIsSpawnInvincible;
+
+	UPROPERTY(Replicated)
+		bool Dancing;
 
 	void SetSpawnInvincibility();
 
@@ -389,3 +424,6 @@ public:
 
 
 };
+
+
+

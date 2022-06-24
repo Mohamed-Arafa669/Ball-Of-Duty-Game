@@ -21,8 +21,8 @@ ACPPBall::ACPPBall()
 	AreaSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AreaSphere"));
 	RootComponent = AreaSphere;
 
-	ballMesh = CreateDefaultSubobject <UStaticMeshComponent> (TEXT("Ball Mesh"));
-	ballMesh->SetupAttachment(RootComponent);
+	/*ballMesh = CreateDefaultSubobject <UStaticMeshComponent> (TEXT("Ball Mesh"));
+	ballMesh->SetupAttachment(RootComponent);*/
 
 	AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
@@ -390,11 +390,12 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 		ServerPlayNiagara(SuperBallFX, false);
 		ServerPlayNiagara(SuperTrailFX, false);
 		ServerPlayNiagara(BungeeGumFX, false);
-		ballMesh->SetRenderInDepthPass(false);
+		//ballMesh->SetRenderInDepthPass(false);
 
-		ballMesh->SetRenderInDepthPass(true);
+		//ballMesh->SetRenderInDepthPass(true);
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
-		
+		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
+
 		ProjectileMovementComponent->Activate(true);
 		ProjectileMovementComponent->bIsHomingProjectile = false;
 	}
