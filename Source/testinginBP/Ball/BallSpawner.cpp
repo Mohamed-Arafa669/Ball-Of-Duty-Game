@@ -9,7 +9,7 @@
 // Sets default values
 ABallSpawner::ABallSpawner()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	bReplicates = true;
@@ -26,27 +26,35 @@ ABallSpawner::ABallSpawner()
 
 void ABallSpawner::SpawnActor()
 {
-		bCanSpawnBall = false;
+	bCanSpawnBall = false;
+	if (ShowBallFX)
+	{
+
 		ServerPlayNiagara(ShowBallFX, false);
 		MulticastPlayNiagara(ShowBallFX, false);
-		//ShowBallFX->Deactivate();
+	}
+	//ShowBallFX->Deactivate();
 
-		FVector SpawnLocation = GetActorLocation();
-		FRotator SpawnRotation = GetActorRotation();
-		RandIdx = FMath::RandRange(0, 1);
-		SpawnedBall = GetWorld()->SpawnActor<ACPPBall>(Balls[RandIdx], SpawnLocation, SpawnRotation);
-		SpawnedBall->ballState = EBallState::EBS_Initial;
+	FVector SpawnLocation = GetActorLocation();
+	FRotator SpawnRotation = GetActorRotation();
+	RandIdx = FMath::RandRange(0, 1);
+	SpawnedBall = GetWorld()->SpawnActor<ACPPBall>(Balls[RandIdx], SpawnLocation, SpawnRotation);
+	SpawnedBall->ballState = EBallState::EBS_Initial;
 
-		FTimerHandle Handle;
-		GetWorld()->GetTimerManager().SetTimer(Handle, this, &ThisClass::SpawnCoolDown, SpawnTimer);
+	FTimerHandle Handle;
+	GetWorld()->GetTimerManager().SetTimer(Handle, this, &ThisClass::SpawnCoolDown, SpawnTimer);
 
 }
 
 void ABallSpawner::SpawnCoolDown()
 {
 	bCanSpawnBall = true;
-	ServerPlayNiagara(ShowBallFX, true);
-	MulticastPlayNiagara(ShowBallFX, true);
+	if (ShowBallFX)
+	{
+
+		ServerPlayNiagara(ShowBallFX, true);
+		MulticastPlayNiagara(ShowBallFX, true);
+	}
 	//ShowBallFX->Activate(true);
 }
 

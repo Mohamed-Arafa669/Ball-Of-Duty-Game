@@ -193,7 +193,9 @@ void ACPPBall::MoveHookedBall_Implementation(AStealCharacter* TargetPlayer)
 
 void ACPPBall::ServerPlayNiagara_Implementation(UNiagaraComponent* fx, bool state)
 {
-	MulticastPlayNiagara(fx, state);
+	if (fx) {
+		MulticastPlayNiagara(fx, state);
+	}
 }
 
 bool ACPPBall::ServerPlayNiagara_Validate(UNiagaraComponent* fx, bool state)
@@ -203,13 +205,15 @@ bool ACPPBall::ServerPlayNiagara_Validate(UNiagaraComponent* fx, bool state)
 
 void ACPPBall::MulticastPlayNiagara_Implementation(UNiagaraComponent* fx, bool state)
 {
-	if (!state)
-	{
-		fx->Deactivate();
-	}
-	else
-	{
-		fx->Activate(state);
+	if (fx) {
+		if (!state)
+		{
+			fx->Deactivate();
+		}
+		else
+		{
+			fx->Activate(state);
+		}
 	}
 }
 
@@ -342,6 +346,10 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 		ServerPlayNiagara(SuperBallFX, false);
 		ServerPlayNiagara(BungeeGumFX, false);
 		ServerPlayNiagara(SuperTrailFX, false);
+		MulticastPlayNiagara(TrailFX, false);
+		MulticastPlayNiagara(SuperBallFX, false);
+		MulticastPlayNiagara(BungeeGumFX, false);
+		MulticastPlayNiagara(SuperTrailFX, false);
 
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 		
@@ -356,6 +364,9 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 		ServerPlayNiagara(TrailFX, true);
 		ServerPlayNiagara(SuperBallFX, false);
 		ServerPlayNiagara(SuperTrailFX, false);
+		MulticastPlayNiagara(TrailFX, true);
+		MulticastPlayNiagara(SuperBallFX, false);
+		MulticastPlayNiagara(SuperTrailFX, false);
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
 
 		ProjectileMovementComponent->Activate(true);
@@ -367,6 +378,9 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 		ServerPlayNiagara(TrailFX, false);
 		ServerPlayNiagara(SuperBallFX, true);
 		ServerPlayNiagara(SuperTrailFX, true);
+		MulticastPlayNiagara(TrailFX, false);
+		MulticastPlayNiagara(SuperBallFX, true);
+		MulticastPlayNiagara(SuperTrailFX, true);
 		
 
 	}
@@ -379,6 +393,9 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 		ServerPlayNiagara(TrailFX, false);
 		ServerPlayNiagara(BungeeGumFX, true);
 
+		MulticastPlayNiagara(TrailFX, false);
+		MulticastPlayNiagara(BungeeGumFX, true);
+
 		ProjectileMovementComponent->Activate(true);
 		ProjectileMovementComponent->bIsHomingProjectile = true;
 
@@ -390,6 +407,11 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 		ServerPlayNiagara(SuperBallFX, false);
 		ServerPlayNiagara(SuperTrailFX, false);
 		ServerPlayNiagara(BungeeGumFX, false);
+
+		MulticastPlayNiagara(TrailFX, false);
+		MulticastPlayNiagara(SuperBallFX, false);
+		MulticastPlayNiagara(SuperTrailFX, false);
+		MulticastPlayNiagara(BungeeGumFX, false);
 		//ballMesh->SetRenderInDepthPass(false);
 
 		//ballMesh->SetRenderInDepthPass(true);

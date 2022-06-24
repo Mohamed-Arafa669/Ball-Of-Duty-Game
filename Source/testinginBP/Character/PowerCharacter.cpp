@@ -150,7 +150,7 @@ void APowerCharacter::AbilityDelay()
 		SuperUpBall();
 	}
 
-	
+
 }
 
 void APowerCharacter::AbilityDelayTimer()
@@ -166,8 +166,8 @@ void APowerCharacter::LockTarget()
 
 void APowerCharacter::LockTargetAbility()
 {
-	if (bSmash) {
-			LockTarget();
+	if (bSmash && !bKnocked) {
+		LockTarget();
 		if (HasAuthority())
 		{
 			bDoingAbility = true;
@@ -193,17 +193,21 @@ void APowerCharacter::DisableEffect()
 {
 	if (HasAuthority())
 	{
-		MulticastPlayNiagara(PowerAbilityFX, false);
-		ServerPlayNiagara(PowerAbilityFX, false);
+		if (PowerAbilityFX) {
+			MulticastPlayNiagara(PowerAbilityFX, false);
+			ServerPlayNiagara(PowerAbilityFX, false);
+		}
 
 	}
 	else
 	{
-		MulticastPlayNiagara(PowerAbilityFX, false);
-		ServerPlayNiagara(PowerAbilityFX, false);
+		if (PowerAbilityFX) {
+			MulticastPlayNiagara(PowerAbilityFX, false);
+			ServerPlayNiagara(PowerAbilityFX, false);
+		}
 
 	}
-	
+
 }
 
 void APowerCharacter::StopTargeting()
@@ -214,7 +218,7 @@ void APowerCharacter::StopTargeting()
 void APowerCharacter::DoAbility()
 {
 
-	if (bSmash) {
+	if (bSmash && !bKnocked) {
 
 		if (HasAuthority()) {
 			bDoingAbility = false;
@@ -254,7 +258,7 @@ void APowerCharacter::Server_DoAbility_Implementation()
 
 	AbilityDelayTimer();
 
-	
+
 
 
 }
@@ -262,6 +266,6 @@ void APowerCharacter::Server_DoAbility_Implementation()
 void APowerCharacter::CreateHUD()
 {
 	GameHUD = GameHUD == nullptr ? Cast<AGameHUD>(GetWorld()->GetFirstPlayerController()->GetHUD()) : GameHUD;
-	
+
 }
 

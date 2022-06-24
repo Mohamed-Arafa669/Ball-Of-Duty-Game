@@ -39,8 +39,6 @@ ACPPTestCharacter::ACPPTestCharacter()
 	DashFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DashFX"));
 	DashFX->SetupAttachment(GetMesh());
 
-	DustFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DustFX"));
-	DustFX->SetupAttachment(GetMesh());
 
 	LockFX = CreateDefaultSubobject<UNiagaraComponent>(TEXT("LockFX"));
 	LockFX->SetupAttachment(GetMesh());
@@ -342,7 +340,12 @@ void ACPPTestCharacter::Dash()
 				MulticastPlayAnimMontage(DashAnim, 1, NAME_None);
 
 			}*/
-			MulticastPlayNiagara(DashFX, true);
+			if (DashFX)
+			{
+				ServerPlayNiagara(DashFX, true);
+				MulticastPlayNiagara(DashFX, true);
+			}
+
 
 			bCanDash = false;
 			bIsDashing = true;
@@ -381,8 +384,11 @@ void ACPPTestCharacter::DashButtonPressed_Implementation(FVector DashDir)
 		//	PlayAnimMontage(DashAnim, 1, NAME_None);
 		//	MulticastPlayAnimMontage(DashAnim, 1, NAME_None); //todo: MultiStartedDash();
 		//}
+		if (DashFX) {
+			ServerPlayNiagara(DashFX, true);
+			MulticastPlayNiagara(DashFX, true);
+		}
 
-		MulticastPlayNiagara(DashFX, true);
 
 		GetCharacterMovement()->FallingLateralFriction = 4;
 		if (DashDir != FVector::ZeroVector)
@@ -530,7 +536,7 @@ void ACPPTestCharacter::Stunned()
 		ServerPlayNiagara(StunFX, true);
 	}
 
-	if(IsBallEquipped())
+	if (IsBallEquipped())
 	{
 		combat->UnEquipBall(combat->equippedBall);
 	}
@@ -616,7 +622,7 @@ void ACPPTestCharacter::Knocked(FVector ImpulseDirection, bool bPlayerLeftGame)
 
 		ClientRespawnCountDown(5);
 		ResetHealthHUD(5.6);
-		
+
 		if (bLeftGame && IsLocallyControlled())
 		{
 			OnLeftGame.Broadcast();
@@ -763,7 +769,7 @@ void ACPPTestCharacter::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AAct
 
 void ACPPTestCharacter::DoEmote1()
 {
-	if(Dancing) return;
+	if (Dancing) return;
 	Dancing = true;
 	ServerPlayAnimMontage(Emote1, 1);
 	MulticastPlayAnimMontage(Emote1, 1);
@@ -976,6 +982,7 @@ void ACPPTestCharacter::SetDashingAnimOff()
 {
 	bIsDashing = false;
 	if (DashFX) {
+		ServerPlayNiagara(DashFX, false);
 		MulticastPlayNiagara(DashFX, false);
 	}
 }

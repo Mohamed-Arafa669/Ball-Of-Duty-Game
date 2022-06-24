@@ -370,9 +370,6 @@ public:
 	UPROPERTY(EditAnywhere)
 		UNiagaraComponent* StunFX;
 
-	UPROPERTY(EditAnywhere)
-		UNiagaraComponent* DustFX;
-
 	UPROPERTY(VisibleAnywhere, Category = Shaders)
 		UMaterialInstanceDynamic* DynamicInvincibleMatInst;
 
