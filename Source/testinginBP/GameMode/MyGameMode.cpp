@@ -117,7 +117,7 @@ void AMyGameMode::PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, cl
 
 	if (ElimmedCharacter)
 	{
-		ElimmedCharacter->Knocked(FVector::ZeroVector,false);
+		ElimmedCharacter->Knocked(FVector::ZeroVector, false);
 	}
 
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
@@ -128,7 +128,7 @@ void AMyGameMode::PlayerEliminated(class ACPPTestCharacter* ElimmedCharacter, cl
 			PlayerController->BroadcastElim(AttackerPlayerState, VictimPlayerState);
 		}
 	}
-} 
+}
 
 
 void AMyGameMode::PlayerLeftGame(AMyPlayerState* PlayerLeaving)
@@ -143,7 +143,7 @@ void AMyGameMode::PlayerLeftGame(AMyPlayerState* PlayerLeaving)
 	ACPPTestCharacter* CharacterLeaving = Cast<ACPPTestCharacter>(PlayerLeaving->GetPawn());
 	if (CharacterLeaving)
 	{
-		CharacterLeaving->Knocked(FVector::ZeroVector,true);
+		CharacterLeaving->Knocked(FVector::ZeroVector, true);
 	}
 }
 
@@ -156,12 +156,12 @@ UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController
 
 		if (Controller->CharacterSelectIndex == 1)
 		{
-			
+
 			return FirstPawn;
 		}
 		else if (Controller->CharacterSelectIndex == 2)
 		{
-			
+
 			return SecondPawn;
 		}
 	}
@@ -173,12 +173,12 @@ UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController
 		{
 			if (CurrentPawnToAssign == FirstPawn && Controller->CharacterSelectIndex == 2)
 			{
-				
+
 				CurrentPawnToAssign = SecondPawn;
 			}
 			else
 			{
-				
+
 				CurrentPawnToAssign = FirstPawn;
 
 			}
@@ -190,12 +190,12 @@ UClass* AMyGameMode::GetDefaultPawnClassForController_Implementation(AController
 		{
 			if (Controller->CharacterSelectIndex == 1)
 			{
-				
+
 				CurrentPawnToAssign = FirstPawn;
 			}
 			else
 			{
-				
+
 				CurrentPawnToAssign = SecondPawn;
 
 			}
@@ -250,18 +250,31 @@ class ASpawnPoint* AMyGameMode::GetSpawnPoint()
 	return nullptr;
 }
 
-void AMyGameMode::Spawn(AController* Controller)
+void AMyGameMode::Spawn(AController* Controller, ACharacter* Character)
 {
 	if (ASpawnPoint* SpawnPoint = GetSpawnPoint()) {
 
-		FVector Location = SpawnPoint->GetActorLocation();
+		/*FVector Location = SpawnPoint->GetActorLocation();
 		FRotator Rotation = SpawnPoint->GetActorRotation();
 		if (APawn* Pawn = GetWorld()->SpawnActor<APawn>(Controller->GetPawn()->GetClass(), Location, Rotation))
 		{
 			Controller->Possess(Pawn);
-		}
+		}*/
 	}
-	else
+	if (Character)
+	{
+		Character->Reset();
+		Character->Destroy();
+	}
+	if (Controller) {
+		TArray<AActor*> PlayerStarts;
+		UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), PlayerStarts);
+		int32 Selection = FMath::RandRange(0, PlayerStarts.Num() - 1);
+		RestartPlayerAtPlayerStart(Controller, PlayerStarts[Selection]);
+	}
+
+
+	/*else
 	{
 		FVector Location = DefaultSpawnLocation;
 		FRotator Rotation = FRotator::ZeroRotator;
@@ -269,30 +282,50 @@ void AMyGameMode::Spawn(AController* Controller)
 		{
 			Controller->Possess(Pawn);
 		}
-	}
+	}*/
 }
 
-void AMyGameMode::Respawn(AController* Controller)
+void AMyGameMode::Respawn(AController* Controller, ACharacter* Character)
 {
 	if (Controller) {
 
-		if (GetLocalRole() == ROLE_Authority)
+		if (HasAuthority())
 		{
+			//ControllersToRespawn.Add(Controller);
+			//CharactersToRespawn.Add(Character);
 
-			FTimerDelegate RespawnDelegate;
-			RespawnDelegate.BindUFunction(this, FName("Spawn"), Controller);
+			//for (int i = 0; i < ControllersToRespawn.Num() - 1; i++)
+			//{
+			//	FTimerDelegate RespawnDelegate;
+			//	RespawnDelegate.BindUFunction(this, FName("Spawn"), ControllersToRespawn[i], CharactersToRespawn[i]);
 
-			GetWorld()->GetTimerManager().SetTimer(RespawnHandle, RespawnDelegate, RespawnTime, false);
+			//	GetWorld()->GetTimerManager().SetTimer(RespawnHandle, RespawnDelegate, RespawnTime, false);
 
 
-			if (ACPPTestCharacter* MyChar = Cast<ACPPTestCharacter>(Controller->GetCharacter()))
+			///*ControllersToRespawn.Pop();
+			//CharactersToRespawn.Pop();*/
+
+			if (Character)
+			{
+				Character->Reset();
+				Character->Destroy();
+			}
+			if (Controller) {
+				TArray<AActor*> PlayerStarts;
+				UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), PlayerStarts);
+				int32 Selection = FMath::RandRange(0, PlayerStarts.Num() - 1);
+				RestartPlayerAtPlayerStart(Controller, PlayerStarts[Selection]);
+			}
+
+			/*if (ACPPTestCharacter* MyChar = Cast<ACPPTestCharacter>(Character))
 			{
 				MyChar->ClientRespawnCountDown(5);
 				MyChar->ResetHealthHUD(5);
-			}
+			}*/
 		}
 	}
 }
+
 
 float AMyGameMode::CurrentTime()
 {
