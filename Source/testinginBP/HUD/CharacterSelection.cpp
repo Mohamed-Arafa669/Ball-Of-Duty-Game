@@ -89,6 +89,10 @@ void UCharacterSelection::StealCharacterBTNPressed()
 	BTN_CrimsonMoreInfo->SetVisibility(ESlateVisibility::Hidden);
 
 	BTN_ConfirmCharacterSelect->SetIsEnabled(true);
+	BTN_PowerCharacter->SetIsEnabled(true);
+	BTN_StealCharacter->SetIsEnabled(true);
+
+
 
 	bMelodySelected = true;
 	bCrimsonSelected = false;
@@ -106,6 +110,8 @@ void UCharacterSelection::PowerCharacterBTNPressed()
 	BTN_CrimsonMoreInfo->SetVisibility(ESlateVisibility::Visible);
 
 	BTN_ConfirmCharacterSelect->SetIsEnabled(true);
+	BTN_PowerCharacter->SetIsEnabled(true);
+	BTN_StealCharacter->SetIsEnabled(true);
 
 	bMelodySelected = false;
 	bCrimsonSelected = true;
