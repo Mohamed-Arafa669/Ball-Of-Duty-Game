@@ -555,7 +555,12 @@ void ACPPTestCharacter::OnHealthUpdate()
 		if (CurrentHealth <= 0)
 		{
 
+			if (IsBallEquipped())
+			{
+				combat->UnEquipBall(combat->equippedBall);
+			}
 
+			Knocked(ballHitDirection, bLeftGame);
 		}
 
 	}
@@ -605,17 +610,11 @@ void ACPPTestCharacter::Knocked(FVector ImpulseDirection, bool bPlayerLeftGame)
 
 		FTimerHandle KnockedTimerDestroy;
 
-		GetWorld()->GetTimerManager().SetTimer(KnockedTimerDestroy, this, &ACPPTestCharacter::CallDestroy, 6.0f, false);
+		GetWorld()->GetTimerManager().SetTimer(KnockedTimerDestroy, this, &ACPPTestCharacter::CallDestroy, 5.5f, false);
 
-		AMyGameMode* Mode = GetWorld()->GetAuthGameMode<AMyGameMode>();
-		AMyGameMode* FreeforallMode = Cast<AMyGameMode>(Mode);
-
-		if (FreeforallMode && !bLeftGame)
-		{
-
-			FreeforallMode->Respawn(GetController());
-
-		}
+		ClientRespawnCountDown(5);
+		ResetHealthHUD(5);
+		
 		if (bLeftGame && IsLocallyControlled())
 		{
 			OnLeftGame.Broadcast();
@@ -858,8 +857,15 @@ void ACPPTestCharacter::MyThrow()
 
 void ACPPTestCharacter::CallDestroy()
 {
-	Destroy();
-	GetCapsuleComponent()->DestroyComponent();
+	AMyGameMode* Mode = GetWorld()->GetAuthGameMode<AMyGameMode>();
+	AMyGameMode* FreeforallMode = Cast<AMyGameMode>(Mode);
+
+	if (FreeforallMode && !bLeftGame)
+	{
+
+		FreeforallMode->Respawn(GetController(), this);
+
+	}
 }
 
 void ACPPTestCharacter::ResetHealthHUD(float timer)

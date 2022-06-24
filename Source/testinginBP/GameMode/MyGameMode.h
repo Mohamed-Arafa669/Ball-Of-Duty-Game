@@ -47,7 +47,10 @@ public:
 
 	void PlayerLeftGame(class AMyPlayerState* PlayerLeaving);
 
-	void Respawn(AController* Controller);
+	void Respawn(AController* Controller, ACharacter* Character);
+
+	TArray<AController*> ControllersToRespawn;
+	TArray<ACharacter*> CharactersToRespawn;
 
 	UPROPERTY(EditDefaultsOnly)
 	float WarmupTime = 10.f;
@@ -79,7 +82,7 @@ protected:
 	class ASpawnPoint* GetSpawnPoint();
 
 	UFUNCTION()
-	void Spawn(AController* Controller);
+	void Spawn(AController* Controller, ACharacter* Character);
 
 	float CurrentTime();
 
