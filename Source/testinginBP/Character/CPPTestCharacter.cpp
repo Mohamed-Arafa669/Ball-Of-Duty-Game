@@ -867,6 +867,8 @@ void ACPPTestCharacter::MyThrow()
 			FRotator CameraRotation;
 			GetActorEyesViewPoint(CameraLocation, CameraRotation);
 			combat->equippedBall->ProjectileMovementComponent->Velocity = CameraRotation.Vector() * throwPower;
+			
+			
 		}
 		bEquipped = false;
 		combat->equippedBall->AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);

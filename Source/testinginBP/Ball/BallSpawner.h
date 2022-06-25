@@ -7,6 +7,7 @@
 #include "NiagaraComponent.h"
 #include "BallSpawner.generated.h"
 
+class ACPPBall;
 UCLASS()
 class TESTINGINBP_API ABallSpawner : public AActor
 {
@@ -17,7 +18,7 @@ public:
 	ABallSpawner();
 
 	UFUNCTION()
-		void SpawnActor();
+		ACPPBall* SpawnActor();
 
 	UFUNCTION()
 		void SpawnCoolDown();

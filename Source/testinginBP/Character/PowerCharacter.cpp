@@ -166,7 +166,7 @@ void APowerCharacter::LockTarget()
 
 void APowerCharacter::LockTargetAbility()
 {
-	if (bSmash && !bKnocked) {
+	if (bSmash && !bKnocked && !bStunned) {
 		LockTarget();
 		if (HasAuthority())
 		{
@@ -218,7 +218,7 @@ void APowerCharacter::StopTargeting()
 void APowerCharacter::DoAbility()
 {
 
-	if (bSmash && !bKnocked) {
+	if (bSmash && !bKnocked && !bStunned) {
 
 		if (HasAuthority()) {
 			bDoingAbility = false;

@@ -7,6 +7,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "NiagaraComponent.h"
+#include "GameFramework/RotatingMovementComponent.h"
 #include "CPPBall.generated.h"
 
 UENUM(BlueprintType)
@@ -104,6 +105,8 @@ public:
 	UPROPERTY(EditAnywhere)
 		UNiagaraComponent* BungeeGumFX;
 
+	//UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	//URotatingMovementComponent* RotatingMovement;
 
 protected:
 

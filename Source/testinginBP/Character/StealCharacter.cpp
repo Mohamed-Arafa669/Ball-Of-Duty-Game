@@ -36,7 +36,7 @@ void AStealCharacter::BeginPlay()
 
 void AStealCharacter::LockTargetAbility()
 {
-	if (bHook && !bKnocked) {
+	if (bHook && !bKnocked && !bStunned) {
 		if (HasAuthority())
 		{
 			LockTarget();
@@ -120,7 +120,7 @@ void AStealCharacter::IncreaseAbilityCharge()
 
 void AStealCharacter::DoAbility()
 {
-	if (bHook && !bKnocked)
+	if (bHook && !bKnocked && !bStunned)
 	{
 		if (HasAuthority()) {
 

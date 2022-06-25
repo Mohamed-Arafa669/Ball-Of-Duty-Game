@@ -21,6 +21,9 @@ ACPPBall::ACPPBall()
 	AreaSphere = CreateDefaultSubobject<USphereComponent>(TEXT("AreaSphere"));
 	RootComponent = AreaSphere;
 
+	/*RotatingMovement = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("Rotator"));
+	RotatingMovement->SetUpdatedComponent(AreaSphere);*/
+
 	/*ballMesh = CreateDefaultSubobject <UStaticMeshComponent> (TEXT("Ball Mesh"));
 	ballMesh->SetupAttachment(RootComponent);*/
 
@@ -63,6 +66,7 @@ void ACPPBall::BeginPlay()
 void ACPPBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
 }
 
 void ACPPBall::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -356,7 +360,8 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 		ProjectileMovementComponent->HomingTargetComponent = nullptr;
 		ProjectileMovementComponent->bIsHomingProjectile = false;
 		ProjectileMovementComponent->Deactivate();
-		
+
+		/*RotatingMovement->Deactivate();*/
 
 	}
 	else if (bs == EBallState::EBS_Dropped)
@@ -371,6 +376,10 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 
 		ProjectileMovementComponent->Activate(true);
 		ProjectileMovementComponent->bIsHomingProjectile = true;
+
+		/*RotatingMovement->Activate(true);
+		FRotator newRot = FRotator(180, 180, 180);
+		RotatingMovement->RotationRate = newRot;*/
 	}
 	else if (bs == EBallState::EBS_SuperThrow)
 	{
@@ -381,8 +390,9 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 		MulticastPlayNiagara(TrailFX, false);
 		MulticastPlayNiagara(SuperBallFX, true);
 		MulticastPlayNiagara(SuperTrailFX, true);
-		
-
+		/*RotatingMovement->Activate(true);
+		FRotator newRot = FRotator(180, 180, 180);
+		RotatingMovement->RotationRate = newRot;*/
 	}
 	else if (bs == EBallState::EBS_Stolen)
 	{
@@ -399,7 +409,9 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 		ProjectileMovementComponent->Activate(true);
 		ProjectileMovementComponent->bIsHomingProjectile = true;
 
-
+		/*RotatingMovement->Activate(true);
+		FRotator newRot = FRotator(180, 180, 180);
+		RotatingMovement->RotationRate = newRot;*/
 	}
 	else if (bs == EBallState::EBS_Initial)
 	{
@@ -420,6 +432,8 @@ void ACPPBall::MulticastBallStateHandle_Implementation(EBallState bs)
 
 		ProjectileMovementComponent->Activate(true);
 		ProjectileMovementComponent->bIsHomingProjectile = false;
+
+	/*	RotatingMovement->Deactivate();*/
 	}
 }
 

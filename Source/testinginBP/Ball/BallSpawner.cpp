@@ -5,6 +5,7 @@
 #include "Components/BoxComponent.h"
 #include "testinginBP/Character/CPPTestCharacter.h"
 #include "CPPBall.h"
+#include "testinginBP/GameComponents/CombatComponent.h"
 
 // Sets default values
 ABallSpawner::ABallSpawner()
@@ -24,7 +25,7 @@ ABallSpawner::ABallSpawner()
 	bCanSpawnBall = true;
 }
 
-void ABallSpawner::SpawnActor()
+ACPPBall* ABallSpawner::SpawnActor()
 {
 	bCanSpawnBall = false;
 	if (ShowBallFX)
@@ -39,11 +40,12 @@ void ABallSpawner::SpawnActor()
 	FRotator SpawnRotation = GetActorRotation();
 	RandIdx = FMath::RandRange(0, 1);
 	SpawnedBall = GetWorld()->SpawnActor<ACPPBall>(Balls[RandIdx], SpawnLocation, SpawnRotation);
-	SpawnedBall->ballState = EBallState::EBS_Initial;
+	SpawnedBall->SetBallState(EBallState::EBS_Initial);
 
 	FTimerHandle Handle;
 	GetWorld()->GetTimerManager().SetTimer(Handle, this, &ThisClass::SpawnCoolDown, SpawnTimer);
 
+	return SpawnedBall;
 }
 
 void ABallSpawner::SpawnCoolDown()
@@ -106,19 +108,17 @@ void ABallSpawner::Tick(float DeltaTime)
 
 void ABallSpawner::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Overlap"));
+	
 	if (bCanSpawnBall)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Can Spawn"));
+		
 		if (ACPPTestCharacter* Player = Cast<ACPPTestCharacter>(OtherActor))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Cast"));
+			
 
 			if (!Player->IsBallEquipped())
 			{
-				UE_LOG(LogTemp, Warning, TEXT("ball"));
-
-				SpawnActor();
+				Player->combat->EquipBall(SpawnActor());
 			}
 		}
 	}
