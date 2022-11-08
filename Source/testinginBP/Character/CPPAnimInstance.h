@@ -7,7 +7,7 @@
 #include "CPPAnimInstance.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class TESTINGINBP_API UCPPAnimInstance : public UAnimInstance
@@ -34,8 +34,14 @@ private:
 		bool bBallEquipped;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	float YawOffset;
+		float YawOffset;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	float Lean;
+		float Lean;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = true))
+		float Front;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = true))
+		float Sides;
 };

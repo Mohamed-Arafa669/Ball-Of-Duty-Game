@@ -3,6 +3,7 @@
 
 #include "CPPAnimInstance.h"
 #include "CPPTestCharacter.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 void UCPPAnimInstance::NativeInitializeAnimation()
@@ -22,9 +23,18 @@ void UCPPAnimInstance::NativeUpdateAnimation(float deltaTime)
 	}
 	if (myCharacter == nullptr) return;
 
-	FVector velocity = myCharacter->GetVelocity(); 
-	velocity.Z = 0.0f;
-	speed = velocity.Size();
+	FVector Velocity = myCharacter->GetVelocity(); 
+	Velocity.Z = 0.0f;
+	speed = Velocity.Size();
+
+	/*if(GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Emerald, FString::Printf(TEXT("front %f, sides %f"), Front, Sides));
+	}*/
+
+	Front = UKismetMathLibrary::Dot_VectorVector(Velocity, myCharacter->GetActorForwardVector());
+
+	Sides = UKismetMathLibrary::Dot_VectorVector(Velocity, myCharacter->GetActorRightVector());
 	 
 	bIsInAir = myCharacter->GetCharacterMovement()->IsFalling();
 

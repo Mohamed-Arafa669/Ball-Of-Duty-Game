@@ -261,7 +261,7 @@ void ACPPTestCharacter::MoveRight(float value)
 		}
 		else if (value > 0)
 		{
-			AddMovementInput(GetActorRightVector() * (value));
+			AddMovementInput(GetActorRightVector() * (value * StrafeMultiplier));
 			if (Dancing)
 			{
 				ServerStopAnimMontage();
